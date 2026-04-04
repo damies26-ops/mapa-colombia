@@ -197,11 +197,18 @@ function statusColor(status) {
 }
 
 function updateLabelVisibility() {
+  const activeCount = active.size;
+
   municipalities.forEach(item => {
     const label = labels[item.code];
     if (!label) return;
+
     const isFiltered = active.has(item.status);
-    const shouldShow = isFiltered && (IS_DESKTOP || state.scale >= LABEL_ZOOM_THRESHOLD);
+
+    const shouldShow = IS_DESKTOP
+      ? (activeCount < 3 && isFiltered)
+      : (isFiltered && state.scale >= LABEL_ZOOM_THRESHOLD);
+
     label.style.display = shouldShow ? 'block' : 'none';
   });
 }
