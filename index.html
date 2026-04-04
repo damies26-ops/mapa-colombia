@@ -175,6 +175,7 @@ const searchInput = document.getElementById('searchInput');
 
 const active = new Set(['Emancipada','En proceso','Nueva ciudad']);
 const state = { scale: 1, tx: 0, ty: 0 };
+let selectedCode = null;
 const MIN_SCALE = 1;
 const MAX_SCALE = 12;
 const IS_DESKTOP = window.matchMedia('(pointer:fine)').matches || window.innerWidth >= 980;
@@ -197,7 +198,7 @@ function statusColor(status) {
 }
 
 function updateLabelVisibility() {
-  const activeCount = active.size;
+  const allActive = active.size === 3;
 
   municipalities.forEach(item => {
     const label = labels[item.code];
@@ -205,9 +206,15 @@ function updateLabelVisibility() {
 
     const isFiltered = active.has(item.status);
 
-    const shouldShow = IS_DESKTOP
-      ? (activeCount < 3 && isFiltered)
-      : (isFiltered && state.scale >= LABEL_ZOOM_THRESHOLD);
+    let shouldShow;
+    if (IS_DESKTOP) {
+      // Show label if the item's category is active AND not all 3 are active (to avoid clutter)
+      // OR if this item is currently selected
+      shouldShow = isFiltered && (!allActive || item.code === selectedCode);
+    } else {
+      // On mobile, show only when filtered AND zoomed in enough
+      shouldShow = isFiltered && state.scale >= LABEL_ZOOM_THRESHOLD;
+    }
 
     label.style.display = shouldShow ? 'block' : 'none';
   });
