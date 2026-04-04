@@ -38,8 +38,8 @@ button:active { transform:scale(.98); }
 svg { width:100%; height:100%; display:block; touch-action:none; user-select:none; }
 .muni { vector-effect:non-scaling-stroke; }
 .muni-label {
-  font-size:3.2px; fill:#243447; paint-order:stroke; stroke:#fff; stroke-width:0.9px; stroke-linejoin:round;
-  letter-spacing:0.05px; pointer-events:none; user-select:none; display:none;
+  font-size:5px; fill:#243447; paint-order:stroke; stroke:#fff; stroke-width:1.2px; stroke-linejoin:round;
+  letter-spacing:0.1px; pointer-events:none; user-select:none;
 }
 .toolbar {
   position:absolute; right:12px; bottom:12px; display:flex; flex-direction:column; gap:8px;
@@ -101,7 +101,7 @@ small, .hint, .muted { color:var(--muted); font-size:12px; }
           <button class="filter-btn active" data-status="Nueva ciudad">Por conquistar</button>
           <button id="resetBtn">Restablecer</button>
         </div>
-        <p class="hint" style="margin:10px 0 0;">Los nombres de municipios se muestran solo al hacer más zoom o al seleccionar un municipio, para evitar sobreposición y mejorar la lectura en iPhone.</p>
+        <p class="hint" style="margin:10px 0 0;">Los municipios filtrados permanecen coloreados y con etiqueta visible. Las etiquetas se muestran en tamaño reducido para evitar sobreposición. Los demás quedan en gris para mantener el contexto geográfico.</p>
       </div>
 
       <div class="panel">
@@ -194,25 +194,13 @@ function statusColor(status) {
   return '#eef2f7';
 }
 
-function updateLabelVisibility() {
-  municipalities.forEach(item => {
-    const label = labels[item.code];
-    if (!label) return;
-    const isFiltered = active.has(item.status);
-    const isSelected = selectedCode === item.code;
-    const shouldShow = isFiltered && (state.scale >= LABEL_ZOOM_THRESHOLD || isSelected);
-    label.style.display = shouldShow ? 'block' : 'none';
-  });
-}
-
 function setTransform() {
   viewport.setAttribute('transform', `translate(${state.tx} ${state.ty}) scale(${state.scale})`);
-  const font = Math.max(2.6, 5.4 / state.scale);
+  const font = Math.max(5.5, 8 / state.scale);
   document.querySelectorAll('.muni-label').forEach(el => {
     el.style.fontSize = font + 'px';
-    el.style.strokeWidth = (1.2 / state.scale) + 'px';
+    el.style.strokeWidth = (1.8 / state.scale) + 'px';
   });
-  updateLabelVisibility();
 }
 
 function clampTransform() {
@@ -264,25 +252,18 @@ function applyFilters() {
     const visible = active.has(item.status);
     path.setAttribute('fill', visible ? item.color : '#e9eef4');
     path.setAttribute('stroke', visible ? '#6f7c89' : '#cfd7df');
+    if (labels[code]) labels[code].style.display = visible ? 'block' : 'none';
   });
   document.querySelectorAll('.filter-btn[data-status]').forEach(btn => {
     btn.classList.toggle('active', active.has(btn.dataset.status));
   });
-  if (selectedCode && !active.has(muniByCode[selectedCode]?.status)) {
-    selectedCode = null;
-  }
-  updateLabelVisibility();
 }
 
 function renderDetail(item) {
   if (!item) {
-    selectedCode = null;
-    updateLabelVisibility();
     detailPanel.innerHTML = `<h2>Detalle del municipio</h2><p class="muted">Toca un municipio coloreado en el mapa para ver su información.</p>`;
     return;
   }
-  selectedCode = item.code;
-  updateLabelVisibility();
   const recordsHtml = item.records.map((rec, i) => `
     <div class="record">
       <h3>Registro ${i+1} · ${rec.ubicacion || item.municipio}</h3>
