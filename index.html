@@ -38,8 +38,8 @@ button:active { transform:scale(.98); }
 svg { width:100%; height:100%; display:block; touch-action:none; user-select:none; }
 .muni { vector-effect:non-scaling-stroke; }
 .muni-label {
-  font-size:8px; fill:#243447; paint-order:stroke; stroke:#fff; stroke-width:2px; stroke-linejoin:round;
-  pointer-events:none; user-select:none;
+  font-size:5px; fill:#243447; paint-order:stroke; stroke:#fff; stroke-width:1.2px; stroke-linejoin:round;
+  letter-spacing:0.1px; pointer-events:none; user-select:none;
 }
 .toolbar {
   position:absolute; right:12px; bottom:12px; display:flex; flex-direction:column; gap:8px;
@@ -101,7 +101,7 @@ small, .hint, .muted { color:var(--muted); font-size:12px; }
           <button class="filter-btn active" data-status="Nueva ciudad">Por conquistar</button>
           <button id="resetBtn">Restablecer</button>
         </div>
-        <p class="hint" style="margin:10px 0 0;">Los municipios filtrados permanecen coloreados y con etiqueta visible. Los demás quedan en gris para mantener el contexto geográfico.</p>
+        <p class="hint" style="margin:10px 0 0;">Los municipios filtrados permanecen coloreados y con etiqueta visible. Las etiquetas se muestran en tamaño reducido para evitar sobreposición. Los demás quedan en gris para mantener el contexto geográfico.</p>
       </div>
 
       <div class="panel">
