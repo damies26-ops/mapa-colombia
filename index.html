@@ -208,7 +208,7 @@ function updateLabelVisibility() {
 
 function setTransform() {
   viewport.setAttribute('transform', `translate(${state.tx} ${state.ty}) scale(${state.scale})`);
-  const font = IS_DESKTOP ? Math.max(5, 7 / state.scale) : Math.max(2.5, 4 / state.scale);
+  const font = IS_DESKTOP ? Math.max(2.5, 4.5 / state.scale) : Math.max(2.5, 4 / state.scale);
   document.querySelectorAll('.muni-label').forEach(el => {
     el.style.fontSize = font + 'px';
     el.style.strokeWidth = (IS_DESKTOP ? 1.8 : 1.1) / state.scale + 'px';
