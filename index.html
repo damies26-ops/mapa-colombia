@@ -38,8 +38,9 @@ button:active { transform:scale(.98); }
 svg { width:100%; height:100%; display:block; touch-action:none; user-select:none; text-rendering:geometricPrecision; }
 .muni { vector-effect:non-scaling-stroke; }
 .muni-label {
-  font-size:3.2px; fill:#243447; paint-order:stroke; stroke:#fff; stroke-width:0.9px; stroke-linejoin:round;
-  letter-spacing:0.05px; pointer-events:none; user-select:none; visibility:hidden; opacity:0;
+  font-size:4px; fill:#243447; paint-order:stroke; stroke:#fff; stroke-width:0.9px; stroke-linejoin:round;
+  letter-spacing:0.05px; pointer-events:none; user-select:none; display:block; visibility:hidden; opacity:0;
+  transition:opacity .12s linear;
 }
 .toolbar {
   position:absolute; right:12px; bottom:12px; display:flex; flex-direction:column; gap:8px;
@@ -135,7 +136,7 @@ small, .hint, .muted { color:var(--muted); font-size:12px; }
       <div class="panel">
         <h2>Registros no ubicados automáticamente</h2>
         <p class="muted">Estos nombres no coinciden con un municipio oficial del mapa base o corresponden a centros poblados/corregimientos.</p>
-        <ul class="unmatched-list"><li><strong>Juan Mina</strong> <span>— Atlántico</span></li><li><strong>Bayunca</strong> <span>— Bolívar</span></li><li><strong>Malagana</strong> <span>— Bolívar</span></li><li><strong>Pasacaballos</strong> <span>— Bolívar</span></li><li><strong>Aguas Blancas</strong> <span>— Cesar</span></li><li><strong>Atanquez</strong> <span>— Cesar</span></li><li><strong>Conchurua</strong> <span>— Cesar</span></li><li><strong>El Cerro</strong> <span>— Cesar</span></li><li><strong>Media Luna</strong> <span>— Cesar</span></li><li><strong>La Mina</strong> <span>— Cesar</span></li><li><strong>Las Minas de iracal</strong> <span>— Cesar</span></li><li><strong>El Mojao</strong> <span>— Cesar</span></li><li><strong>Patillal</strong> <span>— Cesar</span></li><li><strong>Pontón</strong> <span>— Cesar</span></li><li><strong>Valencia de Jesús</strong> <span>— Cesar</span></li><li><strong>Guacochito</strong> <span>— Cesar</span></li><li><strong>La Vega</strong> <span>— Cesar</span></li><li><strong>Las flores</strong> <span>— Cesar</span></li><li><strong>Las raíces</strong> <span>— Cesar</span></li><li><strong>Los haticos</strong> <span>— Cesar</span></li><li><strong>Los corazones</strong> <span>— Cesar</span></li><li><strong>Maria Angola</strong> <span>— Cesar</span></li><li><strong>Mingueo</strong> <span>— La Guajira</span></li><li><strong>Piedra lisa</strong> <span>— La Guajira</span></li><li><strong>Rio seco</strong> <span>— Cesar</span></li><li><strong>Badillo</strong> <span>— Cesar</span></li><li><strong>Villa rueda</strong> <span>— Cesar</span></li><li><strong>Guatapuri</strong> <span>— Cesar</span></li><li><strong>Casacara</strong> <span>— Cesar</span></li><li><strong>Jagua del pilar</strong> <span>— La Guajira</span></li><li><strong>San José de oriente</strong> <span>— Cesar</span></li><li><strong>Santo Tomas de Villanueva</strong> <span>— Cesar</span></li><li><strong>La Gran Via</strong> <span>— Cundinamarca</span></li><li><strong>Orihueca</strong> <span>— Magdalena</span></li></ul>
+        <ul class="unmatched-list"><li><strong>Juan Mina</strong> <span>— Atlántico · Iglesia emancipada</span></li><li><strong>Bayunca</strong> <span>— Bolívar · Iglesia emancipada</span></li><li><strong>Malagana</strong> <span>— Bolívar · Iglesia emancipada</span></li><li><strong>Pasacaballos</strong> <span>— Bolívar · Iglesia emancipada</span></li><li><strong>Aguas Blancas</strong> <span>— Cesar · Iglesia emancipada</span></li><li><strong>Atanquez</strong> <span>— Cesar · Iglesia emancipada</span></li><li><strong>Conchurua</strong> <span>— Cesar · Iglesia emancipada</span></li><li><strong>El Cerro</strong> <span>— Cesar · Iglesia emancipada</span></li><li><strong>Media Luna</strong> <span>— Cesar · Iglesia emancipada</span></li><li><strong>La Mina</strong> <span>— Cesar · Iglesia emancipada</span></li><li><strong>Las Minas de iracal</strong> <span>— Cesar · Iglesia emancipada</span></li><li><strong>El Mojao</strong> <span>— Cesar · Iglesia emancipada</span></li><li><strong>Patillal</strong> <span>— Cesar · Iglesia emancipada</span></li><li><strong>Pontón</strong> <span>— Cesar · Iglesia emancipada</span></li><li><strong>Valencia de Jesús</strong> <span>— Cesar · Iglesia emancipada</span></li><li><strong>Guacochito</strong> <span>— Cesar · Iglesia por emancipar</span></li><li><strong>La Vega</strong> <span>— Cesar · Iglesia por emancipar</span></li><li><strong>Las flores</strong> <span>— Cesar · Iglesia por emancipar</span></li><li><strong>Las raíces</strong> <span>— Cesar · Iglesia por emancipar</span></li><li><strong>Los haticos</strong> <span>— Cesar · Iglesia por emancipar</span></li><li><strong>Los corazones</strong> <span>— Cesar · Iglesia por emancipar</span></li><li><strong>Maria Angola</strong> <span>— Cesar · Iglesia por emancipar</span></li><li><strong>Mingueo</strong> <span>— La Guajira · Iglesia por emancipar</span></li><li><strong>Piedra lisa</strong> <span>— La Guajira · Iglesia por emancipar</span></li><li><strong>Rio seco</strong> <span>— Cesar · Iglesia por emancipar</span></li><li><strong>Badillo</strong> <span>— Cesar · Iglesia por emancipar</span></li><li><strong>Villa rueda</strong> <span>— Cesar · Iglesia por emancipar</span></li><li><strong>Guatapuri</strong> <span>— Cesar · Iglesia por emancipar</span></li><li><strong>Casacara</strong> <span>— Cesar · Por conquistar</span></li><li><strong>Jagua del pilar</strong> <span>— La Guajira · Por conquistar</span></li><li><strong>San José de oriente</strong> <span>— Cesar · Por conquistar</span></li><li><strong>Santo Tomas de Villanueva</strong> <span>— Cesar · Por conquistar</span></li><li><strong>La Gran Via</strong> <span>— Cundinamarca · Iglesia por emancipar</span></li><li><strong>Orihueca</strong> <span>— Magdalena · Iglesia por emancipar</span></li></ul>
       </div>
     </div>
 
@@ -177,7 +178,8 @@ const active = new Set(['Emancipada','En proceso','Nueva ciudad']);
 const state = { scale: 1, tx: 0, ty: 0 };
 const MIN_SCALE = 1;
 const MAX_SCALE = 12;
-const LABEL_ZOOM_THRESHOLD = 2.2;
+const IS_DESKTOP = window.matchMedia('(pointer:fine)').matches || window.innerWidth >= 980;
+const LABEL_ZOOM_THRESHOLD = IS_DESKTOP ? 1.15 : 2.2;
 const WIDTH = 1000;
 const HEIGHT = 1400;
 
@@ -209,10 +211,12 @@ function updateLabelVisibility() {
 
 function setTransform() {
   viewport.setAttribute('transform', `translate(${state.tx} ${state.ty}) scale(${state.scale})`);
-  const font = Math.max(2.6, 5.4 / state.scale);
+  const minFont = IS_DESKTOP ? 4.2 : 2.6;
+  const baseFont = IS_DESKTOP ? 7.2 : 5.4;
+  const font = Math.max(minFont, baseFont / state.scale);
   document.querySelectorAll('.muni-label').forEach(el => {
     el.style.fontSize = font + 'px';
-    el.style.strokeWidth = (1.2 / state.scale) + 'px';
+    el.style.strokeWidth = (IS_DESKTOP ? 1.45 : 1.2) / state.scale + 'px';
   });
   updateLabelVisibility();
 }
