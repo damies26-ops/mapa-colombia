@@ -45,7 +45,7 @@ button:active { transform:scale(.98); }
 .map-svg { width:100%; height:100%; display:block; pointer-events:auto; user-select:none; text-rendering:geometricPrecision; }
 .muni { vector-effect:non-scaling-stroke; cursor:pointer; transition: fill .15s ease, opacity .15s ease, stroke .15s ease; }
 .muni-label {
-  font-size:8px; fill:#243447; paint-order:stroke; stroke:#fff; stroke-width:2px; stroke-linejoin:round;
+  font-size:4.5px; fill:#243447; paint-order:stroke; stroke:#fff; stroke-width:2px; stroke-linejoin:round;
   letter-spacing:0.05px; pointer-events:none; user-select:none; display:block;
 }
 .muni.selected { stroke:#132238!important; stroke-width:2!important; }
