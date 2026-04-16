@@ -2,9 +2,9 @@
   const WIDTH = 1000;
   const HEIGHT = 1400;
   const STATUS_META = {
-    "Emancipada": { color: "#F2D46B", label: "Iglesias emancipadas" },
-    "En proceso": { color: "#4A90E2", label: "Iglesias por emancipar" },
-    "Nueva ciudad": { color: "#D64541", label: "Por conquistar" }
+    "Emancipada": { color: "#F2D46B", label: "Iglesias emancipadas", short: "Emancipadas" },
+    "En proceso": { color: "#4A90E2", label: "Iglesias por emancipar", short: "Por emancipar" },
+    "Nueva ciudad": { color: "#D64541", label: "Por conquistar", short: "Por conquistar" }
   };
   const STORAGE_KEY = "mapa_colombia_active_filters_v1";
   const ACTIVE_DEFAULT = ["Emancipada", "En proceso", "Nueva ciudad"];
@@ -23,6 +23,7 @@
   const detailPanel = document.getElementById("detailPanel");
   const datalist = document.getElementById("municipios");
   const unmatchedList = document.getElementById("unmatchedList");
+  const legendContainer = document.getElementById("legendContainer");
 
   const map = L.map("map", {
     crs: L.CRS.Simple,
@@ -78,6 +79,7 @@
     unmatched = finalUnmatched;
     muniByCode = Object.fromEntries(municipalities.map(m => [String(m.code), m]));
 
+    renderLegend();
     renderUnmatched();
     hydrateDatalist();
     initMap();
@@ -158,6 +160,20 @@
         fitMunicipality(item);
       });
     });
+  }
+
+  function renderLegend() {
+    if (!legendContainer) return;
+
+    legendContainer.innerHTML = ACTIVE_DEFAULT.map(status => `
+      <div class="legend-item" data-legend-status="${escapeHtml(status)}">
+        <div class="legend-left">
+          <span class="swatch" style="background:${STATUS_META[status].color}"></span>
+          <span>${escapeHtml(STATUS_META[status].label)}</span>
+        </div>
+        <strong id="legend-count-${slugify(status)}">0</strong>
+      </div>
+    `).join("");
   }
 
   function renderUnmatched() {
@@ -264,11 +280,21 @@
   }
 
   function updateCounts() {
-    document.getElementById("count-emancipada").textContent = municipalities.filter(m => m.status === "Emancipada").length;
-    document.getElementById("count-proceso").textContent = municipalities.filter(m => m.status === "En proceso").length;
-    document.getElementById("count-nueva").textContent = municipalities.filter(m => m.status === "Nueva ciudad").length;
+    const counts = {};
+    ACTIVE_DEFAULT.forEach(status => counts[status] = 0);
+
+    municipalities.forEach(m => {
+      if (counts[m.status] !== undefined) counts[m.status] += 1;
+    });
+
+    ACTIVE_DEFAULT.forEach(status => {
+      const el = document.getElementById(`legend-count-${slugify(status)}`);
+      if (el) el.textContent = counts[status];
+    });
+
     document.getElementById("count-municipios").textContent = municipalities.length;
     document.getElementById("count-registros").textContent = municipalities.reduce((sum, m) => sum + (m.records?.length || 0), 0);
+
     const unmatchedEl = document.getElementById("count-unmatched");
     if (unmatchedEl) unmatchedEl.textContent = unmatched.length;
   }
@@ -307,8 +333,17 @@
     });
 
     document.querySelectorAll(".filter-btn[data-status]").forEach(btn => {
-      btn.classList.toggle("active", active.has(btn.dataset.status));
+      const status = btn.dataset.status;
+      btn.classList.toggle("active", active.has(status));
+      btn.disabled = !municipalities.some(m => m.status === status);
     });
+
+    if (legendContainer) {
+      legendContainer.querySelectorAll("[data-legend-status]").forEach(item => {
+        const status = item.dataset.legendStatus;
+        item.style.opacity = active.has(status) ? "1" : "0.5";
+      });
+    }
 
     updateCounts();
   }
@@ -398,6 +433,15 @@
     selectedCode = null;
     renderDetail(null);
     map.fitBounds(bounds, { padding: [10, 10] });
+  }
+
+  function slugify(value) {
+    return String(value)
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "");
   }
 
   function escapeHtml(value) {
