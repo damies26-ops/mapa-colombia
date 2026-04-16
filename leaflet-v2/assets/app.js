@@ -206,8 +206,8 @@
       const allActive = active.size === ACTIVE_DEFAULT.length;
       const show = active.has(item.status) && (
         selectedCode === item.code ||
-        (!allActive && zoom >= 0.4) ||
-        (allActive && zoom >= 1.6)
+        (!allActive && zoom >= 1.2) ||
+        (allActive && zoom >= 2.2)
       );
       label.style.display = show ? "block" : "none";
     });
