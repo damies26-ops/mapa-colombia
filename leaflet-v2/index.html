@@ -38,28 +38,15 @@
           <p class="hint" style="margin:10px 0 0;">Los nombres de municipios se muestran solo al hacer más zoom o al seleccionar un municipio, para evitar sobreposición y mejorar la lectura en iPhone.</p>
         </div>
 
-        <div class="panel">
-          <h2>Convención</h2>
-          <div class="legend">
-            <div class="legend-item">
-              <div class="legend-left"><span class="swatch" style="background:var(--yellow)"></span><span>Amarillo: Iglesias emancipadas</span></div>
-              <strong id="count-emancipada">0</strong>
-            </div>
-            <div class="legend-item">
-              <div class="legend-left"><span class="swatch" style="background:var(--blue)"></span><span>Azul: Iglesias por emancipar</span></div>
-              <strong id="count-proceso">0</strong>
-            </div>
-            <div class="legend-item">
-              <div class="legend-left"><span class="swatch" style="background:var(--red)"></span><span>Rojo: Por conquistar</span></div>
-              <strong id="count-nueva">0</strong>
-            </div>
-          </div>
-          <div class="stats" style="margin-top:12px;">
-            <div class="stat"><small>Municipios con dato</small><strong id="count-municipios">0</strong></div>
-            <div class="stat"><small>Registros totales</small><strong id="count-registros">0</strong></div>
-            <div class="stat"><small>No ubicados</small><strong id="count-unmatched">0</strong></div>
-          </div>
-        </div>
+      <div class="panel">
+  <h2>Convención</h2>
+  <div class="legend" id="legendContainer"></div>
+  <div class="stats" style="margin-top:12px;">
+    <div class="stat"><small>Municipios con dato</small><strong id="count-municipios">0</strong></div>
+    <div class="stat"><small>Registros totales</small><strong id="count-registros">0</strong></div>
+    <div class="stat"><small>No ubicados</small><strong id="count-unmatched">0</strong></div>
+  </div>
+</div>
 
         <div class="panel" id="detailPanel">
           <h2>Detalle del municipio</h2>
