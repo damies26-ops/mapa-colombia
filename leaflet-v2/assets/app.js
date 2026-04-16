@@ -8,6 +8,7 @@
   };
   const STORAGE_KEY = "mapa_colombia_active_filters_v1";
   const ACTIVE_DEFAULT = ["Emancipada", "En proceso", "Nueva ciudad"];
+  const SHEETS_ENDPOINT = "https://script.google.com/macros/s/AKfycbzShr_GWx8LPk_-R04YV3LbVjGY_FB0UE_89YW9SPJRluqMVEFAwVmqQ5E9zvyewC9DlA/exec";
 
   let municipalities = [];
   let muniByCode = {};
@@ -38,20 +39,44 @@
   init().catch(showError);
 
   async function init() {
-    const [municipalitiesResp, unmatchedResp, pathsResp] = await Promise.all([
+    const requests = [
       fetch("./data/municipalities.json", { cache: "no-cache" }),
       fetch("./data/unmatched.json", { cache: "no-cache" }),
       fetch("./data/map-paths.html", { cache: "no-cache" })
-    ]);
+    ];
 
-    if (!municipalitiesResp.ok || !unmatchedResp.ok || !pathsResp.ok) {
-      throw new Error("No fue posible cargar uno o más archivos de datos.");
+    if (SHEETS_ENDPOINT && !SHEETS_ENDPOINT.includes("PEGAR_AQUI_URL_EXEC")) {
+      requests.push(fetch(SHEETS_ENDPOINT, { cache: "no-cache" }));
     }
 
-    municipalities = await municipalitiesResp.json();
-    unmatched = await unmatchedResp.json();
+    const responses = await Promise.all(requests);
+    const [municipalitiesResp, unmatchedResp, pathsResp, sheetsResp] = responses;
+
+    if (!municipalitiesResp.ok || !unmatchedResp.ok || !pathsResp.ok) {
+      throw new Error("No fue posible cargar uno o más archivos base del mapa.");
+    }
+
+    const baseMunicipalities = await municipalitiesResp.json();
+    const baseUnmatched = await unmatchedResp.json();
     pathsMarkup = await pathsResp.text();
-    muniByCode = Object.fromEntries(municipalities.map(m => [m.code, m]));
+
+    let finalMunicipalities = baseMunicipalities;
+    let finalUnmatched = baseUnmatched;
+
+    if (sheetsResp && sheetsResp.ok) {
+      const sheetsPayload = await sheetsResp.json();
+      const sheetRows = normalizeSheetRows(sheetsPayload);
+
+      if (sheetRows.length > 0) {
+        const merged = mergeBaseWithSheetRows(baseMunicipalities, baseUnmatched, sheetRows);
+        finalMunicipalities = merged.municipalities;
+        finalUnmatched = merged.unmatched;
+      }
+    }
+
+    municipalities = finalMunicipalities;
+    unmatched = finalUnmatched;
+    muniByCode = Object.fromEntries(municipalities.map(m => [String(m.code), m]));
 
     renderUnmatched();
     hydrateDatalist();
@@ -142,6 +167,7 @@
   }
 
   function hydrateDatalist() {
+    datalist.innerHTML = "";
     municipalities
       .slice()
       .sort((a, b) => a.municipio.localeCompare(b.municipio, "es"))
@@ -168,8 +194,76 @@
     return STATUS_META[status]?.label || status || "Sin dato";
   }
 
+  function normalizeSheetRows(payload) {
+    const rows = Array.isArray(payload)
+      ? payload
+      : Array.isArray(payload?.rows)
+        ? payload.rows
+        : [];
+
+    return rows
+      .map(row => ({
+        dane: String(row.dane ?? "").trim(),
+        ubicacion: String(row.ubicacion ?? "").trim(),
+        municipio_mapa: String(row.municipio_mapa ?? "").trim(),
+        departamento: String(row.departamento ?? "").trim(),
+        estado: String(row.estado ?? "").trim(),
+        region: String(row.region ?? "").trim(),
+        macroregion: String(row.macroregion ?? "").trim()
+      }))
+      .filter(row => row.dane && ACTIVE_DEFAULT.includes(row.estado));
+  }
+
+  function mergeBaseWithSheetRows(baseMunicipalities, baseUnmatched, sheetRows) {
+    const rowsByCode = new Map();
+    sheetRows.forEach(row => {
+      const code = String(row.dane).trim();
+      if (!rowsByCode.has(code)) rowsByCode.set(code, []);
+      rowsByCode.get(code).push(row);
+    });
+
+    const municipalitiesMerged = baseMunicipalities.map(baseItem => {
+      const code = String(baseItem.code).trim();
+      const rows = rowsByCode.get(code);
+
+      if (!rows || rows.length === 0) {
+        return baseItem;
+      }
+
+      const status = rows[0].estado;
+
+      return {
+        ...baseItem,
+        status,
+        color: statusColor(status),
+        records: rows.map(row => ({
+          ubicacion: row.ubicacion || baseItem.municipio,
+          municipio_mapa: row.municipio_mapa || baseItem.municipio,
+          departamento: row.departamento || baseItem.departamento,
+          estado: row.estado || status,
+          region: row.region || "",
+          macroregion: row.macroregion || "",
+          dane: row.dane || code
+        }))
+      };
+    });
+
+    const knownCodes = new Set(baseMunicipalities.map(m => String(m.code).trim()));
+
+    const newUnmatchedFromSheet = sheetRows
+      .filter(row => !knownCodes.has(String(row.dane).trim()))
+      .map(row => ({
+        name: row.ubicacion || row.municipio_mapa || row.dane,
+        detail: `${row.departamento || "Sin departamento"} · ${row.estado || "Sin estado"} · DANE ${row.dane}`
+      }));
+
+    return {
+      municipalities: municipalitiesMerged,
+      unmatched: [...baseUnmatched, ...newUnmatchedFromSheet]
+    };
+  }
+
   function updateCounts() {
-    const visible = municipalities.filter(m => active.has(m.status));
     document.getElementById("count-emancipada").textContent = municipalities.filter(m => m.status === "Emancipada").length;
     document.getElementById("count-proceso").textContent = municipalities.filter(m => m.status === "En proceso").length;
     document.getElementById("count-nueva").textContent = municipalities.filter(m => m.status === "Nueva ciudad").length;
@@ -192,7 +286,7 @@
         return;
       }
       const visible = active.has(item.status);
-      path.setAttribute("fill", visible ? item.color : "#e9eef4");
+      path.setAttribute("fill", visible ? (item.color || statusColor(item.status)) : "#e9eef4");
       path.setAttribute("stroke", visible ? "#6f7c89" : "#cfd7df");
       path.style.opacity = visible ? "1" : "0.55";
       path.classList.toggle("selected", selectedCode === item.code);
@@ -228,7 +322,19 @@
     }
 
     selectedCode = item.code;
-    const recordsHtml = (item.records || []).map((record, index) => `
+    const records = item.records?.length
+      ? item.records
+      : [{
+          ubicacion: item.municipio,
+          municipio_mapa: item.municipio,
+          departamento: item.departamento,
+          estado: item.status,
+          region: "",
+          macroregion: "",
+          dane: item.code
+        }];
+
+    const recordsHtml = records.map((record, index) => `
       <div class="record">
         <h3>Registro ${index + 1} · ${escapeHtml(record.ubicacion || item.municipio)}</h3>
         <p><strong>Municipio:</strong> ${escapeHtml(item.municipio)}</p>
