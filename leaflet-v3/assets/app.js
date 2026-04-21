@@ -1,4 +1,4 @@
-const SHEETS_ENDPOINT = "PEGAR_AQUI_URL_EXEC";
+const SHEETS_ENDPOINT = "https://script.google.com/macros/s/AKfycbzShr_GWx8LPk_-R04YV3LbVjGY_FB0UE_89YW9SPJRluqMVEFAwVmqQ5E9zvyewC9DlA/exec";
 
 // Capa oficial DANE - Municipios (ID 9)
 const DANE_URL = "https://geoportal.dane.gov.co/mparcgis/rest/services/Divipola/Cache_DivipolaEntidadesTerritorialesCP/MapServer/9/query?where=1%3D1&outFields=COD_MPIO,NOM_MPIO,NOM_DPTO&returnGeometry=true&f=geojson";
