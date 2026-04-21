@@ -1,4 +1,4 @@
-const SHEETS_ENDPOINT = "PEGAR_AQUI_URL_EXEC";
+const SHEETS_ENDPOINT = "https://script.google.com/macros/s/AKfycbzShr_GWx8LPk_-R04YV3LbVjGY_FB0UE_89YW9SPJRluqMVEFAwVmqQ5E9zvyewC9DlA/exec";
 
 // 🔥 capa oficial DANE (GeoJSON)
 const DANE_URL = "https://geoportal.dane.gov.co/mparcgis/rest/services/Divipola/Cache_DivipolaEntidadesTerritorialesCP/MapServer/9/query?where=1=1&outFields=*&f=geojson";
