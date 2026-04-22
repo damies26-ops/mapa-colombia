@@ -4,15 +4,18 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Mapa interactivo de Colombia · V3</title>
-  <meta name="description" content="Mapa interactivo de municipios de Colombia con capa completa, Google Sheets, filtros, detalle y búsqueda.">
+  <meta name="description" content="Mapa completo de municipios con integración a Google Sheets, filtros, detalle, búsqueda y lista de no ubicados.">
   <link rel="preconnect" href="https://unpkg.com">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
   <style>
-    :root { --bg:#f5f7fb; --card:#ffffff; --text:#132238; --muted:#5f6f82; --line:#d8e0ea; --yellow:#F2D46B; --blue:#4A90E2; --red:#D64541; --gray:#eef2f7; --shadow:0 8px 20px rgba(19,34,56,.06); }
+    :root {
+      --bg:#f5f7fb; --card:#ffffff; --text:#132238; --muted:#5f6f82; --line:#d8e0ea;
+      --yellow:#F2D46B; --blue:#4A90E2; --red:#D64541; --shadow:0 8px 20px rgba(19,34,56,.06);
+    }
     * { box-sizing:border-box; }
     html, body { margin:0; padding:0; background:var(--bg); color:var(--text); font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; }
     body.loading { overflow:hidden; }
-    .app { display:flex; flex-direction:column; gap:12px; padding:max(12px, env(safe-area-inset-top)) 12px max(12px, env(safe-area-inset-bottom)); max-width:100%; }
+    .app { display:flex; flex-direction:column; gap:12px; padding:12px; max-width:100%; }
     .header, .panel, .map-card { background:var(--card); border:1px solid var(--line); border-radius:18px; box-shadow:var(--shadow); }
     .header { padding:14px 16px; }
     .header h1 { margin:0 0 6px; font-size:20px; line-height:1.1; }
@@ -53,13 +56,14 @@
     .unmatched-list { margin:8px 0 0; padding-left:18px; max-height:220px; overflow:auto; }
     .unmatched-list li { margin-bottom:6px; font-size:13px; }
     .map-card { overflow:hidden; position:relative; }
-    .map-wrap { position:relative; width:100%; height:62vh; min-height:480px; background:linear-gradient(180deg, #fbfcfe 0%, #f2f5fa 100%); }
+    .map-wrap { position:relative; width:100%; height:62vh; min-height:480px; background:#edf2f7; }
     #map { width:100%; height:100%; }
     .map-toolbar { position:absolute; right:12px; bottom:12px; display:flex; flex-direction:column; gap:8px; z-index:700; }
     .map-toolbar button { width:44px; height:44px; padding:0; font-size:22px; border-radius:14px; background:rgba(255,255,255,.95); box-shadow:0 4px 10px rgba(0,0,0,.08); }
     .leaflet-popup-content { font-size:13px; line-height:1.45; margin:12px 14px; }
     .leaflet-container { background:#edf2f7; }
-    .v3-label { background:transparent; border:none; box-shadow:none; color:#243447; font-size:8px; font-weight:600; text-shadow:-1px -1px 0 #fff,1px -1px 0 #fff,-1px 1px 0 #fff,1px 1px 0 #fff; white-space:nowrap; pointer-events:none; }
+    .v3-label { background:transparent; border:none; box-shadow:none; color:#243447; font-size:8px; font-weight:600;
+      text-shadow:-1px -1px 0 #fff,1px -1px 0 #fff,-1px 1px 0 #fff,1px 1px 0 #fff; white-space:nowrap; pointer-events:none; }
     @media (min-width:980px) { .grid { grid-template-columns:minmax(320px, 420px) 1fr; align-items:start; } .app { padding:18px; } .controls { grid-template-columns:1fr auto; align-items:center; } }
   </style>
 </head>
@@ -71,22 +75,62 @@
       <div id="loadingBanner" class="loading-banner">Cargando capa completa de municipios, Google Sheets y estilos del mapa…</div>
       <div id="errorBanner" class="error-banner hidden"></div>
     </div>
+
     <div class="grid">
       <div class="side">
         <div class="panel">
           <h2>Búsqueda y filtros</h2>
-          <div class="controls"><div class="search-row"><input id="searchInput" type="text" list="municipios" placeholder="Buscar municipio o departamento"><button id="searchBtn" type="button">Buscar</button></div></div>
+          <div class="controls">
+            <div class="search-row">
+              <input id="searchInput" type="text" list="municipios" placeholder="Buscar municipio o departamento">
+              <button id="searchBtn" type="button">Buscar</button>
+            </div>
+          </div>
           <datalist id="municipios"></datalist>
-          <div class="filters" style="margin-top:10px;"><button class="filter-btn active" data-status="Emancipada" type="button">Emancipadas</button><button class="filter-btn active" data-status="En proceso" type="button">Por emancipar</button><button class="filter-btn active" data-status="Nueva ciudad" type="button">Por conquistar</button><button id="resetBtn" type="button">Restablecer</button></div>
+          <div class="filters" style="margin-top:10px;">
+            <button class="filter-btn active" data-status="Emancipada" type="button">Emancipadas</button>
+            <button class="filter-btn active" data-status="En proceso" type="button">Por emancipar</button>
+            <button class="filter-btn active" data-status="Nueva ciudad" type="button">Por conquistar</button>
+            <button id="resetBtn" type="button">Restablecer</button>
+          </div>
           <p class="hint" style="margin:10px 0 0;">Las etiquetas de municipios se muestran al acercar el zoom o al seleccionar un municipio para evitar sobreposición.</p>
         </div>
-        <div class="panel"><h2>Convención</h2><div class="legend" id="legendContainer"></div><div class="stats" style="margin-top:12px;"><div class="stat"><small>Municipios con dato</small><strong id="count-municipios">0</strong></div><div class="stat"><small>Registros totales</small><strong id="count-registros">0</strong></div><div class="stat"><small>No ubicados</small><strong id="count-unmatched">0</strong></div></div></div>
-        <div class="panel" id="detailPanel"><h2>Detalle del municipio</h2><p class="muted">Toca un municipio coloreado en el mapa para ver su información.</p></div>
-        <div class="panel"><h2>Registros no ubicados automáticamente</h2><p class="muted">Estos registros vienen desde Google Sheets pero no se pudieron ubicar en la capa completa por código DANE.</p><ul class="unmatched-list" id="unmatchedList"></ul></div>
+
+        <div class="panel">
+          <h2>Convención</h2>
+          <div class="legend" id="legendContainer"></div>
+          <div class="stats" style="margin-top:12px;">
+            <div class="stat"><small>Municipios con dato</small><strong id="count-municipios">0</strong></div>
+            <div class="stat"><small>Registros totales</small><strong id="count-registros">0</strong></div>
+            <div class="stat"><small>No ubicados</small><strong id="count-unmatched">0</strong></div>
+          </div>
+        </div>
+
+        <div class="panel" id="detailPanel">
+          <h2>Detalle del municipio</h2>
+          <p class="muted">Toca un municipio coloreado en el mapa para ver su información.</p>
+        </div>
+
+        <div class="panel">
+          <h2>Registros no ubicados automáticamente</h2>
+          <p class="muted">Estos registros vienen desde Google Sheets pero no se pudieron ubicar en la capa completa por código DANE.</p>
+          <ul class="unmatched-list" id="unmatchedList"></ul>
+        </div>
       </div>
-      <div class="map-card"><div class="map-wrap"><div id="map" aria-label="Mapa completo de municipios de Colombia"></div><div class="map-toolbar"><button id="zoomIn" type="button" aria-label="Acercar">+</button><button id="zoomOut" type="button" aria-label="Alejar">−</button><button id="fitAll" type="button" aria-label="Ver todo">⌂</button></div></div></div>
+
+      <div class="map-card">
+        <div class="map-wrap">
+          <div id="map" aria-label="Mapa completo de municipios de Colombia"></div>
+          <div class="map-toolbar">
+            <button id="zoomIn" type="button" aria-label="Acercar">+</button>
+            <button id="zoomOut" type="button" aria-label="Alejar">−</button>
+            <button id="fitAll" type="button" aria-label="Ver todo">⌂</button>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
+
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
   <script src="./assets/app.js" defer></script>
 </body>

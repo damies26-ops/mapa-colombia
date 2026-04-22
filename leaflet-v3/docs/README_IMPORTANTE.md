@@ -1,8 +1,9 @@
-# V3 corregida y empaquetada
+# V3 corregida
 
-Este paquete está corregido en la arquitectura: ya no depende de un endpoint remoto del DANE que pueda fallar por CORS o timeout.
+Incluye:
+- `index.html`
+- `assets/app.js`
+- `data/colombia-municipios.geojson`
+- `docs/PLAN_MIGRACION_V3.md`
 
-## Falta para producción
-Debes reemplazar data/colombia-municipios.geojson por el GeoJSON completo real de municipios.
-
-El archivo incluido es solo una muestra vacía para que el paquete no falle por estructura.
+Recuerda editar `assets/app.js` y poner la URL real del Apps Script en `SHEETS_ENDPOINT`.

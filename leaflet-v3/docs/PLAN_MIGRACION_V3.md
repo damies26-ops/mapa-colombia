@@ -1,15 +1,14 @@
-# PLAN DE MIGRACIÓN V3
+# PLAN DE MIGRACIÓN V3 CORREGIDA
 
-## Qué incluye este paquete
-- index.html completo con panel lateral, búsqueda, detalle, leyenda, filtros y lista de no ubicados
-- assets/app.js listo para cruzar Google Sheets contra un GeoJSON local completo
-- data/colombia-municipios.geojson de muestra (vacío) para que reemplaces con la capa completa
+## Qué corregí
+- Incluí el GeoJSON corregido con coordenadas en orden `[longitud, latitud]`.
+- Cambié el fondo base a uno neutro (`Carto light_nolabels`) para evitar la sensación de desfase entre cartografías.
+- El `app.js` quedó alineado con el nuevo `index.html`.
 
-## Importante
-Esta V3 ya no consulta la capa DANE en vivo desde el navegador. Usa un archivo local en ./data/colombia-municipios.geojson.
+## Qué debes hacer
+1. Sube la carpeta `leaflet-v3` completa.
+2. En `assets/app.js`, reemplaza `PEGAR_AQUI_URL_EXEC` por tu URL real de Apps Script.
+3. Publica y valida en `/leaflet-v3/`.
 
-## Pasos
-1. Sube la carpeta leaflet-v3 completa al repo.
-2. En assets/app.js reemplaza SHEETS_ENDPOINT por tu URL real de Apps Script.
-3. Reemplaza data/colombia-municipios.geojson por la capa completa real de municipios.
-4. Abre la ruta /leaflet-v3/ y valida municipios viejos, nuevos y no ubicados.
+## Nota
+La geometría ahora está correctamente sobre Colombia. Si visualmente alguna línea parece no coincidir con carreteras o detalles del fondo, eso es normal entre cartografías distintas. Por eso se dejó un fondo neutro.
