@@ -1,94 +1,91 @@
 (() => {
+  const WIDTH = 1000;
+  const HEIGHT = 1400;
   const STATUS_META = {
     "Emancipada": { color: "#F2D46B", label: "Iglesias emancipadas" },
     "En proceso": { color: "#4A90E2", label: "Iglesias por emancipar" },
     "Nueva ciudad": { color: "#D64541", label: "Por conquistar" }
   };
+  const STORAGE_KEY = "mapa_colombia_active_filters_v1";
   const ACTIVE_DEFAULT = ["Emancipada", "En proceso", "Nueva ciudad"];
-  const STORAGE_KEY = "mapa_colombia_v3_active_filters";
-  const SHEETS_ENDPOINT = "https://script.google.com/macros/s/AKfycbzShr_GWx8LPk_-R04YV3LbVjGY_FB0UE_89YW9SPJRluqMVEFAwVmqQ5E9zvyewC9DlA/exec";
-  const GEOJSON_URL = "./data/colombia-municipios.geojson";
 
+  let municipalities = [];
+  let muniByCode = {};
+  let unmatched = [];
+  let pathsMarkup = "";
   let active = loadActiveFilters();
-  let selectedDane = null;
-  let geoLayer = null;
-  let labelLayer = null;
-  let allFeatures = [];
-  let sheetRows = [];
-  let unmatchedRows = [];
+  let selectedCode = null;
+  let svgRoot = null;
 
   const loadingBanner = document.getElementById("loadingBanner");
   const errorBanner = document.getElementById("errorBanner");
   const detailPanel = document.getElementById("detailPanel");
   const datalist = document.getElementById("municipios");
   const unmatchedList = document.getElementById("unmatchedList");
-  const legendContainer = document.getElementById("legendContainer");
 
-  const map = L.map("map", { zoomSnap: 0.25, zoomDelta: 0.5, attributionControl: false }).setView([4.5, -74], 6);
+  const map = L.map("map", {
+    crs: L.CRS.Simple,
+    minZoom: -0.2,
+    maxZoom: 5,
+    zoomSnap: 0.25,
+    zoomDelta: 0.5,
+    attributionControl: false
+  });
 
-  // Fondo neutro para evitar sensación de desfase entre cartografías
-  L.tileLayer("https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png", {
-    attribution: "&copy; OpenStreetMap &copy; CARTO",
-    maxZoom: 18
-  }).addTo(map);
+  const bounds = [[0, 0], [HEIGHT, WIDTH]];
+  let overlay = null;
 
   init().catch(showError);
 
   async function init() {
-    const requests = [
-      fetch(GEOJSON_URL, { cache: "no-cache" }).then(r => {
-        if (!r.ok) throw new Error("No fue posible cargar ./data/colombia-municipios.geojson");
-        return r.json();
-      })
-    ];
+    const [municipalitiesResp, unmatchedResp, pathsResp] = await Promise.all([
+      fetch("./data/municipalities.json", { cache: "no-cache" }),
+      fetch("./data/unmatched.json", { cache: "no-cache" }),
+      fetch("./data/map-paths.html", { cache: "no-cache" })
+    ]);
 
-    if (SHEETS_ENDPOINT && !SHEETS_ENDPOINT.includes("PEGAR_AQUI_URL_EXEC")) {
-      requests.push(fetch(SHEETS_ENDPOINT, { cache: "no-cache" }).then(r => {
-        if (!r.ok) throw new Error("No fue posible cargar Google Sheets");
-        return r.json();
-      }));
-    } else {
-      requests.push(Promise.resolve([]));
+    if (!municipalitiesResp.ok || !unmatchedResp.ok || !pathsResp.ok) {
+      throw new Error("No fue posible cargar uno o más archivos de datos.");
     }
 
-    const [geojson, sheetsPayload] = await Promise.all(requests);
-
-    if (!geojson || !Array.isArray(geojson.features)) {
-      throw new Error("El GeoJSON local no es válido o no contiene features.");
-    }
-
-    if (geojson.features.length === 0) {
-      throw new Error("El archivo colombia-municipios.geojson está vacío.");
-    }
-
-    sheetRows = normalizeSheetRows(sheetsPayload);
-    const merged = mergeGeoWithSheets(geojson.features, sheetRows);
-    allFeatures = merged.features;
-    unmatchedRows = merged.unmatched;
+    municipalities = await municipalitiesResp.json();
+    unmatched = await unmatchedResp.json();
+    pathsMarkup = await pathsResp.text();
+    muniByCode = Object.fromEntries(municipalities.map(m => [m.code, m]));
 
     renderUnmatched();
     hydrateDatalist();
+    initMap();
     bindUi();
-    renderMap();
     loadingBanner.classList.add("hidden");
     document.body.classList.remove("loading");
+  }
+
+  function initMap() {
+    overlay = L.svgOverlay(createSvg(), bounds, { interactive: true, opacity: 1 }).addTo(map);
+    map.fitBounds(bounds, { padding: [10, 10] });
+    L.control.attribution({ prefix: false }).addTo(map);
+    map.on("zoomend moveend", updateStyles);
+    map.on("click", () => renderDetail(null));
+
+    updateCounts();
+    updateStyles();
   }
 
   function bindUi() {
     document.getElementById("zoomIn").addEventListener("click", () => map.zoomIn(0.5));
     document.getElementById("zoomOut").addEventListener("click", () => map.zoomOut(0.5));
-    document.getElementById("fitAll").addEventListener("click", fitAllVisible);
+    document.getElementById("fitAll").addEventListener("click", resetView);
     document.getElementById("searchBtn").addEventListener("click", searchAndFocus);
     document.getElementById("searchInput").addEventListener("keydown", event => {
       if (event.key === "Enter") searchAndFocus();
     });
     document.getElementById("resetBtn").addEventListener("click", () => {
       active = new Set(ACTIVE_DEFAULT);
-      selectedDane = null;
       persistActiveFilters();
       document.getElementById("searchInput").value = "";
-      renderDetail(null);
-      renderMap();
+      resetView();
+      updateStyles();
     });
 
     document.querySelectorAll(".filter-btn[data-status]").forEach(btn => {
@@ -101,294 +98,208 @@
         } else {
           active.add(status);
         }
-        if (selectedDane) {
-          const current = allFeatures.find(f => f.properties.dane === selectedDane);
-          if (current && !active.has(current.properties.estado)) selectedDane = null;
-        }
+        if (selectedCode && !active.has(muniByCode[selectedCode]?.status)) selectedCode = null;
         persistActiveFilters();
-        renderMap();
-        renderDetail(selectedDane ? allFeatures.find(f => f.properties.dane === selectedDane) : null);
+        updateStyles();
+        renderDetail(selectedCode ? muniByCode[selectedCode] : null);
       });
     });
-
-    map.on("zoomend", updateLabels);
-    map.on("click", () => {
-      selectedDane = null;
-      renderDetail(null);
-      renderMap();
-    });
   }
 
-  function normalizeSheetRows(payload) {
-    const rows = Array.isArray(payload) ? payload : (Array.isArray(payload?.rows) ? payload.rows : []);
-    return rows
-      .map(row => ({
-        dane: String(row.dane ?? "").trim().padStart(5, "0"),
-        ubicacion: String(row.ubicacion ?? "").trim(),
-        municipio_mapa: String(row.municipio_mapa ?? "").trim(),
-        departamento: String(row.departamento ?? "").trim(),
-        estado: String(row.estado ?? "").trim(),
-        region: String(row.region ?? "").trim(),
-        macroregion: String(row.macroregion ?? "").trim()
-      }))
-      .filter(row => row.dane && ACTIVE_DEFAULT.includes(row.estado));
+  function createSvg() {
+    const svgMarkup = `
+      <svg class="map-svg" id="embeddedSvg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${WIDTH} ${HEIGHT}">
+        <g id="paths">${pathsMarkup}</g>
+        <g id="labels">
+          ${municipalities.map(item => `<text id="label-${item.code}" class="muni-label" x="${item.label[0]}" y="${item.label[1]}">${escapeHtml(item.municipio)}</text>`).join("")}
+        </g>
+      </svg>
+    `;
+    const wrapper = document.createElement("div");
+    wrapper.innerHTML = svgMarkup.trim();
+    svgRoot = wrapper.firstChild;
+    bindSvgInteractions(svgRoot);
+    return svgRoot;
   }
 
-  function mergeGeoWithSheets(features, rows) {
-    const rowsByDane = new Map();
-    rows.forEach(row => {
-      if (!rowsByDane.has(row.dane)) rowsByDane.set(row.dane, []);
-      rowsByDane.get(row.dane).push(row);
-    });
-
-    const geoDaneSet = new Set();
-    const mergedFeatures = [];
-
-    for (const feature of features) {
-      const props = feature.properties || {};
-      const dane = String(props.dane ?? props.DANE ?? props.COD_MPIO ?? props.CODIGO_DANE ?? "").trim().padStart(5, "0");
-      if (!dane) continue;
-      geoDaneSet.add(dane);
-
-      const rowsForDane = rowsByDane.get(dane);
-      if (!rowsForDane || rowsForDane.length === 0) continue;
-
-      const municipio = props.municipio || props.NOM_MPIO || props.name || rowsForDane[0].municipio_mapa || rowsForDane[0].ubicacion || dane;
-      const departamento = props.departamento || props.NOM_DPTO || rowsForDane[0].departamento || "";
-      const estado = rowsForDane[0].estado;
-
-      mergedFeatures.push({
-        type: "Feature",
-        geometry: feature.geometry,
-        properties: {
-          dane,
-          municipio,
-          departamento,
-          estado,
-          color: STATUS_META[estado].color,
-          records: rowsForDane
-        }
+  function bindSvgInteractions(svg) {
+    svg.querySelectorAll(".muni").forEach(path => {
+      path.addEventListener("click", event => {
+        const code = path.dataset.code;
+        const item = muniByCode[code];
+        if (!item || !active.has(item.status)) return;
+        event.stopPropagation();
+        renderDetail(item);
+        fitMunicipality(item);
       });
-    }
-
-    const unmatched = rows
-      .filter(row => !geoDaneSet.has(row.dane))
-      .map(row => ({
-        name: row.ubicacion || row.municipio_mapa || row.dane,
-        detail: `${row.departamento || "Sin departamento"} · ${row.estado} · DANE ${row.dane}`
-      }));
-
-    return { features: mergedFeatures, unmatched };
+    });
   }
 
-  function renderMap() {
-    const visibleFeatures = allFeatures.filter(f => active.has(f.properties.estado));
+  function renderUnmatched() {
+    unmatchedList.innerHTML = unmatched.map(item => (
+      `<li><strong>${escapeHtml(item.name)}</strong> <span>— ${escapeHtml(item.detail)}</span></li>`
+    )).join("");
+  }
 
-    if (geoLayer) map.removeLayer(geoLayer);
-    if (labelLayer) map.removeLayer(labelLayer);
+  function hydrateDatalist() {
+    municipalities
+      .slice()
+      .sort((a, b) => a.municipio.localeCompare(b.municipio, "es"))
+      .forEach(item => {
+        const option = document.createElement("option");
+        option.value = `${item.municipio} - ${item.departamento}`;
+        datalist.appendChild(option);
+      });
+  }
 
-    geoLayer = L.geoJSON(visibleFeatures, {
-      style: feature => ({
-        color: selectedDane === feature.properties.dane ? "#243447" : "#6f7c89",
-        weight: selectedDane === feature.properties.dane ? 2 : 1,
-        fillColor: feature.properties.color,
-        fillOpacity: 0.82
-      }),
-      onEachFeature: (feature, layer) => {
-        layer.on("click", event => {
-          L.DomEvent.stopPropagation(event);
-          selectedDane = feature.properties.dane;
-          renderDetail(feature);
-          fitFeature(layer);
-          renderMap();
-        });
-        layer.bindPopup(buildPopupHtml(feature.properties));
+  function normalize(value) {
+    return String(value ?? "")
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase()
+      .trim();
+  }
+
+  function statusColor(status) {
+    return STATUS_META[status]?.color || "#eef2f7";
+  }
+
+  function statusLabel(status) {
+    return STATUS_META[status]?.label || status || "Sin dato";
+  }
+
+  function updateCounts() {
+    const visible = municipalities.filter(m => active.has(m.status));
+    document.getElementById("count-emancipada").textContent = municipalities.filter(m => m.status === "Emancipada").length;
+    document.getElementById("count-proceso").textContent = municipalities.filter(m => m.status === "En proceso").length;
+    document.getElementById("count-nueva").textContent = municipalities.filter(m => m.status === "Nueva ciudad").length;
+    document.getElementById("count-municipios").textContent = municipalities.length;
+    document.getElementById("count-registros").textContent = municipalities.reduce((sum, m) => sum + (m.records?.length || 0), 0);
+    const unmatchedEl = document.getElementById("count-unmatched");
+    if (unmatchedEl) unmatchedEl.textContent = unmatched.length;
+  }
+
+  function updateStyles() {
+    if (!svgRoot) return;
+
+    svgRoot.querySelectorAll(".muni").forEach(path => {
+      const item = muniByCode[path.dataset.code];
+      if (!item) {
+        path.setAttribute("fill", "#eef2f7");
+        path.setAttribute("stroke", "#cfd7df");
+        path.style.opacity = 1;
+        path.classList.remove("selected");
+        return;
       }
-    }).addTo(map);
-
-    labelLayer = L.layerGroup(buildLabels(visibleFeatures)).addTo(map);
-
-    renderLegend(visibleFeatures);
-    updateCounts(visibleFeatures);
-    updateFilterButtons();
-    updateLabels();
-
-    if (visibleFeatures.length > 0 && !selectedDane) fitAllVisible();
-  }
-
-  function buildLabels(features) {
-    return features.map(feature => {
-      const center = featureCenter(feature);
-      if (!center) return null;
-      return L.marker(center, {
-        interactive: false,
-        icon: L.divIcon({
-          className: "v3-label",
-          html: escapeHtml(feature.properties.municipio)
-        })
-      });
-    }).filter(Boolean);
-  }
-
-  function updateLabels() {
-    if (!labelLayer) return;
-    const zoom = map.getZoom();
-    const show = zoom >= 8 || !!selectedDane;
-    labelLayer.eachLayer(layer => {
-      const el = layer.getElement();
-      if (el) el.style.display = show ? "block" : "none";
+      const visible = active.has(item.status);
+      path.setAttribute("fill", visible ? item.color : "#e9eef4");
+      path.setAttribute("stroke", visible ? "#6f7c89" : "#cfd7df");
+      path.style.opacity = visible ? "1" : "0.55";
+      path.classList.toggle("selected", selectedCode === item.code);
     });
-  }
 
-  function renderLegend(visibleFeatures) {
-    const counts = {};
-    ACTIVE_DEFAULT.forEach(status => counts[status] = 0);
-    visibleFeatures.forEach(f => counts[f.properties.estado]++);
-    legendContainer.innerHTML = ACTIVE_DEFAULT.map(status => `
-      <div class="legend-item" data-legend-status="${escapeHtml(status)}" style="opacity:${active.has(status) ? 1 : 0.5}">
-        <div class="legend-left">
-          <span class="swatch" style="background:${STATUS_META[status].color}"></span>
-          <span>${escapeHtml(STATUS_META[status].label)}</span>
-        </div>
-        <strong>${counts[status] || 0}</strong>
-      </div>
-    `).join("");
-    legendContainer.querySelectorAll("[data-legend-status]").forEach(item => {
-      item.addEventListener("click", () => {
-        const status = item.dataset.legendStatus;
-        const btn = document.querySelector(`.filter-btn[data-status="${CSS.escape(status)}"]`);
-        if (btn) btn.click();
-      });
+    svgRoot.querySelectorAll(".muni-label").forEach(label => {
+      const code = label.id.replace("label-", "");
+      const item = muniByCode[code];
+      if (!item) return;
+      const zoom = map.getZoom();
+      const allActive = active.size === ACTIVE_DEFAULT.length;
+      const show = active.has(item.status) && (
+        selectedCode === item.code ||
+        (!allActive && zoom >= 0.4) ||
+        (allActive && zoom >= 1.6)
+      );
+      label.style.display = show ? "block" : "none";
     });
-  }
 
-  function updateCounts(visibleFeatures) {
-    document.getElementById("count-municipios").textContent = visibleFeatures.length;
-    document.getElementById("count-registros").textContent = sheetRows.length;
-    document.getElementById("count-unmatched").textContent = unmatchedRows.length;
-  }
-
-  function updateFilterButtons() {
     document.querySelectorAll(".filter-btn[data-status]").forEach(btn => {
-      const status = btn.dataset.status;
-      btn.classList.toggle("active", active.has(status));
-      btn.disabled = !allFeatures.some(f => f.properties.estado === status);
+      btn.classList.toggle("active", active.has(btn.dataset.status));
     });
+
+    updateCounts();
   }
 
-  function renderDetail(feature) {
-    if (!feature) {
+  function renderDetail(item) {
+    if (!item) {
+      selectedCode = null;
       detailPanel.innerHTML = `<h2>Detalle del municipio</h2><p class="muted">Toca un municipio coloreado en el mapa para ver su información.</p>`;
+      updateStyles();
       return;
     }
-    const p = feature.properties;
-    const recordsHtml = (p.records || []).map((record, index) => `
+
+    selectedCode = item.code;
+    const recordsHtml = (item.records || []).map((record, index) => `
       <div class="record">
-        <h3>Registro ${index + 1} · ${escapeHtml(record.ubicacion || p.municipio)}</h3>
-        <p><strong>Municipio:</strong> ${escapeHtml(p.municipio)}</p>
-        <p><strong>Departamento:</strong> ${escapeHtml(p.departamento)}</p>
-        <p><strong>Estado:</strong> ${escapeHtml(record.estado)}</p>
+        <h3>Registro ${index + 1} · ${escapeHtml(record.ubicacion || item.municipio)}</h3>
+        <p><strong>Municipio:</strong> ${escapeHtml(item.municipio)}</p>
+        <p><strong>Departamento:</strong> ${escapeHtml(item.departamento)}</p>
+        <p><strong>Estado:</strong> ${escapeHtml(statusLabel(record.estado))}</p>
         <p><strong>Región PAC:</strong> ${escapeHtml(record.region || "—")}</p>
         <p><strong>Macroregión:</strong> ${escapeHtml(record.macroregion || "—")}</p>
-        <p><strong>Código DANE:</strong> ${escapeHtml(record.dane || p.dane)}</p>
+        <p><strong>Código DANE:</strong> ${escapeHtml(record.dane || item.code)}</p>
       </div>
     `).join("");
+
     detailPanel.innerHTML = `
       <h2>Detalle del municipio</h2>
       <div class="detail-title">
-        <span class="detail-dot" style="background:${STATUS_META[p.estado]?.color || "#ccc"}"></span>
+        <span class="detail-dot" style="background:${statusColor(item.status)}"></span>
         <div>
-          <div><strong>${escapeHtml(p.municipio)}</strong></div>
-          <div class="muted">${escapeHtml(p.departamento)} · ${escapeHtml(p.estado)}</div>
+          <div><strong>${escapeHtml(item.municipio)}</strong></div>
+          <div class="muted">${escapeHtml(item.departamento)} · ${escapeHtml(statusLabel(item.status))}</div>
         </div>
       </div>
       <div class="detail-list">${recordsHtml}</div>
     `;
+    updateStyles();
   }
 
-  function renderUnmatched() {
-    unmatchedList.innerHTML = unmatchedRows.length
-      ? unmatchedRows.map(item => `<li><strong>${escapeHtml(item.name)}</strong> <span>— ${escapeHtml(item.detail)}</span></li>`).join("")
-      : `<li><span class="muted">No hay registros no ubicados.</span></li>`;
+  function fitMunicipality(item) {
+    const [x1, y1, x2, y2] = item.bbox;
+    const municipalityBounds = [[y1, x1], [y2, x2]];
+    map.fitBounds(municipalityBounds, { padding: [40, 40], maxZoom: 4 });
   }
 
-  function hydrateDatalist() {
-    datalist.innerHTML = "";
-    allFeatures.slice().sort((a,b) => a.properties.municipio.localeCompare(b.properties.municipio, "es")).forEach(feature => {
-      const option = document.createElement("option");
-      option.value = `${feature.properties.municipio} - ${feature.properties.departamento}`;
-      datalist.appendChild(option);
+  function findMunicipality(query) {
+    const q = normalize(query);
+    if (!q) return null;
+
+    const exact = municipalities.find(item => {
+      return normalize(`${item.municipio} - ${item.departamento}`) === q ||
+        normalize(item.municipio) === q ||
+        normalize(item.departamento) === q;
     });
+    if (exact) return exact;
+
+    return municipalities.find(item => normalize(`${item.municipio} ${item.departamento}`).includes(q));
   }
 
   function searchAndFocus() {
-    const q = normalize(document.getElementById("searchInput").value);
-    if (!q) return;
-    const found = allFeatures.find(feature => {
-      const p = feature.properties;
-      return normalize(`${p.municipio} - ${p.departamento}`) === q ||
-             normalize(p.municipio) === q ||
-             normalize(p.departamento) === q ||
-             normalize(`${p.municipio} ${p.departamento}`).includes(q);
-    });
-    if (!found) {
+    const input = document.getElementById("searchInput");
+    const item = findMunicipality(input.value);
+    if (!item) {
       window.alert("No encontré ese municipio o departamento dentro de los municipios con dato.");
       return;
     }
-    if (!active.has(found.properties.estado)) {
-      active.add(found.properties.estado);
-      persistActiveFilters();
-    }
-    selectedDane = found.properties.dane;
-    renderDetail(found);
-    renderMap();
-    const bounds = featureBounds(found);
-    if (bounds) map.fitBounds(bounds, { padding: [40, 40], maxZoom: 10 });
+    if (!active.has(item.status)) active.add(item.status);
+    persistActiveFilters();
+    renderDetail(item);
+    fitMunicipality(item);
+    updateStyles();
   }
 
-  function fitAllVisible() {
-    if (!geoLayer) return;
-    const bounds = geoLayer.getBounds();
-    if (bounds.isValid()) map.fitBounds(bounds, { padding: [20, 20], maxZoom: 10 });
-  }
-
-  function fitFeature(layer) {
-    const bounds = layer.getBounds();
-    if (bounds.isValid()) map.fitBounds(bounds, { padding: [40, 40], maxZoom: 10 });
-  }
-
-  function featureBounds(feature) {
-    const temp = L.geoJSON(feature);
-    const bounds = temp.getBounds();
-    return bounds.isValid() ? bounds : null;
-  }
-
-  function featureCenter(feature) {
-    const bounds = featureBounds(feature);
-    return bounds ? bounds.getCenter() : null;
-  }
-
-  function buildPopupHtml(p) {
-    const recordsHtml = (p.records || []).map((r, i) => `
-      <div style="margin-top:6px;">
-        <strong>Registro ${i + 1}</strong><br>
-        Ubicación: ${escapeHtml(r.ubicacion || p.municipio)}<br>
-        Estado: ${escapeHtml(r.estado)}<br>
-        Región: ${escapeHtml(r.region || "—")}<br>
-        Macroregión: ${escapeHtml(r.macroregion || "—")}<br>
-        DANE: ${escapeHtml(r.dane)}
-      </div>
-    `).join("");
-    return `<div><strong>${escapeHtml(p.municipio)}</strong><br>${escapeHtml(p.departamento)}<br>Estado: ${escapeHtml(p.estado)}${recordsHtml}</div>`;
-  }
-
-  function normalize(value) {
-    return String(value ?? "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+  function resetView() {
+    selectedCode = null;
+    renderDetail(null);
+    map.fitBounds(bounds, { padding: [10, 10] });
   }
 
   function escapeHtml(value) {
     return String(value ?? "").replace(/[&<>"]/g, char => ({
-      "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;"
     }[char]));
   }
 
@@ -411,7 +322,7 @@
   function showError(error) {
     console.error(error);
     loadingBanner.classList.add("hidden");
-    errorBanner.textContent = `Error cargando la V3: ${error.message || error}`;
+    errorBanner.textContent = `Error al cargar el mapa: ${error.message || error}`;
     errorBanner.classList.remove("hidden");
     document.body.classList.remove("loading");
   }
