@@ -1,87 +1,104 @@
 (() => {
+  /* ─── CONFIGURACIÓN ──────────────────────────────────────────────────────── */
   const STATUS_META = {
-    "Emancipada": { color: "#F2D46B", label: "Iglesias emancipadas" },
-    "En proceso": { color: "#4A90E2", label: "Iglesias por emancipar" },
-    "Nueva ciudad": { color: "#D64541", label: "Por conquistar" }
+    "Emancipada":  { color: "#F2D46B", label: "Iglesias emancipadas" },
+    "En proceso":  { color: "#4A90E2", label: "Iglesias por emancipar" },
+    "Nueva ciudad":{ color: "#D64541", label: "Por conquistar" }
   };
-  const ACTIVE_DEFAULT = ["Emancipada", "En proceso", "Nueva ciudad"];
-  const STORAGE_KEY = "mapa_colombia_v3_active_filters";
-  const SHEETS_ENDPOINT = "https://script.google.com/macros/s/AKfycbzShr_GWx8LPk_-R04YV3LbVjGY_FB0UE_89YW9SPJRluqMVEFAwVmqQ5E9zvyewC9DlA/exec";
-  const GEOJSON_URL = "./data/colombia-municipios.geojson";
+  const ACTIVE_DEFAULT  = ["Emancipada", "En proceso", "Nueva ciudad"];
+  const STORAGE_KEY     = "mapa_colombia_v3_active_filters";
+  const GEOJSON_URL     = "./data/colombia-municipios.geojson";
 
-  let active = loadActiveFilters();
+  // ── PEGA AQUÍ TU URL DE APPS SCRIPT (o deja vacío para modo solo-GeoJSON) ──
+  const SHEETS_ENDPOINT = "PEGAR_AQUI_URL_EXEC";
+  // ─────────────────────────────────────────────────────────────────────────
+
+  /* ─── ESTADO ─────────────────────────────────────────────────────────────── */
+  let active       = loadActiveFilters();
   let selectedDane = null;
-  let geoLayer = null;
-  let labelLayer = null;
-  let allFeatures = [];
-  let sheetRows = [];
-  let unmatchedRows = [];
+  let geoLayer     = null;
+  let labelLayer   = null;
+  let allGeoFeatures  = [];   // TODOS los municipios del GeoJSON (base gris)
+  let allFeatures     = [];   // Solo los municipios con dato de Sheets (coloreados)
+  let sheetRows       = [];
+  let unmatchedRows   = [];
 
-  const loadingBanner = document.getElementById("loadingBanner");
-  const errorBanner = document.getElementById("errorBanner");
-  const detailPanel = document.getElementById("detailPanel");
-  const datalist = document.getElementById("municipios");
-  const unmatchedList = document.getElementById("unmatchedList");
+  /* ─── DOM ────────────────────────────────────────────────────────────────── */
+  const loadingBanner   = document.getElementById("loadingBanner");
+  const errorBanner     = document.getElementById("errorBanner");
+  const detailPanel     = document.getElementById("detailPanel");
+  const datalist        = document.getElementById("municipios");
+  const unmatchedList   = document.getElementById("unmatchedList");
   const legendContainer = document.getElementById("legendContainer");
 
-  const map = L.map("map", { zoomSnap: 0.25, zoomDelta: 0.5, attributionControl: false }).setView([4.5, -74], 6);
+  /* ─── MAPA ───────────────────────────────────────────────────────────────── */
+  const map = L.map("map", {
+    zoomSnap: 0.25,
+    zoomDelta: 0.5,
+    attributionControl: false
+  }).setView([4.5, -74], 6);
 
-  // Fondo neutro para minimizar la diferencia visual entre cartografías
+  // Fondo neutro sin etiquetas para que los colores propios no compitan
   L.tileLayer("https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png", {
     attribution: "&copy; OpenStreetMap &copy; CARTO",
     maxZoom: 18
   }).addTo(map);
 
+  /* ─── ARRANQUE ───────────────────────────────────────────────────────────── */
   init().catch(showError);
 
   async function init() {
-    const requests = [
-      fetch(GEOJSON_URL, { cache: "no-cache" }).then(r => {
+    // 1. Siempre carga el GeoJSON local
+    const geoPromise = fetch(GEOJSON_URL, { cache: "no-cache" })
+      .then(r => {
         if (!r.ok) throw new Error("No fue posible cargar ./data/colombia-municipios.geojson");
         return r.json();
-      })
-    ];
+      });
 
-    if (SHEETS_ENDPOINT && !SHEETS_ENDPOINT.includes("PEGAR_AQUI_URL_EXEC")) {
-      requests.push(fetch(SHEETS_ENDPOINT, { cache: "no-cache" }).then(r => {
-        if (!r.ok) throw new Error("No fue posible cargar Google Sheets");
-        return r.json();
-      }));
-    } else {
-      requests.push(Promise.resolve([]));
+    // 2. Intenta cargar Google Sheets solo si la URL es real
+    const sheetsPromise = (SHEETS_ENDPOINT && !SHEETS_ENDPOINT.includes("PEGAR_AQUI_URL_EXEC"))
+      ? fetch(SHEETS_ENDPOINT, { cache: "no-cache" }).then(r => {
+          if (!r.ok) throw new Error("No fue posible cargar Google Sheets");
+          return r.json();
+        })
+      : Promise.resolve([]);
+
+    const [geojson, sheetsPayload] = await Promise.all([geoPromise, sheetsPromise]);
+
+    if (!geojson?.features?.length) {
+      throw new Error("El GeoJSON local no es válido o está vacío.");
     }
 
-    const [geojson, sheetsPayload] = await Promise.all(requests);
-
-    if (!geojson || !Array.isArray(geojson.features)) {
-      throw new Error("El GeoJSON local no es válido o no contiene features.");
-    }
-
-    if (geojson.features.length === 0) {
-      throw new Error("El archivo colombia-municipios.geojson está vacío.");
-    }
+    // FIX 1 ── Guarda TODOS los polígonos del GeoJSON para pintar el fondo gris
+    allGeoFeatures = geojson.features;
 
     sheetRows = normalizeSheetRows(sheetsPayload);
     const merged = mergeGeoWithSheets(geojson.features, sheetRows);
-    allFeatures = merged.features;
+    allFeatures   = merged.features;
     unmatchedRows = merged.unmatched;
 
     renderUnmatched();
     hydrateDatalist();
     bindUi();
+
+    // FIX 2 ── Renderiza el mapa con todos los polígonos grises + coloreados encima
     renderMap();
+
     loadingBanner.classList.add("hidden");
     document.body.classList.remove("loading");
   }
 
+  /* ─── UI ─────────────────────────────────────────────────────────────────── */
   function bindUi() {
-    document.getElementById("zoomIn").addEventListener("click", () => map.zoomIn(0.5));
+    document.getElementById("zoomIn") .addEventListener("click", () => map.zoomIn(0.5));
     document.getElementById("zoomOut").addEventListener("click", () => map.zoomOut(0.5));
-    document.getElementById("fitAll").addEventListener("click", fitAllVisible);
+    document.getElementById("fitAll") .addEventListener("click", fitAllVisible);
+
     document.getElementById("searchBtn").addEventListener("click", searchAndFocus);
-    document.getElementById("searchInput").addEventListener("keydown", event => {
-      if (event.key === "Enter") searchAndFocus();
+    document.getElementById("searchInput").addEventListener("keydown", e => {
+      if (e.key === "Enter") searchAndFocus();
     });
+
     document.getElementById("resetBtn").addEventListener("click", () => {
       active = new Set(ACTIVE_DEFAULT);
       selectedDane = null;
@@ -96,40 +113,44 @@
       btn.addEventListener("click", () => {
         const status = btn.dataset.status;
         if (active.has(status)) {
-          if (active.size === 1) return;
+          if (active.size === 1) return; // Siempre al menos uno activo
           active.delete(status);
         } else {
           active.add(status);
         }
+        // Deseleccionar si el estado activo fue eliminado del filtro
         if (selectedDane) {
           const current = allFeatures.find(f => f.properties.dane === selectedDane);
           if (current && !active.has(current.properties.estado)) selectedDane = null;
         }
         persistActiveFilters();
         renderMap();
-        renderDetail(selectedDane ? allFeatures.find(f => f.properties.dane === selectedDane) : null);
+        renderDetail(selectedDane
+          ? allFeatures.find(f => f.properties.dane === selectedDane) ?? null
+          : null
+        );
       });
     });
 
     map.on("zoomend", updateLabels);
-    map.on("click", () => {
-      selectedDane = null;
-      renderDetail(null);
-      renderMap();
-    });
+    map.on("click",   () => { selectedDane = null; renderDetail(null); renderMap(); });
   }
 
+  /* ─── DATOS ──────────────────────────────────────────────────────────────── */
   function normalizeSheetRows(payload) {
-    const rows = Array.isArray(payload) ? payload : (Array.isArray(payload?.rows) ? payload.rows : []);
+    const rows = Array.isArray(payload)
+      ? payload
+      : (Array.isArray(payload?.rows) ? payload.rows : []);
+
     return rows
       .map(row => ({
-        dane: String(row.dane ?? "").trim().padStart(5, "0"),
-        ubicacion: String(row.ubicacion ?? "").trim(),
-        municipio_mapa: String(row.municipio_mapa ?? "").trim(),
-        departamento: String(row.departamento ?? "").trim(),
-        estado: String(row.estado ?? "").trim(),
-        region: String(row.region ?? "").trim(),
-        macroregion: String(row.macroregion ?? "").trim()
+        dane:           String(row.dane          ?? "").trim().padStart(5, "0"),
+        ubicacion:      String(row.ubicacion     ?? "").trim(),
+        municipio_mapa: String(row.municipio_mapa?? "").trim(),
+        departamento:   String(row.departamento  ?? "").trim(),
+        estado:         String(row.estado        ?? "").trim(),
+        region:         String(row.region        ?? "").trim(),
+        macroregion:    String(row.macroregion   ?? "").trim()
       }))
       .filter(row => row.dane && ACTIVE_DEFAULT.includes(row.estado));
   }
@@ -141,31 +162,38 @@
       rowsByDane.get(row.dane).push(row);
     });
 
-    const geoDaneSet = new Set();
+    const geoDaneSet    = new Set();
     const mergedFeatures = [];
 
     for (const feature of features) {
       const props = feature.properties || {};
-      const dane = String(props.dane ?? props.DANE ?? props.COD_MPIO ?? props.CODIGO_DANE ?? "").trim().padStart(5, "0");
-      if (!dane) continue;
+      // FIX 3 ── Normalización robusta del código DANE del GeoJSON
+      const raw  = String(
+        props.dane         ??
+        props.DANE         ??
+        props.COD_MPIO     ??
+        props.CODIGO_DANE  ??
+        props.codigo       ??
+        ""
+      ).trim();
+      const dane = raw.padStart(5, "0");
+      if (!dane || dane === "00000") continue;
+
       geoDaneSet.add(dane);
-
       const rowsForDane = rowsByDane.get(dane);
-      if (!rowsForDane || rowsForDane.length === 0) continue;
+      if (!rowsForDane?.length) continue;
 
-      const municipio = props.municipio || props.NOM_MPIO || props.name || rowsForDane[0].municipio_mapa || rowsForDane[0].ubicacion || dane;
-      const departamento = props.departamento || props.NOM_DPTO || rowsForDane[0].departamento || "";
-      const estado = rowsForDane[0].estado;
+      const municipio   = props.municipio || props.NOM_MPIO || props.name
+                          || rowsForDane[0].municipio_mapa || rowsForDane[0].ubicacion || dane;
+      const departamento= props.departamento || props.NOM_DPTO || rowsForDane[0].departamento || "";
+      const estado      = rowsForDane[0].estado;
 
       mergedFeatures.push({
-        type: "Feature",
+        type:     "Feature",
         geometry: feature.geometry,
         properties: {
-          dane,
-          municipio,
-          departamento,
-          estado,
-          color: STATUS_META[estado].color,
+          dane, municipio, departamento, estado,
+          color:   STATUS_META[estado].color,
           records: rowsForDane
         }
       });
@@ -174,25 +202,48 @@
     const unmatched = rows
       .filter(row => !geoDaneSet.has(row.dane))
       .map(row => ({
-        name: row.ubicacion || row.municipio_mapa || row.dane,
+        name:   row.ubicacion || row.municipio_mapa || row.dane,
         detail: `${row.departamento || "Sin departamento"} · ${row.estado} · DANE ${row.dane}`
       }));
 
     return { features: mergedFeatures, unmatched };
   }
 
+  /* ─── RENDERIZADO DEL MAPA ───────────────────────────────────────────────── */
   function renderMap() {
     const visibleFeatures = allFeatures.filter(f => active.has(f.properties.estado));
 
-    if (geoLayer) map.removeLayer(geoLayer);
+    // Conjunto de DANE con dato para excluirlos de la capa base gris
+    const daneConDato = new Set(allFeatures.map(f => f.properties.dane));
+
+    if (geoLayer)   map.removeLayer(geoLayer);
     if (labelLayer) map.removeLayer(labelLayer);
 
+    // ── Capa 1: todos los municipios en gris (fondo de referencia) ───────────
+    // FIX 4 ── SIEMPRE muestra todos los polígonos de Colombia en gris
+    //           aunque no haya datos de Sheets conectados
+    const baseLayer = L.geoJSON(allGeoFeatures, {
+      style: feature => {
+        const dane = normDane(feature.properties);
+        const isColored = daneConDato.has(dane);
+        return {
+          color:       isColored ? "transparent" : "#b0bcc8",
+          weight:      isColored ? 0 : 0.5,
+          fillColor:   "#dde4ec",
+          fillOpacity: isColored ? 0 : 0.45
+        };
+      },
+      // Sin interacción en la capa base
+      interactive: false
+    }).addTo(map);
+
+    // ── Capa 2: municipios con dato de Sheets (coloreados, interactivos) ─────
     geoLayer = L.geoJSON(visibleFeatures, {
       style: feature => ({
-        color: selectedDane === feature.properties.dane ? "#243447" : "#6f7c89",
-        weight: selectedDane === feature.properties.dane ? 2 : 1,
-        fillColor: feature.properties.color,
-        fillOpacity: 0.82
+        color:       selectedDane === feature.properties.dane ? "#243447" : "#6f7c89",
+        weight:      selectedDane === feature.properties.dane ? 2 : 1,
+        fillColor:   feature.properties.color,
+        fillOpacity: 0.85
       }),
       onEachFeature: (feature, layer) => {
         layer.on("click", event => {
@@ -206,6 +257,7 @@
       }
     }).addTo(map);
 
+    // ── Capa 3: etiquetas ────────────────────────────────────────────────────
     labelLayer = L.layerGroup(buildLabels(visibleFeatures)).addTo(map);
 
     renderLegend(visibleFeatures);
@@ -213,39 +265,57 @@
     updateFilterButtons();
     updateLabels();
 
-    if (visibleFeatures.length > 0 && !selectedDane) fitAllVisible();
+    // FIX 5 ── Ajuste de vista inicial:
+    //   • Si hay municipios coloreados -> ajusta a ellos
+    //   • Si no hay datos (solo modo GeoJSON) -> ajusta a todos los polígonos
+    if (visibleFeatures.length > 0 && !selectedDane) {
+      fitAllVisible();
+    } else if (allFeatures.length === 0 && !selectedDane) {
+      // Sin Sheets: ajusta a todos los polígonos base
+      const bounds = L.geoJSON(allGeoFeatures).getBounds();
+      if (bounds.isValid()) map.fitBounds(bounds, { padding: [20, 20], maxZoom: 7 });
+    }
   }
 
+  /* ─── ETIQUETAS ──────────────────────────────────────────────────────────── */
   function buildLabels(features) {
-    return features.map(feature => {
-      const center = featureCenter(feature);
-      if (!center) return null;
-      return L.marker(center, {
-        interactive: false,
-        icon: L.divIcon({
-          className: "v3-label",
-          html: escapeHtml(feature.properties.municipio)
-        })
-      });
-    }).filter(Boolean);
+    return features
+      .map(feature => {
+        const center = featureCenter(feature);
+        if (!center) return null;
+        return L.marker(center, {
+          interactive: false,
+          icon: L.divIcon({
+            className: "v3-label",
+            html: escapeHtml(feature.properties.municipio)
+          })
+        });
+      })
+      .filter(Boolean);
   }
 
   function updateLabels() {
     if (!labelLayer) return;
     const zoom = map.getZoom();
-    const show = zoom >= 8 || !!selectedDane;
+    // FIX 6 ── Umbral de zoom ajustado: 7 en desktop, 9 en móvil
+    const isMobile   = window.innerWidth < 768;
+    const threshold  = isMobile ? 9 : 7;
+    const show       = zoom >= threshold || !!selectedDane;
     labelLayer.eachLayer(layer => {
       const el = layer.getElement();
       if (el) el.style.display = show ? "block" : "none";
     });
   }
 
+  /* ─── LEYENDA Y ESTADÍSTICAS ─────────────────────────────────────────────── */
   function renderLegend(visibleFeatures) {
     const counts = {};
-    ACTIVE_DEFAULT.forEach(status => counts[status] = 0);
+    ACTIVE_DEFAULT.forEach(s => counts[s] = 0);
     visibleFeatures.forEach(f => counts[f.properties.estado]++);
+
     legendContainer.innerHTML = ACTIVE_DEFAULT.map(status => `
-      <div class="legend-item" data-legend-status="${escapeHtml(status)}" style="opacity:${active.has(status) ? 1 : 0.5}">
+      <div class="legend-item" data-legend-status="${escapeHtml(status)}"
+           style="opacity:${active.has(status) ? 1 : 0.5}">
         <div class="legend-left">
           <span class="swatch" style="background:${STATUS_META[status].color}"></span>
           <span>${escapeHtml(STATUS_META[status].label)}</span>
@@ -253,10 +323,12 @@
         <strong>${counts[status] || 0}</strong>
       </div>
     `).join("");
+
     legendContainer.querySelectorAll("[data-legend-status]").forEach(item => {
       item.addEventListener("click", () => {
-        const status = item.dataset.legendStatus;
-        const btn = document.querySelector(`.filter-btn[data-status="${CSS.escape(status)}"]`);
+        const btn = document.querySelector(
+          `.filter-btn[data-status="${CSS.escape(item.dataset.legendStatus)}"]`
+        );
         if (btn) btn.click();
       });
     });
@@ -264,8 +336,8 @@
 
   function updateCounts(visibleFeatures) {
     document.getElementById("count-municipios").textContent = visibleFeatures.length;
-    document.getElementById("count-registros").textContent = sheetRows.length;
-    document.getElementById("count-unmatched").textContent = unmatchedRows.length;
+    document.getElementById("count-registros") .textContent = sheetRows.length;
+    document.getElementById("count-unmatched") .textContent = unmatchedRows.length;
   }
 
   function updateFilterButtons() {
@@ -276,23 +348,27 @@
     });
   }
 
+  /* ─── PANEL DE DETALLE ───────────────────────────────────────────────────── */
   function renderDetail(feature) {
     if (!feature) {
-      detailPanel.innerHTML = `<h2>Detalle del municipio</h2><p class="muted">Toca un municipio coloreado en el mapa para ver su información.</p>`;
+      detailPanel.innerHTML = `
+        <h2>Detalle del municipio</h2>
+        <p class="muted">Toca un municipio coloreado en el mapa para ver su información.</p>`;
       return;
     }
     const p = feature.properties;
-    const recordsHtml = (p.records || []).map((record, index) => `
+    const recordsHtml = (p.records || []).map((rec, i) => `
       <div class="record">
-        <h3>Registro ${index + 1} · ${escapeHtml(record.ubicacion || p.municipio)}</h3>
+        <h3>Registro ${i + 1} · ${escapeHtml(rec.ubicacion || p.municipio)}</h3>
         <p><strong>Municipio:</strong> ${escapeHtml(p.municipio)}</p>
         <p><strong>Departamento:</strong> ${escapeHtml(p.departamento)}</p>
-        <p><strong>Estado:</strong> ${escapeHtml(record.estado)}</p>
-        <p><strong>Región PAC:</strong> ${escapeHtml(record.region || "—")}</p>
-        <p><strong>Macroregión:</strong> ${escapeHtml(record.macroregion || "—")}</p>
-        <p><strong>Código DANE:</strong> ${escapeHtml(record.dane || p.dane)}</p>
-      </div>
-    `).join("");
+        <p><strong>Estado:</strong> ${escapeHtml(rec.estado)}</p>
+        <p><strong>Región PAC:</strong> ${escapeHtml(rec.region || "—")}</p>
+        <p><strong>Macroregión:</strong> ${escapeHtml(rec.macroregion || "—")}</p>
+        <p><strong>Código DANE:</strong> ${escapeHtml(rec.dane || p.dane)}</p>
+      </div>`
+    ).join("");
+
     detailPanel.innerHTML = `
       <h2>Detalle del municipio</h2>
       <div class="detail-title">
@@ -302,39 +378,50 @@
           <div class="muted">${escapeHtml(p.departamento)} · ${escapeHtml(p.estado)}</div>
         </div>
       </div>
-      <div class="detail-list">${recordsHtml}</div>
-    `;
+      <div class="detail-list">${recordsHtml}</div>`;
   }
 
+  /* ─── LISTA NO UBICADOS ──────────────────────────────────────────────────── */
   function renderUnmatched() {
     unmatchedList.innerHTML = unmatchedRows.length
-      ? unmatchedRows.map(item => `<li><strong>${escapeHtml(item.name)}</strong> <span>— ${escapeHtml(item.detail)}</span></li>`).join("")
+      ? unmatchedRows.map(item =>
+          `<li><strong>${escapeHtml(item.name)}</strong> <span>— ${escapeHtml(item.detail)}</span></li>`
+        ).join("")
       : `<li><span class="muted">No hay registros no ubicados.</span></li>`;
   }
 
+  /* ─── BÚSQUEDA ───────────────────────────────────────────────────────────── */
   function hydrateDatalist() {
     datalist.innerHTML = "";
-    allFeatures.slice().sort((a,b) => a.properties.municipio.localeCompare(b.properties.municipio, "es")).forEach(feature => {
-      const option = document.createElement("option");
-      option.value = `${feature.properties.municipio} - ${feature.properties.departamento}`;
-      datalist.appendChild(option);
-    });
+    allFeatures
+      .slice()
+      .sort((a, b) => a.properties.municipio.localeCompare(b.properties.municipio, "es"))
+      .forEach(feature => {
+        const option = document.createElement("option");
+        option.value = `${feature.properties.municipio} - ${feature.properties.departamento}`;
+        datalist.appendChild(option);
+      });
   }
 
   function searchAndFocus() {
     const q = normalize(document.getElementById("searchInput").value);
     if (!q) return;
+
     const found = allFeatures.find(feature => {
       const p = feature.properties;
-      return normalize(`${p.municipio} - ${p.departamento}`) === q ||
-             normalize(p.municipio) === q ||
-             normalize(p.departamento) === q ||
-             normalize(`${p.municipio} ${p.departamento}`).includes(q);
+      return (
+        normalize(`${p.municipio} - ${p.departamento}`) === q ||
+        normalize(p.municipio) === q ||
+        normalize(p.departamento) === q ||
+        normalize(`${p.municipio} ${p.departamento}`).includes(q)
+      );
     });
+
     if (!found) {
-      window.alert("No encontré ese municipio o departamento dentro de los municipios con dato.");
+      window.alert("No encontré ese municipio dentro de los municipios con dato.");
       return;
     }
+
     if (!active.has(found.properties.estado)) {
       active.add(found.properties.estado);
       persistActiveFilters();
@@ -342,10 +429,12 @@
     selectedDane = found.properties.dane;
     renderDetail(found);
     renderMap();
+
     const bounds = featureBounds(found);
     if (bounds) map.fitBounds(bounds, { padding: [40, 40], maxZoom: 10 });
   }
 
+  /* ─── HELPERS DE VIEWPORT ────────────────────────────────────────────────── */
   function fitAllVisible() {
     if (!geoLayer) return;
     const bounds = geoLayer.getBounds();
@@ -358,7 +447,7 @@
   }
 
   function featureBounds(feature) {
-    const temp = L.geoJSON(feature);
+    const temp   = L.geoJSON(feature);
     const bounds = temp.getBounds();
     return bounds.isValid() ? bounds : null;
   }
@@ -368,6 +457,7 @@
     return bounds ? bounds.getCenter() : null;
   }
 
+  /* ─── POPUP ──────────────────────────────────────────────────────────────── */
   function buildPopupHtml(p) {
     const recordsHtml = (p.records || []).map((r, i) => `
       <div style="margin-top:6px;">
@@ -377,13 +467,36 @@
         Región: ${escapeHtml(r.region || "—")}<br>
         Macroregión: ${escapeHtml(r.macroregion || "—")}<br>
         DANE: ${escapeHtml(r.dane)}
-      </div>
-    `).join("");
-    return `<div><strong>${escapeHtml(p.municipio)}</strong><br>${escapeHtml(p.departamento)}<br>Estado: ${escapeHtml(p.estado)}${recordsHtml}</div>`;
+      </div>`
+    ).join("");
+    return `<div>
+      <strong>${escapeHtml(p.municipio)}</strong><br>
+      ${escapeHtml(p.departamento)}<br>
+      Estado: ${escapeHtml(p.estado)}
+      ${recordsHtml}
+    </div>`;
+  }
+
+  /* ─── UTILIDADES ─────────────────────────────────────────────────────────── */
+  // FIX 7 ── Helper centralizado para extraer el DANE de cualquier GeoJSON
+  function normDane(props) {
+    const raw = String(
+      props.dane        ??
+      props.DANE        ??
+      props.COD_MPIO    ??
+      props.CODIGO_DANE ??
+      props.codigo      ??
+      ""
+    ).trim();
+    return raw.padStart(5, "0");
   }
 
   function normalize(value) {
-    return String(value ?? "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+    return String(value ?? "")
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase()
+      .trim();
   }
 
   function escapeHtml(value) {
@@ -394,11 +507,11 @@
 
   function loadActiveFilters() {
     try {
-      const raw = localStorage.getItem(STORAGE_KEY);
+      const raw    = localStorage.getItem(STORAGE_KEY);
       if (!raw) return new Set(ACTIVE_DEFAULT);
       const parsed = JSON.parse(raw);
-      if (!Array.isArray(parsed) || parsed.length === 0) return new Set(ACTIVE_DEFAULT);
-      return new Set(parsed.filter(status => ACTIVE_DEFAULT.includes(status)));
+      if (!Array.isArray(parsed) || !parsed.length) return new Set(ACTIVE_DEFAULT);
+      return new Set(parsed.filter(s => ACTIVE_DEFAULT.includes(s)));
     } catch {
       return new Set(ACTIVE_DEFAULT);
     }
@@ -411,7 +524,7 @@
   function showError(error) {
     console.error(error);
     loadingBanner.classList.add("hidden");
-    errorBanner.textContent = `Error cargando la V3: ${error.message || error}`;
+    errorBanner.textContent = `Error: ${error.message || error}`;
     errorBanner.classList.remove("hidden");
     document.body.classList.remove("loading");
   }
