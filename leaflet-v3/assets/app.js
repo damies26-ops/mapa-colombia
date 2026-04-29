@@ -10,7 +10,7 @@
   const GEOJSON_URL     = "./data/colombia-municipios.geojson";
 
   // ── PEGA AQUÍ TU URL DE APPS SCRIPT (o deja vacío para modo solo-GeoJSON) ──
-  const SHEETS_ENDPOINT = "https://script.google.com/macros/s/AKfycbzShr_GWx8LPk_-R04YV3LbVjGY_FB0UE_89YW9SPJRluqMVEFAwVmqQ5E9zvyewC9DlA/exec";
+  const SHEETS_ENDPOINT = "PEGAR_AQUI_URL_EXEC";
   // ─────────────────────────────────────────────────────────────────────────
 
   /* ─── ESTADO ─────────────────────────────────────────────────────────────── */
@@ -545,403 +545,402 @@
     errorBanner.classList.remove("hidden");
     document.body.classList.remove("loading");
   }
-})();
 
-/* ═══════════════════════════════════════════════════════════════════
-   PANEL DE ESTADÍSTICAS
-   Se llama desde init() después de mergeGeoWithSheets()
-   ═══════════════════════════════════════════════════════════════════ */
 
-function renderDashboard() {
-  const grid    = document.getElementById('dashGrid');
-  const updated = document.getElementById('dash-updated');
-  if (!grid) return;
+  /* ─── PANEL DE ESTADÍSTICAS ─────────────────────────────────────────────── */
 
-  const total_colombia = 1122; // municipios oficiales DANE
-  const total_con_dato = allFeatures.length;
+  function renderDashboard() {
+    const grid    = document.getElementById('dashGrid');
+    const updated = document.getElementById('dash-updated');
+    if (!grid) return;
 
-  // Conteos por estado
-  const counts = { Emancipada: 0, 'En proceso': 0, 'Nueva ciudad': 0 };
-  allFeatures.forEach(f => { if (counts[f.properties.estado] !== undefined) counts[f.properties.estado]++; });
+    const total_colombia = 1122; // municipios oficiales DANE
+    const total_con_dato = allFeatures.length;
 
-  // Conteos por departamento
-  const deptMap = {};
-  allFeatures.forEach(f => {
-    const d = toTitleCase(f.properties.departamento || 'Sin departamento');
-    if (!deptMap[d]) deptMap[d] = { total: 0, Emancipada: 0, 'En proceso': 0, 'Nueva ciudad': 0 };
-    deptMap[d].total++;
-    if (counts[f.properties.estado] !== undefined) deptMap[d][f.properties.estado]++;
-  });
+    // Conteos por estado
+    const counts = { Emancipada: 0, 'En proceso': 0, 'Nueva ciudad': 0 };
+    allFeatures.forEach(f => { if (counts[f.properties.estado] !== undefined) counts[f.properties.estado]++; });
 
-  // Total municipios por departamento en el GeoJSON base
-  const deptTotalMap = {};
-  allGeoFeatures.forEach(f => {
-    const d = toTitleCase(f.properties.departamento || 'Sin departamento');
-    deptTotalMap[d] = (deptTotalMap[d] || 0) + 1;
-  });
-
-  const pct = (n, t) => t > 0 ? Math.round(n / t * 100) : 0;
-  const pctEmanc  = pct(counts.Emancipada,    total_colombia);
-  const pctProceso= pct(counts['En proceso'],  total_colombia);
-  const pctNueva  = pct(counts['Nueva ciudad'],total_colombia);
-  const pctTotal  = pct(total_con_dato,        total_colombia);
-
-  // Departamentos ordenados por % emancipado
-  const deptRows = Object.entries(deptMap)
-    .map(([name, c]) => ({
-      name,
-      total: c.total,
-      emanc: c.Emancipada,
-      pct:   pct(c.Emancipada, deptTotalMap[name] || c.total)
-    }))
-    .sort((a, b) => b.pct - a.pct);
-
-  // Top 5 departamentos más emancipados
-  const top5 = deptRows.filter(d => d.emanc > 0).slice(0, 5);
-  const maxEmanc = top5.length ? top5[0].emanc : 1;
-
-  // Departamentos con al menos 1 municipio emancipado
-  const deptConEmanc = deptRows.filter(d => d.emanc > 0).length;
-
-  // ── Donut SVG ──────────────────────────────────────────────────────
-  function donutSVG(slices) {
-    // slices: [{pct, color}]
-    const r = 38, cx = 48, cy = 48, stroke = 13;
-    const circ = 2 * Math.PI * r;
-    let offset = 0;
-    let paths = '';
-    slices.forEach(s => {
-      const len = circ * s.pct / 100;
-      paths += `<circle cx="${cx}" cy="${cy}" r="${r}"
-        fill="none" stroke="${s.color}" stroke-width="${stroke}"
-        stroke-dasharray="${len} ${circ - len}"
-        stroke-dashoffset="${-offset}"
-        transform="rotate(-90 ${cx} ${cy})" />`;
-      offset += len;
+    // Conteos por departamento
+    const deptMap = {};
+    allFeatures.forEach(f => {
+      const d = toTitleCase(f.properties.departamento || 'Sin departamento');
+      if (!deptMap[d]) deptMap[d] = { total: 0, Emancipada: 0, 'En proceso': 0, 'Nueva ciudad': 0 };
+      deptMap[d].total++;
+      if (counts[f.properties.estado] !== undefined) deptMap[d][f.properties.estado]++;
     });
-    const rem = circ * (100 - slices.reduce((a,s)=>a+s.pct,0)) / 100;
-    if (rem > 0) {
-      paths += `<circle cx="${cx}" cy="${cy}" r="${r}"
-        fill="none" stroke="#eef1f6" stroke-width="${stroke}"
-        stroke-dasharray="${rem} ${circ - rem}"
-        stroke-dashoffset="${-offset}"
-        transform="rotate(-90 ${cx} ${cy})" />`;
+
+    // Total municipios por departamento en el GeoJSON base
+    const deptTotalMap = {};
+    allGeoFeatures.forEach(f => {
+      const d = toTitleCase(f.properties.departamento || 'Sin departamento');
+      deptTotalMap[d] = (deptTotalMap[d] || 0) + 1;
+    });
+
+    const pct = (n, t) => t > 0 ? Math.round(n / t * 100) : 0;
+    const pctEmanc  = pct(counts.Emancipada,    total_colombia);
+    const pctProceso= pct(counts['En proceso'],  total_colombia);
+    const pctNueva  = pct(counts['Nueva ciudad'],total_colombia);
+    const pctTotal  = pct(total_con_dato,        total_colombia);
+
+    // Departamentos ordenados por % emancipado
+    const deptRows = Object.entries(deptMap)
+      .map(([name, c]) => ({
+        name,
+        total: c.total,
+        emanc: c.Emancipada,
+        pct:   pct(c.Emancipada, deptTotalMap[name] || c.total)
+      }))
+      .sort((a, b) => b.pct - a.pct);
+
+    // Top 5 departamentos más emancipados
+    const top5 = deptRows.filter(d => d.emanc > 0).slice(0, 5);
+    const maxEmanc = top5.length ? top5[0].emanc : 1;
+
+    // Departamentos con al menos 1 municipio emancipado
+    const deptConEmanc = deptRows.filter(d => d.emanc > 0).length;
+
+    // ── Donut SVG ──────────────────────────────────────────────────────
+    function donutSVG(slices) {
+      // slices: [{pct, color}]
+      const r = 38, cx = 48, cy = 48, stroke = 13;
+      const circ = 2 * Math.PI * r;
+      let offset = 0;
+      let paths = '';
+      slices.forEach(s => {
+        const len = circ * s.pct / 100;
+        paths += `<circle cx="${cx}" cy="${cy}" r="${r}"
+          fill="none" stroke="${s.color}" stroke-width="${stroke}"
+          stroke-dasharray="${len} ${circ - len}"
+          stroke-dashoffset="${-offset}"
+          transform="rotate(-90 ${cx} ${cy})" />`;
+        offset += len;
+      });
+      const rem = circ * (100 - slices.reduce((a,s)=>a+s.pct,0)) / 100;
+      if (rem > 0) {
+        paths += `<circle cx="${cx}" cy="${cy}" r="${r}"
+          fill="none" stroke="#eef1f6" stroke-width="${stroke}"
+          stroke-dasharray="${rem} ${circ - rem}"
+          stroke-dashoffset="${-offset}"
+          transform="rotate(-90 ${cx} ${cy})" />`;
+      }
+      return `<svg viewBox="0 0 96 96" width="96" height="96">${paths}
+        <text x="48" y="52" text-anchor="middle" font-size="15" font-weight="700"
+          fill="#132238" font-family="DM Serif Display,serif">${pctTotal}%</text>
+      </svg>`;
     }
-    return `<svg viewBox="0 0 96 96" width="96" height="96">${paths}
-      <text x="48" y="52" text-anchor="middle" font-size="15" font-weight="700"
-        fill="#132238" font-family="DM Serif Display,serif">${pctTotal}%</text>
-    </svg>`;
+
+    // ── Cards ──────────────────────────────────────────────────────────
+    const cards = [
+
+      // Card 1: Cobertura total
+      `<div class="dash-card" style="--accent:var(--yellow)">
+        <div class="dc-label">Cobertura total de Colombia</div>
+        <div class="dc-value">${pctTotal}<span>%</span></div>
+        <div class="dc-sub">
+          <strong>${total_con_dato}</strong> de <strong>${total_colombia}</strong> municipios tienen registro activo.
+        </div>
+        <div class="dc-bar-wrap"><div class="dc-bar" style="width:${pctTotal}%;background:var(--yellow)"></div></div>
+      </div>`,
+
+      // Card 2: Distribución por estado (donut)
+      `<div class="dash-card" style="--accent:#c8d8ea">
+        <div class="dc-label">Distribución por estado</div>
+        <div class="dc-donut-wrap">
+          ${donutSVG([
+            { pct: pctEmanc,   color: '#F2D46B' },
+            { pct: pctProceso, color: '#4A90E2' },
+            { pct: pctNueva,   color: '#D64541' }
+          ])}
+          <ul class="dc-donut-legend">
+            <li><span class="dc-dot" style="background:#F2D46B"></span>
+              <span>Emancipadas <strong>${counts.Emancipada}</strong> (${pctEmanc}%)</span></li>
+            <li><span class="dc-dot" style="background:#4A90E2"></span>
+              <span>Por emancipar <strong>${counts['En proceso']}</strong> (${pctProceso}%)</span></li>
+            <li><span class="dc-dot" style="background:#D64541"></span>
+              <span>Por conquistar <strong>${counts['Nueva ciudad']}</strong> (${pctNueva}%)</span></li>
+          </ul>
+        </div>
+      </div>`,
+
+      // Card 3: Departamentos con presencia
+      `<div class="dash-card" style="--accent:var(--blue)">
+        <div class="dc-label">Alcance departamental</div>
+        <div class="dc-value">${deptConEmanc}<span> dep.</span></div>
+        <div class="dc-sub">
+          tienen al menos <strong>1 iglesia emancipada</strong>
+          de <strong>${Object.keys(deptMap).length}</strong> con registro.
+        </div>
+        <div class="dc-bar-wrap"><div class="dc-bar"
+          style="width:${pct(deptConEmanc,33)}%;background:var(--blue)"></div></div>
+      </div>`,
+
+      // Card 4: Top 5 departamentos
+      `<div class="dash-card" style="--accent:var(--yellow); grid-column:span 1;">
+        <div class="dc-label">Top departamentos — Emancipadas</div>
+        <div class="dc-top-list">
+          ${top5.map((d, i) => `
+            <div class="dc-top-item">
+              <div class="dc-top-rank">${i+1}</div>
+              <div class="dc-top-info">
+                <div class="dc-top-name">${escapeHtml(d.name)}</div>
+                <div class="dc-top-dept">${d.emanc} municipio${d.emanc!==1?'s':''} emancipado${d.emanc!==1?'s':''}</div>
+              </div>
+              <div class="dc-top-bar-wrap">
+                <div class="dc-top-bar" style="width:${Math.round(d.emanc/maxEmanc*100)}%;background:var(--yellow)"></div>
+              </div>
+            </div>`).join('')}
+          ${top5.length === 0 ? '<p class="muted" style="margin:0">Sin datos aún.</p>' : ''}
+        </div>
+      </div>`,
+
+      // Card 5: Cobertura por departamento
+      `<div class="dash-card" style="--accent:var(--yellow); grid-column:span 2;">
+        <div class="dc-label">% Emancipadas por departamento (sobre total municipios del GeoJSON)</div>
+        <div class="dc-dept-grid">
+          ${deptRows.filter(d=>d.emanc>0).map(d => `
+            <div class="dc-dept-row">
+              <div class="dc-dept-name" title="${escapeHtml(d.name)}">${escapeHtml(d.name)}</div>
+              <div class="dc-dept-bar-wrap">
+                <div class="dc-dept-bar" style="width:${d.pct}%"></div>
+              </div>
+              <div class="dc-dept-pct">${d.pct}%</div>
+            </div>`).join('')}
+          ${deptRows.filter(d=>d.emanc>0).length === 0
+            ? '<p class="muted" style="margin:0">Sin municipios emancipados aún.</p>' : ''}
+        </div>
+      </div>`,
+
+    ];
+
+    // ── Card 6: Tendencia (solo si hay datos con fecha) ─────────────────
+    const rowsConFecha = sheetRows.filter(r => r.fecha_estado);
+    if (rowsConFecha.length > 0) {
+      cards.push(buildTrendCard(rowsConFecha));
+    } else {
+      cards.push(`<div class="dash-card" style="--accent:#c8d8ea; grid-column:span 1;">
+        <div class="dc-label">Evolución en el tiempo</div>
+        <div class="dc-sub" style="margin-top:8px;">
+          Agrega la columna <strong>fecha_estado</strong> (formato <code>YYYY-MM-DD</code>) en Google Sheets
+          para activar las gráficas de tendencia y comparación entre períodos.
+        </div>
+        <div class="dc-cta" style="margin-top:14px;">
+          📋 Una fila por cada cambio de estado de un municipio, con su fecha.
+          El panel calculará automáticamente deltas y tendencias.
+        </div>
+      </div>`);
+    }
+
+    grid.innerHTML = cards.join('');
+
+    // Animar barras al entrar en viewport
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          e.target.querySelectorAll('.dc-bar,.dc-top-bar,.dc-dept-bar').forEach(bar => {
+            bar.style.transition = 'width .9s cubic-bezier(.16,1,.3,1)';
+          });
+          observer.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.2 });
+    grid.querySelectorAll('.dash-card').forEach(c => observer.observe(c));
+
+    // Bind selector de rango (si existe la card de tendencia)
+    const rangeSelect = document.getElementById('trendRange');
+    if (rangeSelect) {
+      rangeSelect.addEventListener('change', () => {
+        const card = document.getElementById('trendCard');
+        if (card) card.outerHTML = buildTrendCard(rowsConFecha);
+        bindTrendSelector(rowsConFecha);
+      });
+    }
+
+    // Timestamp
+    if (updated) {
+      const now = new Date();
+      updated.textContent = `Actualizado: ${now.toLocaleDateString('es-CO',{day:'2-digit',month:'long',year:'numeric'})}`;
+    }
   }
 
-  // ── Cards ──────────────────────────────────────────────────────────
-  const cards = [
+  /* ── Tendencia ──────────────────────────────────────────────────────── */
 
-    // Card 1: Cobertura total
-    `<div class="dash-card" style="--accent:var(--yellow)">
-      <div class="dc-label">Cobertura total de Colombia</div>
-      <div class="dc-value">${pctTotal}<span>%</span></div>
-      <div class="dc-sub">
-        <strong>${total_con_dato}</strong> de <strong>${total_colombia}</strong> municipios tienen registro activo.
-      </div>
-      <div class="dc-bar-wrap"><div class="dc-bar" style="width:${pctTotal}%;background:var(--yellow)"></div></div>
-    </div>`,
-
-    // Card 2: Distribución por estado (donut)
-    `<div class="dash-card" style="--accent:#c8d8ea">
-      <div class="dc-label">Distribución por estado</div>
-      <div class="dc-donut-wrap">
-        ${donutSVG([
-          { pct: pctEmanc,   color: '#F2D46B' },
-          { pct: pctProceso, color: '#4A90E2' },
-          { pct: pctNueva,   color: '#D64541' }
-        ])}
-        <ul class="dc-donut-legend">
-          <li><span class="dc-dot" style="background:#F2D46B"></span>
-            <span>Emancipadas <strong>${counts.Emancipada}</strong> (${pctEmanc}%)</span></li>
-          <li><span class="dc-dot" style="background:#4A90E2"></span>
-            <span>Por emancipar <strong>${counts['En proceso']}</strong> (${pctProceso}%)</span></li>
-          <li><span class="dc-dot" style="background:#D64541"></span>
-            <span>Por conquistar <strong>${counts['Nueva ciudad']}</strong> (${pctNueva}%)</span></li>
-        </ul>
-      </div>
-    </div>`,
-
-    // Card 3: Departamentos con presencia
-    `<div class="dash-card" style="--accent:var(--blue)">
-      <div class="dc-label">Alcance departamental</div>
-      <div class="dc-value">${deptConEmanc}<span> dep.</span></div>
-      <div class="dc-sub">
-        tienen al menos <strong>1 iglesia emancipada</strong>
-        de <strong>${Object.keys(deptMap).length}</strong> con registro.
-      </div>
-      <div class="dc-bar-wrap"><div class="dc-bar"
-        style="width:${pct(deptConEmanc,33)}%;background:var(--blue)"></div></div>
-    </div>`,
-
-    // Card 4: Top 5 departamentos
-    `<div class="dash-card" style="--accent:var(--yellow); grid-column:span 1;">
-      <div class="dc-label">Top departamentos — Emancipadas</div>
-      <div class="dc-top-list">
-        ${top5.map((d, i) => `
-          <div class="dc-top-item">
-            <div class="dc-top-rank">${i+1}</div>
-            <div class="dc-top-info">
-              <div class="dc-top-name">${escapeHtml(d.name)}</div>
-              <div class="dc-top-dept">${d.emanc} municipio${d.emanc!==1?'s':''} emancipado${d.emanc!==1?'s':''}</div>
-            </div>
-            <div class="dc-top-bar-wrap">
-              <div class="dc-top-bar" style="width:${Math.round(d.emanc/maxEmanc*100)}%;background:var(--yellow)"></div>
-            </div>
-          </div>`).join('')}
-        ${top5.length === 0 ? '<p class="muted" style="margin:0">Sin datos aún.</p>' : ''}
-      </div>
-    </div>`,
-
-    // Card 5: Cobertura por departamento
-    `<div class="dash-card" style="--accent:var(--yellow); grid-column:span 2;">
-      <div class="dc-label">% Emancipadas por departamento (sobre total municipios del GeoJSON)</div>
-      <div class="dc-dept-grid">
-        ${deptRows.filter(d=>d.emanc>0).map(d => `
-          <div class="dc-dept-row">
-            <div class="dc-dept-name" title="${escapeHtml(d.name)}">${escapeHtml(d.name)}</div>
-            <div class="dc-dept-bar-wrap">
-              <div class="dc-dept-bar" style="width:${d.pct}%"></div>
-            </div>
-            <div class="dc-dept-pct">${d.pct}%</div>
-          </div>`).join('')}
-        ${deptRows.filter(d=>d.emanc>0).length === 0
-          ? '<p class="muted" style="margin:0">Sin municipios emancipados aún.</p>' : ''}
-      </div>
-    </div>`,
-
-  ];
-
-  // ── Card 6: Tendencia (solo si hay datos con fecha) ─────────────────
-  const rowsConFecha = sheetRows.filter(r => r.fecha_estado);
-  if (rowsConFecha.length > 0) {
-    cards.push(buildTrendCard(rowsConFecha));
-  } else {
-    cards.push(`<div class="dash-card" style="--accent:#c8d8ea; grid-column:span 1;">
-      <div class="dc-label">Evolución en el tiempo</div>
-      <div class="dc-sub" style="margin-top:8px;">
-        Agrega la columna <strong>fecha_estado</strong> (formato <code>YYYY-MM-DD</code>) en Google Sheets
-        para activar las gráficas de tendencia y comparación entre períodos.
-      </div>
-      <div class="dc-cta" style="margin-top:14px;">
-        📋 Una fila por cada cambio de estado de un municipio, con su fecha.
-        El panel calculará automáticamente deltas y tendencias.
-      </div>
-    </div>`);
+  // Fecha de inicio del registro (guardada en localStorage la primera vez que carga con datos)
+  function getBaselineDate() {
+    const stored = localStorage.getItem('colportaje_baseline_date');
+    if (stored) return stored;
+    // Primera vez: guarda hoy como línea base
+    const today = new Date().toISOString().slice(0, 10);
+    localStorage.setItem('colportaje_baseline_date', today);
+    return today;
   }
 
-  grid.innerHTML = cards.join('');
+  function buildTrendCard(rowsConFecha) {
+    const rangeVal   = document.getElementById('trendRange')?.value ?? '1';
+    const months     = parseInt(rangeVal, 10);
+    const STATUS_COLOR = { Emancipada:'#F2D46B', 'En proceso':'#4A90E2', 'Nueva ciudad':'#D64541', '(nuevo)':'#aaa' };
+    const rangeLabel = { '1':'1 mes', '3':'3 meses', '6':'6 meses', '12':'1 año' }[rangeVal] ?? `${rangeVal} meses`;
 
-  // Animar barras al entrar en viewport
-  const observer = new IntersectionObserver(entries => {
-    entries.forEach(e => {
-      if (e.isIntersecting) {
-        e.target.querySelectorAll('.dc-bar,.dc-top-bar,.dc-dept-bar').forEach(bar => {
-          bar.style.transition = 'width .9s cubic-bezier(.16,1,.3,1)';
+    const now    = new Date();
+    const cutoff = new Date(now); cutoff.setMonth(cutoff.getMonth() - months);
+
+    // ── Snapshot: estado más reciente de cada DANE antes de una fecha dada ──
+    function snapshotAt(rows, before) {
+      const map = new Map();
+      rows
+        .filter(r => new Date(r.fecha_estado) <= before)
+        .sort((a,b) => a.fecha_estado.localeCompare(b.fecha_estado))
+        .forEach(r => map.set(r.dane, r));
+      return map;
+    }
+
+    function countByEstado(snap) {
+      const c = { Emancipada: 0, 'En proceso': 0, 'Nueva ciudad': 0, total: 0 };
+      snap.forEach(r => { if (c[r.estado] !== undefined) { c[r.estado]++; c.total++; } });
+      return c;
+    }
+
+    const snapNow  = snapshotAt(rowsConFecha, now);
+    const snapPrev = snapshotAt(rowsConFecha, cutoff);
+    const cNow     = countByEstado(snapNow);
+    const cPrev    = countByEstado(snapPrev);
+    const hasPrev  = snapPrev.size > 0;
+
+    // Cambios dentro del período seleccionado
+    const cambios = [];
+    snapNow.forEach((rNow, dane) => {
+      const rPrev = snapPrev.get(dane);
+      const enPeriodo = new Date(rNow.fecha_estado) > cutoff;
+      if (enPeriodo && (!rPrev || rPrev.estado !== rNow.estado)) {
+        cambios.push({
+          municipio:    rNow.ubicacion || rNow.municipio_mapa || dane,
+          departamento: rNow.departamento || '',
+          de:           rPrev?.estado ?? '(nuevo)',
+          a:            rNow.estado,
+          fecha:        rNow.fecha_estado
         });
-        observer.unobserve(e.target);
       }
     });
-  }, { threshold: 0.2 });
-  grid.querySelectorAll('.dash-card').forEach(c => observer.observe(c));
+    cambios.sort((a,b) => b.fecha.localeCompare(a.fecha));
 
-  // Bind selector de rango (si existe la card de tendencia)
-  const rangeSelect = document.getElementById('trendRange');
-  if (rangeSelect) {
-    rangeSelect.addEventListener('change', () => {
+    function delta(now, prev) {
+      if (!hasPrev) return `<span class="td-neutral">—</span>`;
+      const d = now - prev;
+      if (d === 0) return `<span class="td-neutral">sin cambio</span>`;
+      return d > 0 ? `<span class="td-up">+${d}</span>` : `<span class="td-down">${d}</span>`;
+    }
+
+    const fmtDate = iso => { const [y,m,d] = iso.split('-'); return `${d}/${m}/${y}`; };
+    const baselineDate = getBaselineDate();
+
+    // ── Mensaje de estado del historial ──
+    const oldestFecha = rowsConFecha.reduce((min, r) => r.fecha_estado < min ? r.fecha_estado : min, rowsConFecha[0].fecha_estado);
+    const diasDeHistorial = Math.floor((now - new Date(oldestFecha)) / 86400000);
+    const diasParaComparar = months * 30;
+    const pctListo = Math.min(100, Math.round(diasDeHistorial / diasParaComparar * 100));
+    const tieneComparacion = diasDeHistorial >= diasParaComparar;
+
+    return `<div class="dash-card trend-card" id="trendCard" style="--accent:var(--blue); grid-column:span 3;">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:16px;">
+        <div class="dc-label" style="margin:0;">Evolución en el tiempo</div>
+        <select id="trendRange" class="trend-select">
+          <option value="1"  ${rangeVal==='1'?'selected':''}>Último mes vs mes anterior</option>
+          <option value="3"  ${rangeVal==='3'?'selected':''}>Últimos 3 meses vs 3 anteriores</option>
+          <option value="6"  ${rangeVal==='6'?'selected':''}>Últimos 6 meses vs 6 anteriores</option>
+          <option value="12" ${rangeVal==='12'?'selected':''}>Último año vs año anterior</option>
+        </select>
+      </div>
+
+      ${!tieneComparacion ? `
+      <div class="trend-onboarding">
+        <div class="trend-ob-title">📅 Acumulando historial desde ${fmtDate(baselineDate)}</div>
+        <p class="trend-ob-desc">
+          Cuando haya <strong>${rangeLabel}</strong> de datos registrados, aparecerá aquí la comparación automática
+          contra el período anterior. Por ahora puedes ver el estado actual.
+        </p>
+        <div class="dc-bar-wrap" style="margin:12px 0 4px;">
+          <div class="dc-bar" style="width:${pctListo}%;background:var(--blue);transition:width .9s cubic-bezier(.16,1,.3,1)"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);">
+          <span>Inicio: ${fmtDate(oldestFecha)}</span>
+          <span>${pctListo}% del período acumulado (${diasDeHistorial} día${diasDeHistorial!==1?'s':''})</span>
+          <span>Meta: ${rangeLabel}</span>
+        </div>
+      </div>` : ''}
+
+      <div class="trend-grid" style="margin-top:${!tieneComparacion?'16px':'0'};">
+        ${['Emancipada','En proceso','Nueva ciudad'].map(est => `
+          <div class="trend-stat">
+            <div class="trend-swatch" style="background:${STATUS_COLOR[est]}"></div>
+            <div class="trend-label">${est==='Emancipada'?'Emancipadas':est==='En proceso'?'Por emancipar':'Por conquistar'}</div>
+            <div class="trend-value">${cNow[est]}</div>
+            <div class="trend-delta">
+              ${tieneComparacion ? delta(cNow[est], cPrev[est]) + ' en ' + rangeLabel
+                : `<span class="td-neutral">línea base: ${cNow[est]}</span>`}
+            </div>
+          </div>`).join('')}
+        <div class="trend-stat">
+          <div class="trend-swatch" style="background:var(--text);opacity:.3"></div>
+          <div class="trend-label">Total registrados</div>
+          <div class="trend-value">${cNow.total}</div>
+          <div class="trend-delta">
+            ${tieneComparacion ? delta(cNow.total, cPrev.total) + ' en ' + rangeLabel
+              : `<span class="td-neutral">línea base: ${cNow.total}</span>`}
+          </div>
+        </div>
+      </div>
+
+      ${cambios.length > 0 ? `
+      <div style="margin-top:20px;">
+        <div class="dc-label" style="margin-bottom:10px;">
+          Cambios en los últimos ${rangeLabel}
+          <span style="font-weight:400;text-transform:none;letter-spacing:0;">(${cambios.length} municipio${cambios.length!==1?'s':''})</span>
+        </div>
+        <div class="cambios-list">
+          ${cambios.slice(0,10).map(c => `
+            <div class="cambio-row">
+              <div class="cambio-fecha">${fmtDate(c.fecha)}</div>
+              <div class="cambio-info">
+                <strong>${escapeHtml(c.municipio)}</strong>
+                <span class="cambio-dept">${escapeHtml(c.departamento)}</span>
+              </div>
+              <div class="cambio-estados">
+                <span class="cambio-badge" style="background:${STATUS_COLOR[c.de]}22;color:${c.de==='#F2D46B'?'#7a5c00':STATUS_COLOR[c.de]};border:1px solid ${STATUS_COLOR[c.de]}44">
+                  ${escapeHtml(c.de)}
+                </span>
+                <span class="cambio-arrow">→</span>
+                <span class="cambio-badge" style="background:${STATUS_COLOR[c.a]}22;color:${STATUS_COLOR[c.a]==='#F2D46B'?'#7a5c00':STATUS_COLOR[c.a]};border:1px solid ${STATUS_COLOR[c.a]}44">
+                  ${escapeHtml(c.a)}
+                </span>
+              </div>
+            </div>`).join('')}
+          ${cambios.length > 10 ? `<p class="muted" style="text-align:center;margin:8px 0 0;">
+            +${cambios.length-10} cambios más en este período</p>` : ''}
+        </div>
+      </div>` : tieneComparacion ? `
+      <p class="muted" style="margin-top:14px;">Sin cambios de estado en los últimos ${rangeLabel}.</p>` : ''}
+
+      <div class="trend-instrucciones">
+        <strong>¿Cómo registrar un cambio?</strong> En Google Sheets, agrega una fila nueva con el municipio,
+        su nuevo estado y la fecha de hoy en la columna <code>fecha_estado</code> (formato <code>YYYY-MM-DD</code>).
+        No borres la fila anterior — el historial se construye acumulando filas.
+      </div>
+    </div>`;
+  }
+
+  function bindTrendSelector(rowsConFecha) {
+    const sel = document.getElementById('trendRange');
+    if (!sel) return;
+    sel.addEventListener('change', () => {
       const card = document.getElementById('trendCard');
-      if (card) card.outerHTML = buildTrendCard(rowsConFecha);
+      if (!card) return;
+      card.outerHTML = buildTrendCard(rowsConFecha);
       bindTrendSelector(rowsConFecha);
     });
   }
 
-  // Timestamp
-  if (updated) {
-    const now = new Date();
-    updated.textContent = `Actualizado: ${now.toLocaleDateString('es-CO',{day:'2-digit',month:'long',year:'numeric'})}`;
-  }
-}
-
-/* ── Tendencia ──────────────────────────────────────────────────────── */
-
-// Fecha de inicio del registro (guardada en localStorage la primera vez que carga con datos)
-function getBaselineDate() {
-  const stored = localStorage.getItem('colportaje_baseline_date');
-  if (stored) return stored;
-  // Primera vez: guarda hoy como línea base
-  const today = new Date().toISOString().slice(0, 10);
-  localStorage.setItem('colportaje_baseline_date', today);
-  return today;
-}
-
-function buildTrendCard(rowsConFecha) {
-  const rangeVal   = document.getElementById('trendRange')?.value ?? '1';
-  const months     = parseInt(rangeVal, 10);
-  const STATUS_COLOR = { Emancipada:'#F2D46B', 'En proceso':'#4A90E2', 'Nueva ciudad':'#D64541', '(nuevo)':'#aaa' };
-  const rangeLabel = { '1':'1 mes', '3':'3 meses', '6':'6 meses', '12':'1 año' }[rangeVal] ?? `${rangeVal} meses`;
-
-  const now    = new Date();
-  const cutoff = new Date(now); cutoff.setMonth(cutoff.getMonth() - months);
-
-  // ── Snapshot: estado más reciente de cada DANE antes de una fecha dada ──
-  function snapshotAt(rows, before) {
-    const map = new Map();
-    rows
-      .filter(r => new Date(r.fecha_estado) <= before)
-      .sort((a,b) => a.fecha_estado.localeCompare(b.fecha_estado))
-      .forEach(r => map.set(r.dane, r));
-    return map;
+  function toTitleCase(str) {
+    return str.toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
   }
 
-  function countByEstado(snap) {
-    const c = { Emancipada: 0, 'En proceso': 0, 'Nueva ciudad': 0, total: 0 };
-    snap.forEach(r => { if (c[r.estado] !== undefined) { c[r.estado]++; c.total++; } });
-    return c;
-  }
-
-  const snapNow  = snapshotAt(rowsConFecha, now);
-  const snapPrev = snapshotAt(rowsConFecha, cutoff);
-  const cNow     = countByEstado(snapNow);
-  const cPrev    = countByEstado(snapPrev);
-  const hasPrev  = snapPrev.size > 0;
-
-  // Cambios dentro del período seleccionado
-  const cambios = [];
-  snapNow.forEach((rNow, dane) => {
-    const rPrev = snapPrev.get(dane);
-    const enPeriodo = new Date(rNow.fecha_estado) > cutoff;
-    if (enPeriodo && (!rPrev || rPrev.estado !== rNow.estado)) {
-      cambios.push({
-        municipio:    rNow.ubicacion || rNow.municipio_mapa || dane,
-        departamento: rNow.departamento || '',
-        de:           rPrev?.estado ?? '(nuevo)',
-        a:            rNow.estado,
-        fecha:        rNow.fecha_estado
-      });
-    }
-  });
-  cambios.sort((a,b) => b.fecha.localeCompare(a.fecha));
-
-  function delta(now, prev) {
-    if (!hasPrev) return `<span class="td-neutral">—</span>`;
-    const d = now - prev;
-    if (d === 0) return `<span class="td-neutral">sin cambio</span>`;
-    return d > 0 ? `<span class="td-up">+${d}</span>` : `<span class="td-down">${d}</span>`;
-  }
-
-  const fmtDate = iso => { const [y,m,d] = iso.split('-'); return `${d}/${m}/${y}`; };
-  const baselineDate = getBaselineDate();
-
-  // ── Mensaje de estado del historial ──
-  const oldestFecha = rowsConFecha.reduce((min, r) => r.fecha_estado < min ? r.fecha_estado : min, rowsConFecha[0].fecha_estado);
-  const diasDeHistorial = Math.floor((now - new Date(oldestFecha)) / 86400000);
-  const diasParaComparar = months * 30;
-  const pctListo = Math.min(100, Math.round(diasDeHistorial / diasParaComparar * 100));
-  const tieneComparacion = diasDeHistorial >= diasParaComparar;
-
-  return `<div class="dash-card trend-card" id="trendCard" style="--accent:var(--blue); grid-column:span 3;">
-    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:16px;">
-      <div class="dc-label" style="margin:0;">Evolución en el tiempo</div>
-      <select id="trendRange" class="trend-select">
-        <option value="1"  ${rangeVal==='1'?'selected':''}>Último mes vs mes anterior</option>
-        <option value="3"  ${rangeVal==='3'?'selected':''}>Últimos 3 meses vs 3 anteriores</option>
-        <option value="6"  ${rangeVal==='6'?'selected':''}>Últimos 6 meses vs 6 anteriores</option>
-        <option value="12" ${rangeVal==='12'?'selected':''}>Último año vs año anterior</option>
-      </select>
-    </div>
-
-    ${!tieneComparacion ? `
-    <div class="trend-onboarding">
-      <div class="trend-ob-title">📅 Acumulando historial desde ${fmtDate(baselineDate)}</div>
-      <p class="trend-ob-desc">
-        Cuando haya <strong>${rangeLabel}</strong> de datos registrados, aparecerá aquí la comparación automática
-        contra el período anterior. Por ahora puedes ver el estado actual.
-      </p>
-      <div class="dc-bar-wrap" style="margin:12px 0 4px;">
-        <div class="dc-bar" style="width:${pctListo}%;background:var(--blue);transition:width .9s cubic-bezier(.16,1,.3,1)"></div>
-      </div>
-      <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);">
-        <span>Inicio: ${fmtDate(oldestFecha)}</span>
-        <span>${pctListo}% del período acumulado (${diasDeHistorial} día${diasDeHistorial!==1?'s':''})</span>
-        <span>Meta: ${rangeLabel}</span>
-      </div>
-    </div>` : ''}
-
-    <div class="trend-grid" style="margin-top:${!tieneComparacion?'16px':'0'};">
-      ${['Emancipada','En proceso','Nueva ciudad'].map(est => `
-        <div class="trend-stat">
-          <div class="trend-swatch" style="background:${STATUS_COLOR[est]}"></div>
-          <div class="trend-label">${est==='Emancipada'?'Emancipadas':est==='En proceso'?'Por emancipar':'Por conquistar'}</div>
-          <div class="trend-value">${cNow[est]}</div>
-          <div class="trend-delta">
-            ${tieneComparacion ? delta(cNow[est], cPrev[est]) + ' en ' + rangeLabel
-              : `<span class="td-neutral">línea base: ${cNow[est]}</span>`}
-          </div>
-        </div>`).join('')}
-      <div class="trend-stat">
-        <div class="trend-swatch" style="background:var(--text);opacity:.3"></div>
-        <div class="trend-label">Total registrados</div>
-        <div class="trend-value">${cNow.total}</div>
-        <div class="trend-delta">
-          ${tieneComparacion ? delta(cNow.total, cPrev.total) + ' en ' + rangeLabel
-            : `<span class="td-neutral">línea base: ${cNow.total}</span>`}
-        </div>
-      </div>
-    </div>
-
-    ${cambios.length > 0 ? `
-    <div style="margin-top:20px;">
-      <div class="dc-label" style="margin-bottom:10px;">
-        Cambios en los últimos ${rangeLabel}
-        <span style="font-weight:400;text-transform:none;letter-spacing:0;">(${cambios.length} municipio${cambios.length!==1?'s':''})</span>
-      </div>
-      <div class="cambios-list">
-        ${cambios.slice(0,10).map(c => `
-          <div class="cambio-row">
-            <div class="cambio-fecha">${fmtDate(c.fecha)}</div>
-            <div class="cambio-info">
-              <strong>${escapeHtml(c.municipio)}</strong>
-              <span class="cambio-dept">${escapeHtml(c.departamento)}</span>
-            </div>
-            <div class="cambio-estados">
-              <span class="cambio-badge" style="background:${STATUS_COLOR[c.de]}22;color:${c.de==='#F2D46B'?'#7a5c00':STATUS_COLOR[c.de]};border:1px solid ${STATUS_COLOR[c.de]}44">
-                ${escapeHtml(c.de)}
-              </span>
-              <span class="cambio-arrow">→</span>
-              <span class="cambio-badge" style="background:${STATUS_COLOR[c.a]}22;color:${STATUS_COLOR[c.a]==='#F2D46B'?'#7a5c00':STATUS_COLOR[c.a]};border:1px solid ${STATUS_COLOR[c.a]}44">
-                ${escapeHtml(c.a)}
-              </span>
-            </div>
-          </div>`).join('')}
-        ${cambios.length > 10 ? `<p class="muted" style="text-align:center;margin:8px 0 0;">
-          +${cambios.length-10} cambios más en este período</p>` : ''}
-      </div>
-    </div>` : tieneComparacion ? `
-    <p class="muted" style="margin-top:14px;">Sin cambios de estado en los últimos ${rangeLabel}.</p>` : ''}
-
-    <div class="trend-instrucciones">
-      <strong>¿Cómo registrar un cambio?</strong> En Google Sheets, agrega una fila nueva con el municipio,
-      su nuevo estado y la fecha de hoy en la columna <code>fecha_estado</code> (formato <code>YYYY-MM-DD</code>).
-      No borres la fila anterior — el historial se construye acumulando filas.
-    </div>
-  </div>`;
-}
-
-function bindTrendSelector(rowsConFecha) {
-  const sel = document.getElementById('trendRange');
-  if (!sel) return;
-  sel.addEventListener('change', () => {
-    const card = document.getElementById('trendCard');
-    if (!card) return;
-    card.outerHTML = buildTrendCard(rowsConFecha);
-    bindTrendSelector(rowsConFecha);
-  });
-}
-
-function toTitleCase(str) {
-  return str.toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
-}
+})();
