@@ -10,7 +10,7 @@
   const GEOJSON_URL     = "./data/colombia-municipios.geojson";
 
   // ── PEGA AQUÍ TU URL DE APPS SCRIPT (o deja vacío para modo solo-GeoJSON) ──
-  const SHEETS_ENDPOINT = "PEGAR_AQUI_URL_EXEC";
+  const SHEETS_ENDPOINT = "https://script.google.com/macros/s/AKfycbzShr_GWx8LPk_-R04YV3LbVjGY_FB0UE_89YW9SPJRluqMVEFAwVmqQ5E9zvyewC9DlA/exec";
   // ─────────────────────────────────────────────────────────────────────────
 
   /* ─── ESTADO ─────────────────────────────────────────────────────────────── */
