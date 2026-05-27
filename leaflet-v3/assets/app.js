@@ -86,6 +86,11 @@
 
     // Panel de estadísticas
     renderDashboard();
+    renderCorregimientos();
+    updateMapOverlay();
+
+    // Fix Leaflet container size after layout settles
+    setTimeout(() => map.invalidateSize(), 150);
 
     loadingBanner.classList.add("hidden");
     document.body.classList.remove("loading");
@@ -281,6 +286,7 @@
     updateCounts(visibleFeatures);
     updateFilterButtons();
     updateLabels();
+    updateMapOverlay();
 
     // FIX 5 ── Ajuste de vista inicial:
     //   • Si hay municipios coloreados -> ajusta a ellos
@@ -470,8 +476,28 @@
   }
 
   function featureCenter(feature) {
-    const bounds = featureBounds(feature);
-    return bounds ? bounds.getCenter() : null;
+    // Use centroid of the LARGEST polygon ring to avoid islands pulling the label
+    const geom = feature.geometry;
+    let bestRing = null;
+    let bestArea = -1;
+
+    const rings = geom.type === 'Polygon'
+      ? [geom.coordinates[0]]
+      : geom.coordinates.map(poly => poly[0]); // outer ring of each polygon
+
+    rings.forEach(ring => {
+      // Approximate bounding-box area as proxy for ring size
+      const lons = ring.map(c => c[0]);
+      const lats = ring.map(c => c[1]);
+      const area = (Math.max(...lons) - Math.min(...lons)) *
+                   (Math.max(...lats) - Math.min(...lats));
+      if (area > bestArea) { bestArea = area; bestRing = ring; }
+    });
+
+    if (!bestRing) return null;
+    const lon = bestRing.reduce((s, c) => s + c[0], 0) / bestRing.length;
+    const lat = bestRing.reduce((s, c) => s + c[1], 0) / bestRing.length;
+    return L.latLng(lat, lon);
   }
 
   /* ─── POPUP ──────────────────────────────────────────────────────────────── */
@@ -941,6 +967,77 @@
 
   function toTitleCase(str) {
     return str.toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
+  }
+
+
+  /* ─── OVERLAY DE STATS SOBRE EL MAPA ──────────────────────────────── */
+  function updateMapOverlay() {
+    const total_colombia = 1122;
+    const counts = { Emancipada: 0, 'En proceso': 0, 'Nueva ciudad': 0 };
+    allFeatures.forEach(f => { if (counts[f.properties.estado] !== undefined) counts[f.properties.estado]++; });
+    const total = allFeatures.length;
+    const pct   = total > 0 ? Math.round(total / total_colombia * 100) : 0;
+    const el    = id => document.getElementById(id);
+    if (el('mso-emanc'))   el('mso-emanc').textContent   = counts['Emancipada'];
+    if (el('mso-proceso')) el('mso-proceso').textContent  = counts['En proceso'];
+    if (el('mso-nueva'))   el('mso-nueva').textContent    = counts['Nueva ciudad'];
+    if (el('mso-total'))   el('mso-total').textContent    = total;
+    if (el('mso-pct'))     el('mso-pct').textContent      = total > 0 ? pct + '% del país' : '';
+  }
+
+
+  /* ─── CORREGIMIENTOS ─────────────────────────────────────────────────── */
+  function renderCorregimientos() {
+    const list  = document.getElementById('corrList');
+    const count = document.getElementById('count-corregimientos');
+    const unicos = document.getElementById('count-mpio-unicos');
+    if (!list) return;
+
+    const STATUS_COLOR = {
+      'Emancipada':  '#F2D46B',
+      'En proceso':  '#4A90E2',
+      'Nueva ciudad':'#D64541'
+    };
+    const STATUS_TEXT_COLOR = {
+      'Emancipada':  '#7a5c00',
+      'En proceso':  '#fff',
+      'Nueva ciudad':'#fff'
+    };
+
+    // A "corregimiento" is any ubicacion that is NOT equal (normalized) to municipio_mapa
+    // and shares a DANE with at least one other row whose ubicacion matches municipio_mapa.
+    const normalize = s => String(s||'').normalize('NFD')
+      .replace(/[̀-ͯ]/g,'').toLowerCase().trim();
+
+    const corregimientos = sheetRows.filter(row => {
+      const ubic = normalize(row.ubicacion);
+      const mpio = normalize(row.municipio_mapa);
+      // It's a corregimiento/sector if the name is meaningfully different from the mpio name
+      return ubic && mpio && ubic !== mpio && !ubic.startsWith(mpio);
+    });
+
+    // Unique municipio count (distinct DANE values)
+    const uniqueDanes = new Set(sheetRows.map(r => r.dane));
+    if (unicos) unicos.textContent = uniqueDanes.size;
+    if (count)  count.textContent  = corregimientos.length;
+
+    if (corregimientos.length === 0) {
+      list.innerHTML = '<div class="corr-empty">No hay corregimientos registrados aún.<br><small>Para agregar uno, usa el DANE del municipio padre en Sheets con un nombre diferente en <em>ubicacion</em>.</small></div>';
+      return;
+    }
+
+    list.innerHTML = corregimientos.map(row => {
+      const color     = STATUS_COLOR[row.estado]     || '#ccc';
+      const textColor = STATUS_TEXT_COLOR[row.estado] || '#333';
+      return `<div class="corr-item">
+        <span class="corr-dot" style="background:${color}"></span>
+        <div class="corr-info">
+          <div class="corr-nombre" title="${escapeHtml(row.ubicacion)}">${escapeHtml(row.ubicacion)}</div>
+          <div class="corr-dept">${escapeHtml(row.departamento)} · DANE padre: ${escapeHtml(row.dane)}</div>
+        </div>
+        <span class="corr-badge" style="background:${color};color:${textColor}">${escapeHtml(row.estado)}</span>
+      </div>`;
+    }).join('');
   }
 
 })();
