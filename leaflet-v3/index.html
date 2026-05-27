@@ -55,8 +55,8 @@
     .record p { margin:2px 0; font-size:13px; color:#2f3f51; }
     .unmatched-list { margin:8px 0 0; padding-left:18px; max-height:220px; overflow:auto; }
     .unmatched-list li { margin-bottom:6px; font-size:13px; }
-    .map-card { overflow:hidden; position:relative; }
-    .map-wrap { position:relative; width:100%; height:62vh; min-height:480px; background:#edf2f7; }
+    .map-card { overflow:hidden; position:relative; display:flex; flex-direction:column; }
+    .map-wrap { position:relative; width:100%; height:100%; min-height:520px; background:#edf2f7; }
     #map { width:100%; height:100%; }
     .map-toolbar { position:absolute; right:12px; bottom:12px; display:flex; flex-direction:column; gap:8px; z-index:700; }
     .map-toolbar button { width:44px; height:44px; padding:0; font-size:22px; border-radius:14px; background:rgba(255,255,255,.95); box-shadow:0 4px 10px rgba(0,0,0,.08); }
@@ -64,7 +64,7 @@
     .leaflet-container { background:#edf2f7; }
     .v3-label { background:transparent; border:none; box-shadow:none; color:#243447; font-size:8px; font-weight:600;
       text-shadow:-1px -1px 0 #fff,1px -1px 0 #fff,-1px 1px 0 #fff,1px 1px 0 #fff; white-space:nowrap; pointer-events:none; }
-    @media (min-width:980px) { .grid { grid-template-columns:minmax(320px, 420px) 1fr; align-items:start; } .app { padding:18px; } .controls { grid-template-columns:1fr auto; align-items:center; } }
+    @media (min-width:980px) { .grid { grid-template-columns:minmax(320px, 420px) 1fr; align-items:stretch; } .app { padding:18px; } .controls { grid-template-columns:1fr auto; align-items:center; } .map-card { min-height:580px; } .map-wrap { height:100%; min-height:580px; } }
 
     /* ── DASHBOARD ── */
     @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;600&display=swap');
@@ -158,6 +158,36 @@
     }
 
 
+
+    /* ── STATS OVERLAY ON MAP ── */
+    .map-stats-overlay {
+      position:absolute; bottom:16px; left:16px; z-index:700;
+      background:rgba(255,255,255,0.95); backdrop-filter:blur(8px);
+      border:1px solid var(--line); border-radius:16px;
+      padding:12px 16px; box-shadow:0 4px 20px rgba(19,34,56,.12);
+      min-width:190px; pointer-events:none;
+    }
+    .mso-row { display:flex; align-items:center; gap:8px; padding:3px 0; font-size:13px; }
+    .mso-dot { width:9px; height:9px; border-radius:50%; flex-shrink:0; }
+    .mso-label { flex:1; color:var(--muted); }
+    .mso-row strong { font-size:14px; font-weight:700; color:var(--text); min-width:28px; text-align:right; }
+    .mso-divider { height:1px; background:var(--line); margin:6px 0; }
+    .mso-total .mso-label { color:var(--text); font-weight:600; }
+    .mso-pct { font-size:11px; color:var(--muted); margin-left:4px; }
+
+    /* ── CORREGIMIENTOS ── */
+    .corr-list { display:grid; gap:6px; margin-top:8px; max-height:260px; overflow-y:auto; }
+    .corr-item { display:flex; align-items:center; gap:8px; padding:8px 10px;
+      background:#f7f9fc; border:1px solid var(--line); border-radius:10px; font-size:12px; }
+    .corr-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+    .corr-info { flex:1; min-width:0; }
+    .corr-nombre { font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .corr-dept { color:var(--muted); font-size:11px; }
+    .corr-badge { padding:2px 8px; border-radius:99px; font-size:10px; font-weight:700;
+      flex-shrink:0; }
+    .corr-empty { color:var(--muted); font-size:13px; text-align:center; padding:12px 0; }
+    .stat-corr { background:#f7f9fc; border:1px solid var(--line); border-radius:12px; padding:10px; text-align:center; }
+    .stat-corr strong { display:block; font-size:20px; }
   </style>
 </head>
 <body class="loading">
@@ -197,6 +227,10 @@
             <div class="stat"><small>Registros totales</small><strong id="count-registros">0</strong></div>
             <div class="stat"><small>No ubicados</small><strong id="count-unmatched">0</strong></div>
           </div>
+          <div class="stats" style="margin-top:8px; grid-template-columns:1fr 1fr;">
+            <div class="stat"><small>Municipios únicos</small><strong id="count-mpio-unicos">0</strong></div>
+            <div class="stat"><small>Corregimientos</small><strong id="count-corregimientos">0</strong></div>
+          </div>
         </div>
 
         <div class="panel" id="detailPanel">
@@ -209,11 +243,42 @@
           <p class="muted">Estos registros vienen desde Google Sheets pero no se pudieron ubicar en la capa completa por código DANE.</p>
           <ul class="unmatched-list" id="unmatchedList"></ul>
         </div>
+
+        <div class="panel" id="corrPanel">
+          <h2>Corregimientos registrados</h2>
+          <p class="muted">Lugares registrados bajo el DANE de su municipio padre. Visibles al hacer clic en el polígono.</p>
+          <div class="corr-list" id="corrList">
+            <div class="corr-empty">Cargando…</div>
+          </div>
+        </div>
       </div>
 
       <div class="map-card">
         <div class="map-wrap">
           <div id="map" aria-label="Mapa completo de municipios de Colombia"></div>
+          <div id="mapStatsOverlay" class="map-stats-overlay">
+            <div class="mso-row">
+              <span class="mso-dot" style="background:var(--yellow)"></span>
+              <span class="mso-label">Emancipadas</span>
+              <strong id="mso-emanc">—</strong>
+            </div>
+            <div class="mso-row">
+              <span class="mso-dot" style="background:var(--blue)"></span>
+              <span class="mso-label">Por emancipar</span>
+              <strong id="mso-proceso">—</strong>
+            </div>
+            <div class="mso-row">
+              <span class="mso-dot" style="background:var(--red)"></span>
+              <span class="mso-label">Por conquistar</span>
+              <strong id="mso-nueva">—</strong>
+            </div>
+            <div class="mso-divider"></div>
+            <div class="mso-row mso-total">
+              <span class="mso-label">Total municipios</span>
+              <strong id="mso-total">—</strong>
+              <span class="mso-pct" id="mso-pct"></span>
+            </div>
+          </div>
           <div class="map-toolbar">
             <button id="zoomIn" type="button" aria-label="Acercar">+</button>
             <button id="zoomOut" type="button" aria-label="Alejar">−</button>
@@ -222,15 +287,13 @@
         </div>
       </div>
     </div>
-  <!-- ── PANEL DE ESTADÍSTICAS ── -->
-    <div class="dashboard panel">
+  <!-- ── PANEL DE ESTADÍSTICAS ── integrado en sidebar via app.js -->
+    <div class="dashboard panel" id="dashboardPanel">
       <div class="dashboard-header">
         <h2>Panel de estadísticas</h2>
         <p id="dash-updated">Cargando datos…</p>
       </div>
-      <div class="dash-grid" id="dashGrid">
-        <!-- cards rendered by app.js -->
-      </div>
+      <div class="dash-grid" id="dashGrid"></div>
     </div>
   </div>
 
