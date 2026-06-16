@@ -1,15 +1,14 @@
-Inversionistas del Reino - Colombia · paquete adaptado con index_3
+Inversionistas del Reino - Colombia · index_3 ajustado
 
-CONTENIDO
-- index.html  -> versión visual basada en el archivo index_3.html suministrado
-- data/dashboard.xlsx -> libro fuente del dashboard
+CAMBIOS APLICADOS
+- Se eliminó el filtro de forma de recaudo.
+- El dashboard ahora proyecta únicamente información mensual de 2026 (enero en adelante).
+- Se eliminaron indicadores y etiquetas que hacían referencia a años anteriores.
+- Se corrigió el cálculo de comparativos mensuales excluyendo las filas de totales/resumen del Excel.
+- Se reemplazaron indicadores basados en saldos históricos por métricas 100% del período.
 
-FORMA DE USO
-1. Sube la carpeta al repositorio o hosting estático.
-2. Publica con GitHub Pages, Netlify u otro hosting.
-3. Para actualizar el dashboard online, reemplaza data/dashboard.xlsx.
-4. Recarga la página.
+VALIDACIÓN CLAVE
+- Mayo vs Mayo ahora toma solo el valor real del mes, sin duplicar por la fila TOTAL del libro.
 
-NOTA
-- Este paquete usa exactamente el diseño del index compartido por el usuario.
-- El libro fuente incluido es Copia_dashboard.xlsx, renombrado internamente como dashboard.xlsx.
+ACTUALIZACIÓN
+- Reemplaza data/dashboard.xlsx cuando tengas una nueva versión del libro.

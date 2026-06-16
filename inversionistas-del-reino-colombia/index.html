@@ -38,14 +38,12 @@
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
-
     html, body {
       background: var(--bg);
       color: var(--ink);
       font-family: Inter, 'Segoe UI', system-ui, sans-serif;
       min-height: 100vh;
     }
-
     body::before {
       content: "";
       position: fixed; inset: 0; z-index: 0;
@@ -57,7 +55,6 @@
 
     .page { position: relative; z-index: 1; max-width: 1600px; margin: 0 auto; padding: 20px; }
 
-    /* ── HERO ── */
     .hero {
       position: relative; overflow: hidden;
       background: var(--surface);
@@ -73,13 +70,11 @@
       background: radial-gradient(ellipse at top right, rgba(200,161,63,.13), transparent 70%);
       pointer-events: none;
     }
-
     .flag-stripe {
       height: 3px; border-radius: 2px;
       background: linear-gradient(90deg, #FCD116 33%, #003087 33% 66%, #CE1126 66%);
       margin-bottom: 18px; opacity: .55;
     }
-
     .hero-brand { display: flex; align-items: center; gap: 14px; }
     .hero-icon {
       width: 48px; height: 48px; border-radius: 12px;
@@ -149,7 +144,6 @@
     .signal .metric { margin-top: 8px; font-size: 20px; font-weight: 800; color: var(--ink); }
     .signal .sub { margin-top: 3px; font-size: 11px; color: var(--ink-3); }
 
-    /* ── SECCIONES ── */
     .section { margin-top: 14px; }
     .card {
       background: var(--surface);
@@ -158,7 +152,6 @@
       box-shadow: 0 4px 20px rgba(0,0,0,.4);
     }
 
-    /* ── FILTROS ── */
     .filters { padding: 20px 22px; }
     .section-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
     .section-title-line { display: flex; align-items: center; gap: 10px; }
@@ -166,7 +159,7 @@
     .section-head h2 { font-size: 15px; font-weight: 700; color: var(--ink); }
     .section-head p { margin-top: 2px; font-size: 12px; color: var(--ink-3); }
 
-    .filter-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; }
+    .filter-row { display: grid; grid-template-columns: 1.2fr 1.2fr 1fr 1fr; gap: 12px; }
     .filter-row-2 { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 12px; align-items: flex-end; }
 
     .field { display: flex; flex-direction: column; gap: 6px; }
@@ -230,7 +223,6 @@
     .btn-secondary { background: rgba(200,161,63,.1); color: var(--gold-light); border: 1px solid rgba(200,161,63,.2); }
     .btn-light { background: var(--surface-2); color: var(--ink-2); border: 1px solid var(--border); }
 
-    /* ── LAYOUTS ── */
     .summary-grid { display: grid; grid-template-columns: 1.1fr .9fr; gap: 12px; }
     .layout-2 { display: grid; grid-template-columns: 1.1fr .9fr; gap: 12px; }
 
@@ -238,7 +230,6 @@
     .panel canvas { width: 100% !important; height: 280px !important; }
     .wide canvas { height: 320px !important; }
 
-    /* ── COMPARATIVAS ── */
     .compare-cards { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; margin-top: 4px; }
     .compare-card {
       background: var(--surface-2); border: 1px solid var(--border);
@@ -257,7 +248,6 @@
     .small-card .value { margin-top: 6px; font-size: 20px; font-weight: 800; color: var(--gold-light); }
     .small-card .sub { margin-top: 3px; font-size: 11px; color: var(--ink-3); }
 
-    /* ── TABLAS ── */
     .table-wrap { overflow: auto; border-radius: var(--radius-sm); border: 1px solid var(--border); }
     table { border-collapse: collapse; width: 100%; font-size: 13px; background: var(--surface); }
     thead th {
@@ -273,7 +263,6 @@
     tbody tr:hover { background: rgba(200,161,63,.05); }
     tbody tr:hover td { color: var(--ink); }
 
-    /* ── CIUDAD ── */
     .city-detail { padding: 20px 22px; }
     .city-top { display: grid; grid-template-columns: .9fr 1.1fr; gap: 14px; margin-bottom: 14px; }
     .city-kpis { display: grid; grid-template-columns: repeat(2,1fr); gap: 10px; }
@@ -286,14 +275,9 @@
     .mini .sub { margin-top: 3px; font-size: 11px; color: var(--ink-3); }
 
     .gold-divider { height: 1px; background: linear-gradient(90deg, transparent, var(--border-bright), transparent); margin: 4px 0; }
-
-    /* ── FOOTER ── */
     .footer-note { padding: 14px 18px; font-size: 12px; color: var(--ink-3); display: flex; align-items: center; gap: 8px; }
-
-    /* ── UTIL ── */
     .hidden { display: none !important; }
 
-    /* ── RESPONSIVE ── */
     @media (max-width:1320px) {
       .hero-grid, .summary-grid, .layout-2, .city-top, .filter-row { grid-template-columns: 1fr; }
       .hero-kpis { grid-template-columns: repeat(2,1fr); }
@@ -310,7 +294,6 @@
 <body>
   <div class="page">
 
-    <!-- HERO -->
     <section class="hero">
       <div class="flag-stripe"></div>
       <div class="hero-brand">
@@ -332,7 +315,7 @@
           <div class="hero-card">
             <div class="label">Aportes del período</div>
             <div class="value" id="heroAportes">$0</div>
-            <div class="sub" id="heroAportesSub">Meses seleccionados</div>
+            <div class="sub" id="heroAportesSub">Meses seleccionados de 2026</div>
           </div>
           <div class="hero-card">
             <div class="label">Gastos del período</div>
@@ -382,7 +365,6 @@
       </div>
     </section>
 
-    <!-- FILTROS -->
     <section class="section card filters">
       <div class="section-head">
         <div>
@@ -390,7 +372,7 @@
             <div class="section-accent"></div>
             <h2>Filtros ejecutivos</h2>
           </div>
-          <p>El dashboard recalcula todos los KPIs, gráficas y tablas en tiempo real.</p>
+          <p>Solo se analiza información mensual de enero 2026 en adelante. Se excluyen acumulados y totales históricos.</p>
         </div>
       </div>
 
@@ -400,16 +382,18 @@
           <select id="filterLocalidad" multiple></select>
         </div>
         <div class="field">
-          <label>💳 Forma de recaudo</label>
-          <select id="filterForma" multiple></select>
-        </div>
-        <div class="field">
           <label>📁 Clasificación de gastos</label>
           <select id="filterClasif" multiple></select>
         </div>
         <div class="field">
           <label>📅 Meses incluidos</label>
           <select id="filterMeses" multiple></select>
+        </div>
+        <div class="field">
+          <label>📍 Detalle por ciudad</label>
+          <div class="select-wrap">
+            <select id="cityDetailSelect"></select>
+          </div>
         </div>
       </div>
 
@@ -448,7 +432,6 @@
             <select id="filterRankingMetric">
               <option value="aportes" selected>Aportes del período</option>
               <option value="cuotas">Cuotas enteras</option>
-              <option value="saldo">Saldo inicial</option>
               <option value="neto">Flujo neto</option>
             </select>
           </div>
@@ -465,12 +448,6 @@
             <select id="compareMonthB"></select>
           </div>
         </div>
-        <div class="field" style="min-width:190px">
-          <label>📍 Detalle por ciudad</label>
-          <div class="select-wrap">
-            <select id="cityDetailSelect"></select>
-          </div>
-        </div>
       </div>
 
       <div class="toolbar">
@@ -484,13 +461,12 @@
       </div>
     </section>
 
-    <!-- COMPARATIVAS + COMPLEMENTARIOS -->
     <section class="section summary-grid">
       <div class="card panel">
         <div class="section-head">
           <div>
             <div class="section-title-line"><div class="section-accent"></div><h2>Comparativo mensual</h2></div>
-            <p>Resumen ejecutivo entre los dos meses seleccionados.</p>
+            <p>Comparación exacta de los meses seleccionados, sin filas de totales del Excel.</p>
           </div>
         </div>
         <div class="compare-cards">
@@ -521,11 +497,6 @@
         </div>
         <div class="cards-inline">
           <div class="small-card">
-            <div class="label">Saldo base filtrado</div>
-            <div class="value" id="miniSaldo">$0</div>
-            <div class="sub">Saldo a dic 2024</div>
-          </div>
-          <div class="small-card">
             <div class="label">Localidades activas</div>
             <div class="value" id="miniLocalidades">0</div>
             <div class="sub">Con aportes visibles</div>
@@ -540,16 +511,20 @@
             <div class="value" id="miniTicket">$0</div>
             <div class="sub">Aportes / activos</div>
           </div>
+          <div class="small-card">
+            <div class="label">Promedio mensual</div>
+            <div class="value" id="miniPromedioMensual">$0</div>
+            <div class="sub">Promedio meses seleccionados</div>
+          </div>
         </div>
       </div>
     </section>
 
-    <!-- TENDENCIA + RANKING -->
     <section class="section layout-2">
       <div class="card panel wide">
         <div class="section-head">
           <div>
-            <div class="section-title-line"><div class="section-accent"></div><h2>Evolución mensual consolidada</h2></div>
+            <div class="section-title-line"><div class="section-accent"></div><h2>Evolución mensual consolidada 2026</h2></div>
             <p>Aportes, gastos y flujo neto por mes.</p>
           </div>
         </div>
@@ -566,7 +541,6 @@
       </div>
     </section>
 
-    <!-- COMPARATIVO POR LOCALIDAD + GASTOS -->
     <section class="section layout-2">
       <div class="card panel">
         <div class="section-head">
@@ -588,7 +562,6 @@
       </div>
     </section>
 
-    <!-- DETALLE CIUDAD -->
     <section class="section card city-detail">
       <div class="section-head">
         <div>
@@ -618,9 +591,9 @@
             <div class="sub">Resultado operativo</div>
           </div>
           <div class="mini">
-            <div class="label">Top inversionistas</div>
-            <div class="value" style="font-size:13px;margin-top:10px;color:var(--ink-2)">Ver tabla abajo →</div>
-            <div class="sub">Activos en el período</div>
+            <div class="label">Cuotas enteras ciudad</div>
+            <div class="value" id="cityCuotas">0</div>
+            <div class="sub">Acumuladas en el período</div>
           </div>
         </div>
         <div>
@@ -642,7 +615,7 @@
             <table>
               <thead>
                 <tr>
-                  <th>Nombre</th><th>Aportes</th><th>Cuotas</th><th>Saldo inicial</th><th>Forma</th>
+                  <th>Nombre</th><th>Aportes</th><th>Cuotas</th><th>Forma</th>
                 </tr>
               </thead>
               <tbody id="cityInvestorsTable"></tbody>
@@ -661,7 +634,7 @@
             <table>
               <thead>
                 <tr>
-                  <th>#</th><th>Localidad</th><th>Aportes</th><th>Gastos</th><th>Neto</th><th>Activos</th>
+                  <th>#</th><th>Localidad</th><th>Aportes</th><th>Gastos</th><th>Neto</th><th>Cuotas</th><th>Activos</th>
                 </tr>
               </thead>
               <tbody id="rankingTable"></tbody>
@@ -672,7 +645,7 @@
     </section>
 
     <section class="section card footer-note">
-      💡 Para actualizar online, reemplaza <strong>data/dashboard.xlsx</strong>. Considera conectar a Google Sheets + Apps Script para sincronización automática.
+      💡 Para actualizar online, reemplaza <strong>data/dashboard.xlsx</strong>. Esta versión usa únicamente meses de 2026 y excluye filas de resumen del libro.
     </section>
 
   </div>
@@ -686,7 +659,7 @@
   const state = { investors:[], gastos:[], charts:{}, fileName:"dashboard.xlsx" };
   const $ = (id) => document.getElementById(id);
   const filters = {
-    localidad:$("filterLocalidad"), forma:$("filterForma"), clasif:$("filterClasif"),
+    localidad:$("filterLocalidad"), clasif:$("filterClasif"),
     meses:$("filterMeses"), cuotasMin:$("filterCuotasMin"), topN:$("filterTopN"),
     rankingMetric:$("filterRankingMetric"), compareA:$("compareMonthA"),
     compareB:$("compareMonthB"), city:$("cityDetailSelect")
@@ -698,7 +671,7 @@
   function formatPct(v){ return `${(Number(v||0)*100).toFixed(1)}%`; }
   function normalizeText(v){ return String(v??"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").trim().toUpperCase(); }
   function canonicalLocalidad(v){
-    const raw = normalizeText(v||"SIN LOCALIDAD");
+    const raw = normalizeText(v || "SIN LOCALIDAD");
     if(!raw) return "SIN LOCALIDAD";
     if(raw==="BOGOTA"||raw==="BOGOTA D.C.") return "BOGOTÁ";
     if(raw==="MEDELLIN") return "MEDELLÍN";
@@ -707,170 +680,231 @@
     return raw;
   }
   function cleanHeader(h,i,used){
-    let s=String(h??"").trim(); if(!s)s=`COL_${i+1}`; if(s==="ABRIL ")s="ABRIL";
-    if(used[s]){used[s]+=1;s=`${s}_${used[s]}`;}else{used[s]=1;} return s;
+    let s = String(h ?? "").trim();
+    if(!s) s = `COL_${i+1}`;
+    if(s === "ABRIL ") s = "ABRIL";
+    if(used[s]) { used[s] += 1; s = `${s}_${used[s]}`; } else { used[s] = 1; }
+    return s;
+  }
+  function isSummaryRow(obj){
+    const text = normalizeText([obj["NOMBRES"], obj["CLASIF"], obj["LOCALIDAD"], obj["TIPO DE MOVIMIENTO"]].filter(Boolean).join(" "));
+    return text.includes("TOTAL") || text.includes("RECIBIDO A DIC") || text.includes("GASTOS A OCT");
+  }
+  function isDataRow(obj){
+    const noVal = obj["NO."];
+    const hasName = String(obj["NOMBRES"] ?? "").trim() !== "";
+    const hasClasif = String(obj["CLASIF"] ?? "").trim() !== "";
+    const hasAnyMonth = MONTHS.some(m => Number(obj[m] || 0) !== 0);
+    const hasNumericNo = noVal !== null && noVal !== undefined && String(noVal).trim() !== "" && !Number.isNaN(Number(noVal));
+    return !isSummaryRow(obj) && (hasNumericNo || hasName || hasClasif || hasAnyMonth);
   }
   function sheetToObjects(wb,name){
-    const ws=wb.Sheets[name]; if(!ws) throw new Error(`No se encontró la hoja "${name}"`);
-    const matrix=XLSX.utils.sheet_to_json(ws,{header:1,defval:null,raw:true});
-    const hri=3; const used={}; const headers=(matrix[hri]||[]).map((h,i)=>cleanHeader(h,i,used));
-    return matrix.slice(hri+1).filter(row=>row.some(c=>c!==null&&c!==""))
-      .map(row=>{const obj={};headers.forEach((h,i)=>obj[h]=row[i]??null);return obj;});
+    const ws = wb.Sheets[name];
+    if(!ws) throw new Error(`No se encontró la hoja "${name}"`);
+    const matrix = XLSX.utils.sheet_to_json(ws,{header:1,defval:null,raw:true});
+    const headerRow = 3;
+    const used = {};
+    const headers = (matrix[headerRow] || []).map((h,i)=>cleanHeader(h,i,used));
+    return matrix.slice(headerRow+1)
+      .map(row => {
+        const obj={};
+        headers.forEach((h,i)=>obj[h]=row[i]??null);
+        return obj;
+      })
+      .filter(isDataRow);
   }
   function toNumber(v){
     if(v===null||v===undefined||v==="") return 0;
     if(typeof v==="number") return v;
-    const n=Number(String(v).replace(/\./g,"").replace(/,/g,".").replace(/[^\d.-]/g,""));
-    return Number.isFinite(n)?n:0;
+    const n = Number(String(v).replace(/\./g,"").replace(/,/g,".").replace(/[^\d.-]/g,""));
+    return Number.isFinite(n) ? n : 0;
   }
-  function monthTotal(row,months){ return months.reduce((s,m)=>s+toNumber(row[m]),0); }
+  function monthTotal(row,months){ return months.reduce((s,m)=>s + toNumber(row[m]),0); }
   function buildDatasets(wb){
-    const investors=sheetToObjects(wb,SHEET_INV).map((row,idx)=>{
-      const o={...row,_id:idx+1};
-      o.LOCALIDAD_NORM=canonicalLocalidad(row["LOCALIDAD"]);
-      o.FORMA_NORM=normalizeText(row["FORMA"]||"SIN FORMA")||"SIN FORMA";
-      o["SALDO A DIC2024"]=toNumber(row["SALDO A DIC2024"]);
-      o["Cuotas_Enteras"]=toNumber(row["Cuotas_Enteras"]);
-      o["Cuotas_Calculadas"]=toNumber(row["Cuotas_Calculadas"]);
-      o["Meses_Con_Aporte"]=toNumber(row["Meses_Con_Aporte"]);
-      o["No. Cuotas"]=toNumber(row["No. Cuotas"]);
-      MONTHS.forEach(m=>o[m]=toNumber(row[m])); return o;
+    const investors = sheetToObjects(wb,SHEET_INV).map((row,idx)=>{
+      const o = {...row, _id:idx+1};
+      o.LOCALIDAD_NORM = canonicalLocalidad(row["LOCALIDAD"]);
+      o.FORMA_NORM = normalizeText(row["FORMA"] || "SIN FORMA") || "SIN FORMA";
+      o.CUOTAS_ENTERAS = toNumber(row["Cuotas_Enteras"]);
+      o.CUOTAS_CALCULADAS = toNumber(row["Cuotas_Calculadas"]);
+      o.MESES_CON_APORTE = toNumber(row["Meses_Con_Aporte"]);
+      o.NO_CUOTAS = toNumber(row["No. Cuotas"]);
+      MONTHS.forEach(m => o[m] = toNumber(row[m]));
+      return o;
     });
-    const gastos=sheetToObjects(wb,SHEET_GASTOS).map((row,idx)=>{
-      const o={...row,_id:idx+1};
-      o.LOCALIDAD_NORM=canonicalLocalidad(row["LOCALIDAD"]);
-      o.CLASIF_NORM=normalizeText(row["CLASIF"]||"SIN CLASIFICACIÓN")||"SIN CLASIFICACIÓN";
-      o["SALDO A DIC2024"]=toNumber(row["SALDO A DIC2024"]);
-      MONTHS.forEach(m=>o[m]=toNumber(row[m])); return o;
+    const gastos = sheetToObjects(wb,SHEET_GASTOS).map((row,idx)=>{
+      const o = {...row, _id:idx+1};
+      o.LOCALIDAD_NORM = canonicalLocalidad(row["LOCALIDAD"]);
+      o.CLASIF_NORM = normalizeText(row["CLASIF"] || "SIN CLASIFICACIÓN") || "SIN CLASIFICACIÓN";
+      o.FORMA_NORM = normalizeText(row["FORMA"] || "SIN FORMA") || "SIN FORMA";
+      MONTHS.forEach(m => o[m] = toNumber(row[m]));
+      return o;
     });
-    return {investors,gastos};
+    return { investors, gastos };
   }
   function uniqueSorted(vals){ return [...new Set(vals.filter(Boolean))].sort((a,b)=>a.localeCompare(b,"es")); }
   function setMultiOptions(sel,vals){
-    sel.innerHTML="";
-    vals.forEach(v=>{const o=document.createElement("option");o.value=v;o.textContent=v;o.selected=true;sel.appendChild(o);});
+    sel.innerHTML = "";
+    vals.forEach(v=>{
+      const o = document.createElement("option");
+      o.value = v; o.textContent = v; o.selected = true; sel.appendChild(o);
+    });
   }
   function setSingleOptions(sel,vals,selected=null){
-    sel.innerHTML="";
-    vals.forEach(v=>{const o=document.createElement("option");o.value=v;o.textContent=v;if(selected&&selected===v)o.selected=true;sel.appendChild(o);});
+    sel.innerHTML = "";
+    vals.forEach(v=>{
+      const o = document.createElement("option");
+      o.value = v; o.textContent = v;
+      if(selected && selected===v) o.selected = true;
+      sel.appendChild(o);
+    });
   }
   function selMulti(sel){ return [...sel.selectedOptions].map(o=>o.value); }
   function initializeFilters(){
-    const localidades=uniqueSorted(state.investors.map(r=>r.LOCALIDAD_NORM));
-    const formas=uniqueSorted(state.investors.map(r=>r.FORMA_NORM));
-    const clasifs=uniqueSorted(state.gastos.map(r=>r.CLASIF_NORM));
-    setMultiOptions(filters.localidad,localidades);
-    setMultiOptions(filters.forma,formas);
-    setMultiOptions(filters.clasif,clasifs);
-    setMultiOptions(filters.meses,MONTHS);
-    setSingleOptions(filters.compareA,MONTHS,"ENERO");
-    setSingleOptions(filters.compareB,MONTHS,"JUNIO");
-    setSingleOptions(filters.city,localidades,localidades[0]||null);
-    filters.cuotasMin.value="0"; filters.topN.value="10"; filters.rankingMetric.value="aportes";
+    const localidades = uniqueSorted(state.investors.map(r=>r.LOCALIDAD_NORM));
+    const clasifs = uniqueSorted(state.gastos.map(r=>r.CLASIF_NORM));
+    setMultiOptions(filters.localidad, localidades);
+    setMultiOptions(filters.clasif, clasifs);
+    setMultiOptions(filters.meses, MONTHS);
+    setSingleOptions(filters.compareA, MONTHS, "ENERO");
+    setSingleOptions(filters.compareB, MONTHS, "MAYO");
+    setSingleOptions(filters.city, localidades, localidades[0] || null);
+    filters.cuotasMin.value = "0";
+    filters.topN.value = "10";
+    filters.rankingMetric.value = "aportes";
   }
   function getFilterState(){
     return {
-      localidades:selMulti(filters.localidad), formas:selMulti(filters.forma),
-      clasifs:selMulti(filters.clasif), meses:selMulti(filters.meses),
-      cuotasMin:Number(filters.cuotasMin.value||0), topN:Number(filters.topN.value||10),
-      rankingMetric:filters.rankingMetric.value, compareA:filters.compareA.value,
-      compareB:filters.compareB.value, city:filters.city.value
+      localidades: selMulti(filters.localidad),
+      clasifs: selMulti(filters.clasif),
+      meses: selMulti(filters.meses),
+      cuotasMin: Number(filters.cuotasMin.value || 0),
+      topN: Number(filters.topN.value || 10),
+      rankingMetric: filters.rankingMetric.value,
+      compareA: filters.compareA.value,
+      compareB: filters.compareB.value,
+      city: filters.city.value
     };
   }
   function applyFilters(){
-    const f=getFilterState(); const months=f.meses.length?f.meses:MONTHS;
-    const investors=state.investors.filter(r=>
-      f.localidades.includes(r.LOCALIDAD_NORM)&&f.formas.includes(r.FORMA_NORM)&&
-      Number(r["Cuotas_Enteras"]||0)>=f.cuotasMin
+    const f = getFilterState();
+    const months = f.meses.length ? f.meses : MONTHS;
+    const investors = state.investors.filter(r =>
+      f.localidades.includes(r.LOCALIDAD_NORM) &&
+      Number(r.CUOTAS_ENTERAS || 0) >= f.cuotasMin
     );
-    const gastos=state.gastos.filter(r=>
-      (f.localidades.length===0||f.localidades.includes(r.LOCALIDAD_NORM)||r.LOCALIDAD_NORM==="SIN LOCALIDAD")&&
+    const gastos = state.gastos.filter(r =>
+      (f.localidades.length===0 || f.localidades.includes(r.LOCALIDAD_NORM) || r.LOCALIDAD_NORM==="SIN LOCALIDAD") &&
       f.clasifs.includes(r.CLASIF_NORM)
     );
-    return {f,months,investors,gastos};
+    return { f, months, investors, gastos };
   }
   function summarize(ctx){
-    const {investors,gastos,months}=ctx;
-    const aportesPeriodo=investors.reduce((s,r)=>s+monthTotal(r,months),0);
-    const gastosPeriodo=Math.abs(gastos.reduce((s,r)=>s+monthTotal(r,months),0));
-    const neto=aportesPeriodo-gastosPeriodo;
-    const saldoInicial=investors.reduce((s,r)=>s+toNumber(r["SALDO A DIC2024"]),0);
-    const activos=investors.filter(r=>monthTotal(r,months)>0).length;
-    const localidadesActivas=new Set(investors.filter(r=>monthTotal(r,months)>0).map(r=>r.LOCALIDAD_NORM)).size;
-    const cuotasEnteras=investors.reduce((s,r)=>s+toNumber(r["Cuotas_Enteras"]),0);
-    const ticketPromedio=activos?aportesPeriodo/activos:0;
-    const monthly=MONTHS.map(month=>{
-      const aportes=investors.reduce((s,r)=>s+toNumber(r[month]),0);
-      const g=Math.abs(gastos.reduce((s,r)=>s+toNumber(r[month]),0));
-      return {month,aportes,gastos:g,neto:aportes-g};
+    const {investors,gastos,months} = ctx;
+    const aportesPeriodo = investors.reduce((s,r)=>s+monthTotal(r,months),0);
+    const gastosPeriodo = Math.abs(gastos.reduce((s,r)=>s+monthTotal(r,months),0));
+    const neto = aportesPeriodo - gastosPeriodo;
+    const activos = investors.filter(r=>monthTotal(r,months)>0).length;
+    const localidadesActivas = new Set(investors.filter(r=>monthTotal(r,months)>0).map(r=>r.LOCALIDAD_NORM)).size;
+    const cuotasEnteras = investors.reduce((s,r)=>s + Number(r.CUOTAS_ENTERAS || 0), 0);
+    const ticketPromedio = activos ? aportesPeriodo / activos : 0;
+    const promedioMensual = months.length ? aportesPeriodo / months.length : 0;
+
+    const monthly = MONTHS.map(month => {
+      const aportes = investors.reduce((s,r)=>s+Number(r[month]||0),0);
+      const gastosMes = Math.abs(gastos.reduce((s,r)=>s+Number(r[month]||0),0));
+      return { month, aportes, gastos:gastosMes, neto:aportes-gastosMes };
     });
-    const lmap=new Map();
+
+    const localityMap = new Map();
     investors.forEach(r=>{
-      const k=r.LOCALIDAD_NORM;
-      if(!lmap.has(k)) lmap.set(k,{localidad:k,aportes:0,saldo:0,cuotas:0,activos:0,gastos:0});
-      const it=lmap.get(k);
-      it.aportes+=monthTotal(r,months); it.saldo+=toNumber(r["SALDO A DIC2024"]);
-      it.cuotas+=toNumber(r["Cuotas_Enteras"]); if(monthTotal(r,months)>0) it.activos+=1;
+      const k = r.LOCALIDAD_NORM;
+      if(!localityMap.has(k)) localityMap.set(k,{localidad:k,aportes:0,gastos:0,neto:0,cuotas:0,activos:0});
+      const it = localityMap.get(k);
+      it.aportes += monthTotal(r,months);
+      it.cuotas += Number(r.CUOTAS_ENTERAS || 0);
+      if(monthTotal(r,months)>0) it.activos += 1;
     });
     gastos.forEach(r=>{
-      const k=r.LOCALIDAD_NORM||"SIN LOCALIDAD";
-      if(!lmap.has(k)) lmap.set(k,{localidad:k,aportes:0,saldo:0,cuotas:0,activos:0,gastos:0});
-      lmap.get(k).gastos+=Math.abs(monthTotal(r,months));
+      const k = r.LOCALIDAD_NORM || "SIN LOCALIDAD";
+      if(!localityMap.has(k)) localityMap.set(k,{localidad:k,aportes:0,gastos:0,neto:0,cuotas:0,activos:0});
+      localityMap.get(k).gastos += Math.abs(monthTotal(r,months));
     });
-    const ranking=[...lmap.values()].map(r=>({...r,neto:r.aportes-r.gastos}));
-    const rankingSortedAportes=[...ranking].sort((a,b)=>b.aportes-a.aportes);
-    const topLocalityShare=aportesPeriodo?(rankingSortedAportes[0]?.aportes||0)/aportesPeriodo:0;
-    const gastoRatio=aportesPeriodo?gastosPeriodo/aportesPeriodo:0;
-    const compareA=monthly.find(m=>m.month===ctx.f.compareA)||{aportes:0,gastos:0,neto:0};
-    const compareB=monthly.find(m=>m.month===ctx.f.compareB)||{aportes:0,gastos:0,neto:0};
-    const compareLocalities=uniqueSorted(investors.map(r=>r.LOCALIDAD_NORM))
+    const ranking = [...localityMap.values()].map(r=>({...r, neto:r.aportes-r.gastos}));
+    const rankingSortedAportes = [...ranking].sort((a,b)=>b.aportes-a.aportes);
+    const topLocalityShare = aportesPeriodo ? (rankingSortedAportes[0]?.aportes || 0) / aportesPeriodo : 0;
+    const gastoRatio = aportesPeriodo ? gastosPeriodo / aportesPeriodo : 0;
+
+    const compareA = monthly.find(m=>m.month===ctx.f.compareA) || {aportes:0,gastos:0,neto:0};
+    const compareB = monthly.find(m=>m.month===ctx.f.compareB) || {aportes:0,gastos:0,neto:0};
+
+    const compareLocalities = uniqueSorted(investors.map(r=>r.LOCALIDAD_NORM))
       .map(loc=>({
-        localidad:loc,
-        a:investors.filter(r=>r.LOCALIDAD_NORM===loc).reduce((s,r)=>s+toNumber(r[ctx.f.compareA]),0),
-        b:investors.filter(r=>r.LOCALIDAD_NORM===loc).reduce((s,r)=>s+toNumber(r[ctx.f.compareB]),0),
+        localidad: loc,
+        a: investors.filter(r=>r.LOCALIDAD_NORM===loc).reduce((s,r)=>s+Number(r[ctx.f.compareA]||0),0),
+        b: investors.filter(r=>r.LOCALIDAD_NORM===loc).reduce((s,r)=>s+Number(r[ctx.f.compareB]||0),0)
       }))
-      .filter(x=>x.a!==0||x.b!==0).sort((x,y)=>(y.a+y.b)-(x.a+x.b)).slice(0,ctx.f.topN);
-    const gastosByClasif=uniqueSorted(gastos.map(g=>g.CLASIF_NORM))
+      .filter(x=>x.a!==0 || x.b!==0)
+      .sort((x,y)=>(y.a+y.b)-(x.a+x.b))
+      .slice(0, ctx.f.topN);
+
+    const gastosByClasif = uniqueSorted(gastos.map(g=>g.CLASIF_NORM))
       .map(c=>({clasif:c,total:Math.abs(gastos.filter(g=>g.CLASIF_NORM===c).reduce((s,g)=>s+monthTotal(g,months),0))}))
       .filter(x=>x.total>0).sort((a,b)=>b.total-a.total);
-    const city=ctx.f.city||rankingSortedAportes[0]?.localidad||"";
-    const cityInvestors=investors.filter(r=>r.LOCALIDAD_NORM===city);
-    const cityGastos=gastos.filter(r=>r.LOCALIDAD_NORM===city||(city==="SIN LOCALIDAD"&&!r.LOCALIDAD_NORM));
-    const cityAportes=cityInvestors.reduce((s,r)=>s+monthTotal(r,months),0);
-    const cityGastosTotal=Math.abs(cityGastos.reduce((s,r)=>s+monthTotal(r,months),0));
-    const cityNeto=cityAportes-cityGastosTotal;
-    const cityMonthly=MONTHS.map(month=>({
+
+    const city = ctx.f.city || rankingSortedAportes[0]?.localidad || "";
+    const cityInvestors = investors.filter(r=>r.LOCALIDAD_NORM===city);
+    const cityGastos = gastos.filter(r=>r.LOCALIDAD_NORM===city || (city==="SIN LOCALIDAD" && !r.LOCALIDAD_NORM));
+    const cityAportes = cityInvestors.reduce((s,r)=>s+monthTotal(r,months),0);
+    const cityGastosTotal = Math.abs(cityGastos.reduce((s,r)=>s+monthTotal(r,months),0));
+    const cityNeto = cityAportes - cityGastosTotal;
+    const cityCuotas = cityInvestors.reduce((s,r)=>s+Number(r.CUOTAS_ENTERAS||0),0);
+    const cityMonthly = MONTHS.map(month=>({
       month,
-      aportes:cityInvestors.reduce((s,r)=>s+toNumber(r[month]),0),
-      gastos:Math.abs(cityGastos.reduce((s,r)=>s+toNumber(r[month]),0))
-    })).map(x=>({...x,neto:x.aportes-x.gastos}));
-    const cityTopInvestors=cityInvestors
-      .map(r=>({nombre:r["NOMBRES"]||"Sin nombre",aportes:monthTotal(r,months),cuotas:toNumber(r["Cuotas_Enteras"]),saldo:toNumber(r["SALDO A DIC2024"]),forma:r.FORMA_NORM}))
-      .filter(r=>r.aportes>0||r.saldo>0).sort((a,b)=>b.aportes-a.aportes).slice(0,12);
+      aportes: cityInvestors.reduce((s,r)=>s+Number(r[month]||0),0),
+      gastos: Math.abs(cityGastos.reduce((s,r)=>s+Number(r[month]||0),0))
+    })).map(x=>({...x, neto:x.aportes-x.gastos}));
+    const cityTopInvestors = cityInvestors
+      .map(r=>({
+        nombre: r["NOMBRES"] || "Sin nombre",
+        aportes: monthTotal(r,months),
+        cuotas: Number(r.CUOTAS_ENTERAS || 0),
+        forma: r.FORMA_NORM
+      }))
+      .filter(r=>r.aportes>0 || r.cuotas>0)
+      .sort((a,b)=>b.aportes-a.aportes)
+      .slice(0, 12);
+
     return {
-      aportesPeriodo,gastosPeriodo,neto,saldoInicial,activos,localidadesActivas,cuotasEnteras,ticketPromedio,
+      aportesPeriodo,gastosPeriodo,neto,activos,localidadesActivas,cuotasEnteras,ticketPromedio,promedioMensual,
       monthly,ranking,rankingSortedAportes,topLocalityShare,gastoRatio,compareA,compareB,
-      compareLocalities,gastosByClasif,city,cityAportes,cityGastosTotal,cityNeto,cityMonthly,cityTopInvestors
+      compareLocalities,gastosByClasif,city,cityAportes,cityGastosTotal,cityNeto,cityCuotas,cityMonthly,cityTopInvestors
     };
   }
-  function metricLabel(m){ return ({aportes:"Aportes del período",cuotas:"Cuotas enteras",saldo:"Saldo inicial",neto:"Flujo neto"})[m]||m; }
-  function metricKey(m){ return ({aportes:"aportes",cuotas:"cuotas",saldo:"saldo",neto:"neto"})[m]||"aportes"; }
+  function metricLabel(m){ return ({aportes:"Aportes del período",cuotas:"Cuotas enteras",neto:"Flujo neto"})[m] || m; }
+  function metricKey(m){ return ({aportes:"aportes",cuotas:"cuotas",neto:"neto"})[m] || "aportes"; }
   function makeOrUpdateChart(id,cfg){
-    if(state.charts[id]){state.charts[id].data=cfg.data;state.charts[id].options=cfg.options;state.charts[id].update();return;}
-    state.charts[id]=new Chart(document.getElementById(id).getContext("2d"),cfg);
+    if(state.charts[id]){
+      state.charts[id].data = cfg.data;
+      state.charts[id].options = cfg.options;
+      state.charts[id].update();
+      return;
+    }
+    state.charts[id] = new Chart(document.getElementById(id).getContext("2d"), cfg);
   }
-
-  const GOLD="#c8a13f", GOLD2="#e0b84a", RED="#e05252", GREEN="#22c993", BLUE="#5b8dee", BLUE2="#3a6bd4";
+  const GOLD="#c8a13f", RED="#e05252", GREEN="#22c993", BLUE="#5b8dee", BLUE2="#3a6bd4";
   const GRID="rgba(255,255,255,.06)", TICK="#6b6560";
 
-  function chartOpts(mode="COP",horiz=false){
+  function chartOpts(mode="COP", horiz=false){
     return {
-      responsive:true,maintainAspectRatio:false,indexAxis:horiz?"y":"x",
+      responsive:true, maintainAspectRatio:false, indexAxis:horiz?"y":"x",
       plugins:{
         legend:{position:"bottom",labels:{color:"#b8b0a0",font:{size:11},boxWidth:12,padding:14}},
-        tooltip:{backgroundColor:"#1f1f1f",borderColor:"rgba(200,161,63,.3)",borderWidth:1,
-          titleColor:"#e0b84a",bodyColor:"#b8b0a0",
-          callbacks:{label:ctx=>` ${ctx.dataset.label}: ${mode==="COP"?formatCurrency(ctx.raw):formatNumber(ctx.raw)}`}}
+        tooltip:{
+          backgroundColor:"#1f1f1f", borderColor:"rgba(200,161,63,.3)", borderWidth:1,
+          titleColor:"#e0b84a", bodyColor:"#b8b0a0",
+          callbacks:{label:ctx=>` ${ctx.dataset.label}: ${mode==="COP"?formatCurrency(ctx.raw):formatNumber(ctx.raw)}`}
+        }
       },
       scales:{
         x:{ticks:{color:TICK,font:{size:11}},grid:{color:GRID}},
@@ -878,84 +912,99 @@
       }
     };
   }
+  function drawCharts(ctx, summary){
+    makeOrUpdateChart("trendChart", {
+      type:"bar",
+      data:{
+        labels: MONTHS.map(m=>m.slice(0,3)),
+        datasets:[
+          {label:"Aportes",data:summary.monthly.map(x=>x.aportes),backgroundColor:GOLD,borderRadius:6},
+          {label:"Gastos",data:summary.monthly.map(x=>x.gastos),backgroundColor:RED,borderRadius:6},
+          {label:"Flujo neto",data:summary.monthly.map(x=>x.neto),type:"line",borderColor:GREEN,backgroundColor:"transparent",tension:.35,pointRadius:3,pointBackgroundColor:GREEN}
+        ]
+      },
+      options: chartOpts("COP")
+    });
 
-  function drawCharts(ctx,summary){
-    makeOrUpdateChart("trendChart",{type:"bar",data:{
-      labels:MONTHS.map(m=>m.slice(0,3)),
-      datasets:[
-        {label:"Aportes",data:summary.monthly.map(x=>x.aportes),backgroundColor:GOLD,borderRadius:6},
-        {label:"Gastos",data:summary.monthly.map(x=>x.gastos),backgroundColor:RED,borderRadius:6},
-        {label:"Flujo neto",data:summary.monthly.map(x=>x.neto),type:"line",borderColor:GREEN,backgroundColor:"transparent",tension:.35,pointRadius:3,pointBackgroundColor:GREEN}
-      ]
-    },options:chartOpts("COP")});
+    const rdata = [...summary.ranking].sort((a,b)=>(b[metricKey(ctx.f.rankingMetric)]||0)-(a[metricKey(ctx.f.rankingMetric)]||0)).slice(0,ctx.f.topN);
+    $("rankingSubtitle").textContent = `Top ${ctx.f.topN} por ${metricLabel(ctx.f.rankingMetric)}.`;
+    makeOrUpdateChart("rankingChart", {
+      type:"bar",
+      data:{ labels:rdata.map(x=>x.localidad), datasets:[{label:metricLabel(ctx.f.rankingMetric),data:rdata.map(x=>x[metricKey(ctx.f.rankingMetric)]||0),backgroundColor:GOLD,borderRadius:6}]},
+      options: chartOpts("COP", true)
+    });
 
-    const rdata=[...summary.ranking].sort((a,b)=>(b[metricKey(ctx.f.rankingMetric)]||0)-(a[metricKey(ctx.f.rankingMetric)]||0)).slice(0,ctx.f.topN);
-    $("rankingSubtitle").textContent=`Top ${ctx.f.topN} por ${metricLabel(ctx.f.rankingMetric)}.`;
-    makeOrUpdateChart("rankingChart",{type:"bar",data:{
-      labels:rdata.map(x=>x.localidad),
-      datasets:[{label:metricLabel(ctx.f.rankingMetric),data:rdata.map(x=>x[metricKey(ctx.f.rankingMetric)]||0),backgroundColor:GOLD,borderRadius:6}]
-    },options:chartOpts("COP",true)});
+    $("compareSubtitle").textContent = `${ctx.f.compareA} vs ${ctx.f.compareB} — top ${ctx.f.topN} localidades.`;
+    makeOrUpdateChart("compareChart", {
+      type:"bar",
+      data:{
+        labels:summary.compareLocalities.map(x=>x.localidad),
+        datasets:[
+          {label:ctx.f.compareA,data:summary.compareLocalities.map(x=>x.a),backgroundColor:BLUE2,borderRadius:6},
+          {label:ctx.f.compareB,data:summary.compareLocalities.map(x=>x.b),backgroundColor:GOLD,borderRadius:6}
+        ]
+      },
+      options: chartOpts("COP", true)
+    });
 
-    $("compareSubtitle").textContent=`${ctx.f.compareA} vs ${ctx.f.compareB} — top ${ctx.f.topN} localidades.`;
-    makeOrUpdateChart("compareChart",{type:"bar",data:{
-      labels:summary.compareLocalities.map(x=>x.localidad),
-      datasets:[
-        {label:ctx.f.compareA,data:summary.compareLocalities.map(x=>x.a),backgroundColor:BLUE2,borderRadius:6},
-        {label:ctx.f.compareB,data:summary.compareLocalities.map(x=>x.b),backgroundColor:GOLD,borderRadius:6}
-      ]
-    },options:chartOpts("COP",true)});
+    makeOrUpdateChart("gastosChart", {
+      type:"doughnut",
+      data:{
+        labels:summary.gastosByClasif.map(x=>x.clasif),
+        datasets:[{data:summary.gastosByClasif.map(x=>x.total),backgroundColor:[GOLD,BLUE,"#9b59b6",GREEN,"#e67e22",RED,"#1abc9c","#e74c3c","#3498db","#95a5a6"],borderWidth:2,borderColor:"#181818"}]
+      },
+      options:{
+        responsive:true, maintainAspectRatio:false,
+        plugins:{
+          legend:{position:"bottom",labels:{color:"#b8b0a0",font:{size:11},boxWidth:12,padding:10}},
+          tooltip:{backgroundColor:"#1f1f1f",borderColor:"rgba(200,161,63,.3)",borderWidth:1,titleColor:"#e0b84a",bodyColor:"#b8b0a0",
+            callbacks:{label:ctx=>` ${ctx.label}: ${formatCurrency(ctx.raw)}`}}
+        }
+      }
+    });
 
-    makeOrUpdateChart("gastosChart",{type:"doughnut",data:{
-      labels:summary.gastosByClasif.map(x=>x.clasif),
-      datasets:[{data:summary.gastosByClasif.map(x=>x.total),
-        backgroundColor:[GOLD,BLUE,"#9b59b6",GREEN,"#e67e22",RED,"#1abc9c","#e74c3c","#3498db","#95a5a6"],
-        borderWidth:2,borderColor:"#181818"}]
-    },options:{responsive:true,maintainAspectRatio:false,plugins:{
-      legend:{position:"bottom",labels:{color:"#b8b0a0",font:{size:11},boxWidth:12,padding:10}},
-      tooltip:{backgroundColor:"#1f1f1f",borderColor:"rgba(200,161,63,.3)",borderWidth:1,titleColor:"#e0b84a",bodyColor:"#b8b0a0",
-        callbacks:{label:ctx=>` ${ctx.label}: ${formatCurrency(ctx.raw)}`}}
-    }}});
-
-    makeOrUpdateChart("cityTrendChart",{type:"bar",data:{
-      labels:MONTHS.map(m=>m.slice(0,3)),
-      datasets:[
-        {label:"Aportes ciudad",data:summary.cityMonthly.map(x=>x.aportes),backgroundColor:GOLD,borderRadius:5},
-        {label:"Gastos ciudad",data:summary.cityMonthly.map(x=>x.gastos),backgroundColor:RED,borderRadius:5}
-      ]
-    },options:chartOpts("COP")});
+    makeOrUpdateChart("cityTrendChart", {
+      type:"bar",
+      data:{
+        labels:MONTHS.map(m=>m.slice(0,3)),
+        datasets:[
+          {label:"Aportes ciudad",data:summary.cityMonthly.map(x=>x.aportes),backgroundColor:GOLD,borderRadius:5},
+          {label:"Gastos ciudad",data:summary.cityMonthly.map(x=>x.gastos),backgroundColor:RED,borderRadius:5}
+        ]
+      },
+      options: chartOpts("COP")
+    });
   }
-
   function renderTables(summary){
-    const rows=[...summary.ranking].sort((a,b)=>b.aportes-a.aportes).slice(0,15)
+    const rankingRows = [...summary.ranking].sort((a,b)=>b.aportes-a.aportes).slice(0,15)
       .map((r,i)=>`<tr>
         <td style="color:var(--gold);font-weight:700">${i+1}</td>
         <td>${r.localidad}</td>
         <td>${formatCurrency(r.aportes)}</td>
         <td>${formatCurrency(r.gastos)}</td>
-        <td style="color:${r.neto>=0?"var(--green)":"var(--red)"}">${formatCurrency(r.neto)}</td>
+        <td style="color:${r.neto>=0?'var(--green)':'var(--red)'}">${formatCurrency(r.neto)}</td>
+        <td>${formatNumber(r.cuotas)}</td>
         <td>${formatNumber(r.activos)}</td>
       </tr>`).join("");
-    $("rankingTable").innerHTML=rows||`<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--ink-3)">Sin datos para el filtro actual.</td></tr>`;
+    $("rankingTable").innerHTML = rankingRows || `<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--ink-3)">Sin datos para el filtro actual.</td></tr>`;
 
-    const cityRows=summary.cityTopInvestors.map(r=>`<tr>
+    const cityRows = summary.cityTopInvestors.map(r=>`<tr>
       <td>${r.nombre}</td>
       <td>${formatCurrency(r.aportes)}</td>
       <td>${formatNumber(r.cuotas)}</td>
-      <td>${formatCurrency(r.saldo)}</td>
       <td><span style="background:var(--gold-dim);color:var(--gold-light);padding:2px 8px;border-radius:999px;font-size:11px;font-weight:700">${r.forma}</span></td>
     </tr>`).join("");
-    $("cityInvestorsTable").innerHTML=cityRows||`<tr><td colspan="5" style="text-align:center;padding:24px;color:var(--ink-3)">Sin inversionistas para esta ciudad.</td></tr>`;
+    $("cityInvestorsTable").innerHTML = cityRows || `<tr><td colspan="4" style="text-align:center;padding:24px;color:var(--ink-3)">Sin inversionistas para esta ciudad.</td></tr>`;
   }
-
   function renderCityDetail(summary){
-    $("cityName").textContent=summary.city||"--";
-    $("citySub").textContent="Detalle territorial del período seleccionado";
-    $("cityAportes").textContent=formatCurrency(summary.cityAportes);
-    $("cityGastos").textContent=formatCurrency(summary.cityGastosTotal);
-    const ne=$("cityNeto"); ne.textContent=formatCurrency(summary.cityNeto);
-    ne.style.color=summary.cityNeto>=0?"var(--green)":"var(--red)";
+    $("cityName").textContent = summary.city || "--";
+    $("citySub").textContent = "Vista ejecutiva de la ciudad seleccionada";
+    $("cityAportes").textContent = formatCurrency(summary.cityAportes);
+    $("cityGastos").textContent = formatCurrency(summary.cityGastosTotal);
+    $("cityNeto").textContent = formatCurrency(summary.cityNeto);
+    $("cityNeto").style.color = summary.cityNeto >= 0 ? "var(--green)" : "var(--red)";
+    $("cityCuotas").textContent = formatNumber(summary.cityCuotas);
   }
-
   function signalStatus(type,value){
     if(type==="liquidity"){ if(value>0)return{cls:"ok",text:"saludable"}; if(value===0)return{cls:"warn",text:"estable"}; return{cls:"alert",text:"alerta"}; }
     if(type==="efficiency"){ if(value<=.35)return{cls:"ok",text:"eficiente"}; if(value<=.55)return{cls:"warn",text:"vigilar"}; return{cls:"alert",text:"alto gasto"}; }
@@ -963,86 +1012,90 @@
     return{cls:"warn",text:"revisar"};
   }
   function setBadge(id,s){ const el=$(id); el.className=`badge ${s.cls}`; el.textContent=s.text; }
-
   function setExecutiveHeader(ctx,summary){
-    $("sourceLabel").textContent=state.fileName||"dashboard.xlsx";
-    $("heroAportes").textContent=formatCurrency(summary.aportesPeriodo);
-    $("heroGastos").textContent=formatCurrency(summary.gastosPeriodo);
-    const ne=$("heroNeto"); ne.textContent=formatCurrency(summary.neto);
-    ne.style.color=summary.neto>=0?"var(--green)":"var(--red)";
-    $("heroActivos").textContent=formatNumber(summary.activos);
-    $("heroAportesSub").textContent=`Meses: ${ctx.months.join(", ")}`;
-    $("heroGastosSub").textContent=`Clasificaciones: ${selMulti(filters.clasif).length}`;
-    $("heroNetoSub").textContent="Neto = aportes − gastos";
-    $("heroActivosSub").textContent=`${formatNumber(summary.localidadesActivas)} localidades activas`;
-    setBadge("signalLiquidityBadge",signalStatus("liquidity",summary.neto));
-    setBadge("signalEfficiencyBadge",signalStatus("efficiency",summary.gastoRatio));
-    setBadge("signalConcentrationBadge",signalStatus("concentration",summary.topLocalityShare));
-    $("signalLiquidityValue").textContent=formatCurrency(summary.neto);
-    $("signalEfficiencyValue").textContent=formatPct(summary.gastoRatio);
-    $("signalConcentrationValue").textContent=formatPct(summary.topLocalityShare);
+    $("sourceLabel").textContent = state.fileName || "dashboard.xlsx";
+    $("heroAportes").textContent = formatCurrency(summary.aportesPeriodo);
+    $("heroGastos").textContent = formatCurrency(summary.gastosPeriodo);
+    $("heroNeto").textContent = formatCurrency(summary.neto);
+    $("heroNeto").style.color = summary.neto >= 0 ? "var(--green)" : "var(--red)";
+    $("heroActivos").textContent = formatNumber(summary.activos);
+    $("heroAportesSub").textContent = `Meses: ${ctx.months.join(", ")}`;
+    $("heroGastosSub").textContent = `Clasificaciones: ${selMulti(filters.clasif).length}`;
+    $("heroNetoSub").textContent = "Neto = aportes − gastos";
+    $("heroActivosSub").textContent = `${formatNumber(summary.localidadesActivas)} localidades activas`;
+    setBadge("signalLiquidityBadge", signalStatus("liquidity", summary.neto));
+    setBadge("signalEfficiencyBadge", signalStatus("efficiency", summary.gastoRatio));
+    setBadge("signalConcentrationBadge", signalStatus("concentration", summary.topLocalityShare));
+    $("signalLiquidityValue").textContent = formatCurrency(summary.neto);
+    $("signalEfficiencyValue").textContent = formatPct(summary.gastoRatio);
+    $("signalConcentrationValue").textContent = formatPct(summary.topLocalityShare);
   }
-
   function setCompareCards(ctx,summary){
     const delta=(b,a)=>a===0?(b===0?0:1):(b-a)/Math.abs(a);
-    const dA=delta(summary.compareB.aportes,summary.compareA.aportes);
-    const dG=delta(summary.compareB.gastos,summary.compareA.gastos);
-    const dN=delta(summary.compareB.neto,summary.compareA.neto);
+    const dA=delta(summary.compareB.aportes, summary.compareA.aportes);
+    const dG=delta(summary.compareB.gastos, summary.compareA.gastos);
+    const dN=delta(summary.compareB.neto, summary.compareA.neto);
     const sp=v=>{const p=`${(Math.abs(v)*100).toFixed(1)}%`;return Math.abs(v)<.001?"0.0%":`${v>0?"+":"-"}${p}`;};
     const tc=v=>{if(Math.abs(v)<.001)return"flat";return v>=0?"up":"down";};
-    $("cmpAportesValue").textContent=formatCurrency(summary.compareB.aportes);
-    $("cmpAportesSub").innerHTML=`${ctx.f.compareA} → ${ctx.f.compareB}: <strong class="delta ${tc(dA)}">${sp(dA)}</strong>`;
-    $("cmpGastosValue").textContent=formatCurrency(summary.compareB.gastos);
-    $("cmpGastosSub").innerHTML=`${ctx.f.compareA} → ${ctx.f.compareB}: <strong class="delta ${tc(-dG)}">${sp(dG)}</strong>`;
-    $("cmpNetoValue").textContent=formatCurrency(summary.compareB.neto);
-    $("cmpNetoSub").innerHTML=`${ctx.f.compareA} → ${ctx.f.compareB}: <strong class="delta ${tc(dN)}">${sp(dN)}</strong>`;
-    $("miniSaldo").textContent=formatCurrency(summary.saldoInicial);
-    $("miniLocalidades").textContent=formatNumber(summary.localidadesActivas);
-    $("miniCuotas").textContent=formatNumber(summary.cuotasEnteras);
-    $("miniTicket").textContent=formatCurrency(summary.ticketPromedio);
-  }
 
+    $("cmpAportesValue").textContent = formatCurrency(summary.compareB.aportes);
+    $("cmpAportesSub").innerHTML = `${ctx.f.compareA} → ${ctx.f.compareB}: <strong class="delta ${tc(dA)}">${sp(dA)}</strong>`;
+    $("cmpGastosValue").textContent = formatCurrency(summary.compareB.gastos);
+    $("cmpGastosSub").innerHTML = `${ctx.f.compareA} → ${ctx.f.compareB}: <strong class="delta ${tc(-dG)}">${sp(dG)}</strong>`;
+    $("cmpNetoValue").textContent = formatCurrency(summary.compareB.neto);
+    $("cmpNetoSub").innerHTML = `${ctx.f.compareA} → ${ctx.f.compareB}: <strong class="delta ${tc(dN)}">${sp(dN)}</strong>`;
+
+    $("miniLocalidades").textContent = formatNumber(summary.localidadesActivas);
+    $("miniCuotas").textContent = formatNumber(summary.cuotasEnteras);
+    $("miniTicket").textContent = formatCurrency(summary.ticketPromedio);
+    $("miniPromedioMensual").textContent = formatCurrency(summary.promedioMensual);
+  }
   async function loadWorkbookFromPath(path){
-    const res=await fetch(path,{cache:"no-cache"});
+    const res = await fetch(path,{cache:"no-cache"});
     if(!res.ok) throw new Error(`No fue posible cargar ${path}`);
-    return XLSX.read(await res.arrayBuffer(),{type:"array"});
+    return XLSX.read(await res.arrayBuffer(), {type:"array"});
   }
   async function loadWorkbookFromFile(file){
-    state.fileName=file.name;
-    return XLSX.read(await file.arrayBuffer(),{type:"array"});
+    state.fileName = file.name;
+    return XLSX.read(await file.arrayBuffer(), {type:"array"});
   }
-  function setTimestamp(){ $("lastUpdated").textContent=new Date().toLocaleString("es-CO",{dateStyle:"medium",timeStyle:"short"}); }
-
+  function setTimestamp(){ $("lastUpdated").textContent = new Date().toLocaleString("es-CO",{dateStyle:"medium",timeStyle:"short"}); }
   function refresh(){
-    const ctx=applyFilters(); const summary=summarize(ctx);
-    setExecutiveHeader(ctx,summary); setCompareCards(ctx,summary);
-    drawCharts(ctx,summary); renderCityDetail(summary); renderTables(summary);
+    const ctx = applyFilters();
+    const summary = summarize(ctx);
+    setExecutiveHeader(ctx,summary);
+    setCompareCards(ctx,summary);
+    drawCharts(ctx,summary);
+    renderCityDetail(summary);
+    renderTables(summary);
   }
-
   let wired=false;
   function wireEventsOnce(){
-    if(wired)return; wired=true;
-    [filters.localidad,filters.forma,filters.clasif,filters.meses,filters.cuotasMin,
-     filters.topN,filters.rankingMetric,filters.compareA,filters.compareB,filters.city]
-    .forEach(el=>el.addEventListener("change",refresh));
-    $("resetFilters").addEventListener("click",()=>{initializeFilters();refresh();});
-    $("reloadSource").addEventListener("click",async()=>{state.fileName="dashboard.xlsx";await boot(loadWorkbookFromPath(CONFIG.workbookPath));});
-    $("uploadButton").addEventListener("click",()=>$("fileInput").click());
-    $("fileInput").addEventListener("change",async e=>{const f=e.target.files?.[0];if(!f)return;await boot(loadWorkbookFromFile(f));});
+    if(wired) return;
+    wired=true;
+    [filters.localidad,filters.clasif,filters.meses,filters.cuotasMin,filters.topN,filters.rankingMetric,filters.compareA,filters.compareB,filters.city]
+      .forEach(el=>el.addEventListener("change", refresh));
+    $("resetFilters").addEventListener("click", ()=>{ initializeFilters(); refresh(); });
+    $("reloadSource").addEventListener("click", async()=>{ state.fileName="dashboard.xlsx"; await boot(loadWorkbookFromPath(CONFIG.workbookPath)); });
+    $("uploadButton").addEventListener("click", ()=>$("fileInput").click());
+    $("fileInput").addEventListener("change", async(e)=>{ const f=e.target.files?.[0]; if(!f) return; await boot(loadWorkbookFromFile(f)); });
   }
-
-  async function boot(p){
+  async function boot(promise){
     try{
-      const wb=await p; const ds=buildDatasets(wb);
-      state.investors=ds.investors; state.gastos=ds.gastos;
-      initializeFilters(); wireEventsOnce(); refresh(); setTimestamp();
-      $("sourceLabel").textContent=state.fileName;
+      const wb = await promise;
+      const ds = buildDatasets(wb);
+      state.investors = ds.investors;
+      state.gastos = ds.gastos;
+      initializeFilters();
+      wireEventsOnce();
+      refresh();
+      setTimestamp();
+      $("sourceLabel").textContent = state.fileName;
     }catch(err){
       console.error(err);
-      alert(`No fue posible cargar el dashboard: ${err.message||err}`);
+      alert(`No fue posible cargar el dashboard: ${err.message || err}`);
     }
   }
-
   boot(loadWorkbookFromPath(CONFIG.workbookPath));
 })();
 </script>
