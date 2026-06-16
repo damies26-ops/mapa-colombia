@@ -721,25 +721,33 @@
   }
   function monthTotal(row,months){ return months.reduce((s,m)=>s + toNumber(row[m]),0); }
   function buildDatasets(wb){
-    const investors = sheetToObjects(wb,SHEET_INV).map((row,idx)=>{
-      const o = {...row, _id:idx+1};
-      o.LOCALIDAD_NORM = canonicalLocalidad(row["LOCALIDAD"]);
-      o.FORMA_NORM = normalizeText(row["FORMA"] || "SIN FORMA") || "SIN FORMA";
-      o.CUOTAS_ENTERAS = toNumber(row["Cuotas_Enteras"]);
-      o.CUOTAS_CALCULADAS = toNumber(row["Cuotas_Calculadas"]);
-      o.MESES_CON_APORTE = toNumber(row["Meses_Con_Aporte"]);
-      o.NO_CUOTAS = toNumber(row["No. Cuotas"]);
-      MONTHS.forEach(m => o[m] = toNumber(row[m]));
-      return o;
-    });
-    const gastos = sheetToObjects(wb,SHEET_GASTOS).map((row,idx)=>{
-      const o = {...row, _id:idx+1};
-      o.LOCALIDAD_NORM = canonicalLocalidad(row["LOCALIDAD"]);
-      o.CLASIF_NORM = normalizeText(row["CLASIF"] || "SIN CLASIFICACIÓN") || "SIN CLASIFICACIÓN";
-      o.FORMA_NORM = normalizeText(row["FORMA"] || "SIN FORMA") || "SIN FORMA";
-      MONTHS.forEach(m => o[m] = toNumber(row[m]));
-      return o;
-    });
+    const investors = sheetToObjects(wb,SHEET_INV)
+      .filter(row => normalizeText(row["TIPO DE MOVIMIENTO"]) === "CREDITO")
+      .map((row,idx)=>{
+        const o = {...row, _id:idx+1};
+        o.LOCALIDAD_NORM = canonicalLocalidad(row["LOCALIDAD"]);
+        o.FORMA_NORM = normalizeText(row["FORMA"] || "SIN FORMA") || "SIN FORMA";
+        o.TIPO_NORM = normalizeText(row["TIPO DE MOVIMIENTO"] || "");
+        o.CUOTAS_ENTERAS = toNumber(row["Cuotas_Enteras"]);
+        o.CUOTAS_CALCULADAS = toNumber(row["Cuotas_Calculadas"]);
+        o.MESES_CON_APORTE = toNumber(row["Meses_Con_Aporte"]);
+        o.NO_CUOTAS = toNumber(row["No. Cuotas"]);
+        MONTHS.forEach(m => o[m] = toNumber(row[m]));
+        return o;
+      });
+
+    const gastos = sheetToObjects(wb,SHEET_GASTOS)
+      .filter(row => normalizeText(row["TIPO DE MOVIMIENTO"]) === "DEBITO")
+      .map((row,idx)=>{
+        const o = {...row, _id:idx+1};
+        o.LOCALIDAD_NORM = canonicalLocalidad(row["LOCALIDAD"]);
+        o.CLASIF_NORM = normalizeText(row["CLASIF"] || "SIN CLASIFICACIÓN") || "SIN CLASIFICACIÓN";
+        o.FORMA_NORM = normalizeText(row["FORMA"] || "SIN FORMA") || "SIN FORMA";
+        o.TIPO_NORM = normalizeText(row["TIPO DE MOVIMIENTO"] || "");
+        MONTHS.forEach(m => o[m] = toNumber(row[m]));
+        return o;
+      });
+
     return { investors, gastos };
   }
   function uniqueSorted(vals){ return [...new Set(vals.filter(Boolean))].sort((a,b)=>a.localeCompare(b,"es")); }
@@ -896,6 +904,7 @@
   const GRID="rgba(255,255,255,.06)", TICK="#6b6560";
 
   function chartOpts(mode="COP", horiz=false){
+    const valueTick = (v) => mode==="COP" ? formatCurrency(v) : formatNumber(v);
     return {
       responsive:true, maintainAspectRatio:false, indexAxis:horiz?"y":"x",
       plugins:{
@@ -906,9 +915,25 @@
           callbacks:{label:ctx=>` ${ctx.dataset.label}: ${mode==="COP"?formatCurrency(ctx.raw):formatNumber(ctx.raw)}`}
         }
       },
-      scales:{
-        x:{ticks:{color:TICK,font:{size:11}},grid:{color:GRID}},
-        y:{ticks:{color:TICK,font:{size:11},callback:v=>mode==="COP"?formatCurrency(v):formatNumber(v)},grid:{color:GRID}}
+      scales: horiz ? {
+        x:{
+          ticks:{color:TICK,font:{size:11},callback:valueTick},
+          grid:{color:GRID}
+        },
+        y:{
+          type:"category",
+          ticks:{color:"#b8b0a0",font:{size:11},autoSkip:false},
+          grid:{display:false}
+        }
+      } : {
+        x:{
+          ticks:{color:TICK,font:{size:11}},
+          grid:{color:GRID}
+        },
+        y:{
+          ticks:{color:TICK,font:{size:11},callback:valueTick},
+          grid:{color:GRID}
+        }
       }
     };
   }
