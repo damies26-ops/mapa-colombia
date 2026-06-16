@@ -4,148 +4,184 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Inversionistas del Reino - Colombia</title>
-  <meta name="description" content="Dashboard ejecutivo interactivo para Inversionistas del Reino - Colombia." />
+  <meta name="description" content="Dashboard ejecutivo premium para Inversionistas del Reino - Colombia." />
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
   <style>
     :root{
-      --bg:#f4f7fb;
+      --bg:#eff4fb;
       --card:#ffffff;
+      --card-soft:#f8fbff;
       --ink:#0f172a;
-      --muted:#5b6475;
-      --line:#dce4ef;
-      --brand:#183b73;
-      --brand-2:#2c61b5;
-      --gold:#c7a33a;
+      --muted:#5d6b82;
+      --line:#d9e3ef;
+      --brand:#16345f;
+      --brand-2:#2559a7;
+      --brand-3:#5d8edc;
+      --gold:#c8a13f;
       --green:#0f9d78;
-      --red:#d9534f;
-      --shadow:0 12px 30px rgba(15, 23, 42, .08);
-      --radius:20px;
+      --green-soft:#e9fbf4;
+      --red:#da4f49;
+      --red-soft:#fff1f0;
+      --amber:#f5a623;
+      --amber-soft:#fff7e8;
+      --shadow:0 16px 40px rgba(15,23,42,.08);
+      --radius:22px;
     }
     *{box-sizing:border-box}
-    html,body{margin:0;padding:0;font-family:Inter,Segoe UI,system-ui,-apple-system,sans-serif;background:linear-gradient(180deg,#eff4fb 0%, #f7f9fc 100%);color:var(--ink)}
-    .page{max-width:1480px;margin:0 auto;padding:20px}
-    .hero{
+    html,body{margin:0;padding:0}
+    body{
+      font-family:Inter,Segoe UI,system-ui,-apple-system,sans-serif;
+      color:var(--ink);
       background:
-        radial-gradient(circle at top right, rgba(199,163,58,.18), transparent 28%),
-        linear-gradient(135deg,#163057 0%, #224a83 55%, #2d66b8 100%);
-      color:#fff;
-      border-radius:26px;
-      padding:24px 26px;
+        radial-gradient(circle at top right, rgba(37,89,167,.08), transparent 20%),
+        linear-gradient(180deg,#edf3fb 0%,#f7f9fd 100%);
+    }
+    .page{max-width:1540px;margin:0 auto;padding:18px}
+    .hero{
+      position:relative; overflow:hidden; color:#fff;
+      background:
+        radial-gradient(circle at 85% 20%, rgba(255,255,255,.18), transparent 18%),
+        radial-gradient(circle at 100% 0%, rgba(200,161,63,.22), transparent 24%),
+        linear-gradient(135deg,#122a4d 0%, #1c4278 45%, #2b63b8 100%);
+      border-radius:28px; padding:26px 26px 24px;
       box-shadow:var(--shadow);
-      position:relative;
-      overflow:hidden;
     }
     .hero::after{
-      content:"";
-      position:absolute;right:-40px;top:-40px;width:180px;height:180px;border-radius:999px;background:rgba(255,255,255,.08)
+      content:"";position:absolute;right:-60px;bottom:-60px;width:220px;height:220px;border-radius:999px;background:rgba(255,255,255,.06)
     }
-    .hero h1{margin:0 0 8px;font-size:30px;letter-spacing:.2px}
-    .hero p{margin:0;max-width:900px;color:rgba(255,255,255,.86);font-size:14px}
-    .hero-meta{
-      margin-top:16px;display:flex;flex-wrap:wrap;gap:10px
-    }
+    .hero h1{margin:0;font-size:32px;letter-spacing:.2px}
+    .hero p{margin:8px 0 0;color:rgba(255,255,255,.86);max-width:980px;font-size:14px;line-height:1.55}
+    .hero-meta{margin-top:16px;display:flex;flex-wrap:wrap;gap:10px}
     .pill{
       display:inline-flex;align-items:center;gap:8px;
-      background:rgba(255,255,255,.14);
-      border:1px solid rgba(255,255,255,.14);
-      border-radius:999px;padding:8px 12px;font-size:13px
+      padding:8px 12px;border-radius:999px;
+      border:1px solid rgba(255,255,255,.16);
+      background:rgba(255,255,255,.12);
+      font-size:13px
     }
-    .controls{
+    .hero-grid{
       margin-top:18px;
-      display:grid;grid-template-columns:1.1fr 1.1fr 1fr 1fr;gap:14px;
+      display:grid;grid-template-columns:1.25fr .75fr;gap:16px;
+      align-items:end;
     }
+    .hero-kpis{
+      display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;
+    }
+    .hero-card{
+      backdrop-filter: blur(10px);
+      background:rgba(255,255,255,.12);
+      border:1px solid rgba(255,255,255,.12);
+      border-radius:20px;
+      padding:16px;
+      min-height:112px;
+    }
+    .hero-card .label{
+      font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.72)
+    }
+    .hero-card .value{margin-top:10px;font-size:28px;font-weight:800}
+    .hero-card .sub{margin-top:6px;font-size:12px;color:rgba(255,255,255,.8)}
+    .hero-summary{
+      display:grid;gap:12px
+    }
+    .signal-wrap{
+      display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px
+    }
+    .signal{
+      background:rgba(255,255,255,.12);
+      border:1px solid rgba(255,255,255,.12);
+      border-radius:18px;padding:14px
+    }
+    .signal .top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+    .signal .title{font-size:13px;font-weight:700}
+    .badge{
+      display:inline-flex;align-items:center;justify-content:center;
+      min-width:86px;padding:6px 10px;border-radius:999px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.06em
+    }
+    .badge.ok{background:rgba(15,157,120,.22);color:#dff7ee}
+    .badge.warn{background:rgba(245,166,35,.22);color:#fff4d8}
+    .badge.alert{background:rgba(218,79,73,.22);color:#ffe3e0}
+    .signal .metric{margin-top:10px;font-size:24px;font-weight:800}
+    .signal .sub{margin-top:4px;font-size:12px;color:rgba(255,255,255,.76)}
+    .section{margin-top:18px}
     .card{
       background:var(--card);
       border:1px solid var(--line);
       border-radius:var(--radius);
       box-shadow:var(--shadow);
     }
-    .section{margin-top:18px}
-    .filters.card{padding:18px}
-    .filters h2,.panel h2{margin:0 0 12px;font-size:18px}
-    .grid-2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
-    .grid-4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+    .filters{padding:18px}
+    .section-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px}
+    .section-head h2{margin:0;font-size:18px}
+    .section-head p{margin:4px 0 0;font-size:12px;color:var(--muted)}
+    .controls{display:grid;grid-template-columns:1.15fr 1fr 1fr 1fr;gap:12px}
     .field{display:flex;flex-direction:column;gap:8px}
     .field label{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
     select,input{
-      width:100%;
-      border:1px solid var(--line);
-      border-radius:14px;
-      padding:11px 12px;
-      font-size:14px;
-      background:#fff;
-      color:var(--ink);
-      outline:none;
+      width:100%;border:1px solid var(--line);border-radius:14px;padding:11px 12px;
+      font-size:14px;background:#fff;color:var(--ink);outline:none
     }
-    select[multiple]{min-height:132px;padding:8px}
+    select[multiple]{min-height:130px;padding:8px}
     .toolbar{
-      display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-top:14px
+      display:flex;flex-wrap:wrap;gap:10px;align-items:end;justify-content:space-between;margin-top:14px
     }
     .toolbar .actions{display:flex;gap:10px;flex-wrap:wrap}
     button{
-      border:none;
-      border-radius:14px;
-      padding:11px 14px;
-      font-size:14px;
-      font-weight:700;
-      cursor:pointer;
-      transition:.18s ease;
+      border:none;border-radius:14px;padding:11px 14px;font-size:14px;font-weight:800;cursor:pointer;transition:.18s ease
     }
     button:hover{transform:translateY(-1px)}
     .btn-primary{background:var(--brand);color:#fff}
     .btn-secondary{background:#eef4ff;color:var(--brand);border:1px solid #d6e5ff}
     .btn-light{background:#fff;color:var(--ink);border:1px solid var(--line)}
-    .kpis{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px}
-    .kpi{padding:18px 18px 16px}
-    .kpi .label{font-size:12px;color:var(--muted);text-transform:uppercase;font-weight:700;letter-spacing:.05em}
-    .kpi .value{font-size:28px;font-weight:800;margin-top:8px}
-    .kpi .sub{font-size:12px;color:var(--muted);margin-top:8px}
-    .kpi.brand{background:linear-gradient(180deg,#f7fbff,#eef5ff)}
-    .kpi.gold{background:linear-gradient(180deg,#fffdf7,#faf4df)}
-    .kpi.green{background:linear-gradient(180deg,#f4fffb,#e9fff6)}
-    .kpi.red{background:linear-gradient(180deg,#fff8f8,#fff0f0)}
-    .kpi .delta.up{color:var(--green)}
-    .kpi .delta.down{color:var(--red)}
-    .panels{
-      display:grid;grid-template-columns:1.15fr 1fr;gap:12px;
-    }
-    .panel{padding:16px 16px 14px}
-    .panel-head{
-      display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px
-    }
-    .panel-head p{margin:0;color:var(--muted);font-size:12px}
+    .summary-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:12px}
+    .cards-inline{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+    .small-card{padding:16px;background:linear-gradient(180deg,#fbfdff 0%,#f5f8fe 100%)}
+    .small-card .label{font-size:12px;color:var(--muted);text-transform:uppercase;font-weight:800}
+    .small-card .value{margin-top:8px;font-size:24px;font-weight:800}
+    .small-card .sub{margin-top:6px;font-size:12px;color:var(--muted)}
+    .compare-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+    .compare-card{padding:16px}
+    .compare-card h3{margin:0 0 6px;font-size:15px}
+    .compare-card .big{font-size:26px;font-weight:800}
+    .compare-card .delta.up{color:var(--green)}
+    .compare-card .delta.down{color:var(--red)}
+    .compare-card .delta.flat{color:var(--amber)}
+    .layout-2{display:grid;grid-template-columns:1.1fr .9fr;gap:12px}
+    .layout-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+    .panel{padding:16px}
     .panel canvas{width:100%!important;height:320px!important}
-    .wide canvas{height:340px!important}
+    .wide canvas{height:360px!important}
     .table-wrap{overflow:auto;border:1px solid var(--line);border-radius:16px}
     table{border-collapse:collapse;width:100%;font-size:13px;background:#fff}
     thead th{
-      position:sticky;top:0;background:#f8fbff;color:#28436b;
-      text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);font-size:12px;text-transform:uppercase;letter-spacing:.05em
+      position:sticky;top:0;background:#f7fbff;color:#28436b;
+      text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);
+      font-size:12px;text-transform:uppercase;letter-spacing:.05em
     }
     tbody td{padding:10px 12px;border-bottom:1px solid #eef2f7}
     tbody tr:hover{background:#fbfdff}
-    .tag{
-      display:inline-flex;align-items:center;border-radius:999px;padding:4px 9px;font-size:12px;font-weight:700
+    .city-detail{padding:16px}
+    .city-top{
+      display:grid;grid-template-columns:.9fr 1.1fr;gap:12px
     }
-    .tag.credito{background:#e9f8f2;color:#0c7c60}
-    .tag.debito{background:#fff1f0;color:#b93832}
-    .small-note{font-size:12px;color:var(--muted)}
+    .city-kpis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+    .mini{
+      border:1px solid var(--line);border-radius:16px;padding:14px;background:var(--card-soft)
+    }
+    .mini .label{font-size:12px;color:var(--muted);text-transform:uppercase;font-weight:800}
+    .mini .value{margin-top:8px;font-size:24px;font-weight:800}
+    .mini .sub{margin-top:5px;font-size:12px;color:var(--muted)}
     .footer-note{padding:14px 18px;font-size:12px;color:var(--muted)}
-    .status-strip{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
-    .status-box{
-      background:#fff;border:1px solid rgba(255,255,255,.16);border-radius:14px;padding:10px 12px;color:#fff;background:rgba(255,255,255,.12)
-    }
     .hidden{display:none!important}
-    @media (max-width:1280px){
-      .controls{grid-template-columns:1fr 1fr}
-      .kpis{grid-template-columns:repeat(3,minmax(0,1fr))}
-      .panels{grid-template-columns:1fr}
+    @media (max-width:1320px){
+      .hero-grid,.summary-grid,.layout-2,.city-top,.controls{grid-template-columns:1fr}
+      .hero-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+      .cards-inline,.compare-cards,.signal-wrap,.layout-3{grid-template-columns:repeat(2,minmax(0,1fr))}
     }
-    @media (max-width:820px){
+    @media (max-width:900px){
       .page{padding:12px}
-      .controls,.grid-2,.grid-4,.kpis{grid-template-columns:1fr}
-      .hero h1{font-size:24px}
+      .hero h1{font-size:26px}
+      .hero-kpis,.cards-inline,.compare-cards,.signal-wrap,.layout-3,.city-kpis{grid-template-columns:1fr}
     }
   </style>
 </head>
@@ -153,23 +189,73 @@
   <div class="page">
     <section class="hero">
       <h1>Inversionistas del Reino - Colombia</h1>
-      <p>Dashboard ejecutivo interactivo con lectura directa del libro Excel. Consolida aportes, gastos, flujo neto, ranking de localidades y comparativos mensuales sin depender de Power BI.</p>
+      <p>Vista ejecutiva premium para comité: desempeño financiero, comparativos mensuales, semáforos de gestión, ranking territorial y detalle por ciudad a partir del libro Excel oficial.</p>
       <div class="hero-meta">
-        <span class="pill">Fuente principal: <strong id="sourceLabel">archivo Excel</strong></span>
-        <span class="pill">Hojas: <strong>Base Inversionistas</strong> + <strong>Gastos</strong></span>
-        <span class="pill">Actualización: <strong id="lastUpdated">pendiente</strong></span>
+        <span class="pill">Fuente activa: <strong id="sourceLabel">dashboard.xlsx</strong></span>
+        <span class="pill">Hojas: <strong>Base Inversionistas 26</strong> + <strong>Gastos 26</strong></span>
+        <span class="pill">Última actualización: <strong id="lastUpdated">pendiente</strong></span>
       </div>
-      <div class="status-strip">
-        <div class="status-box">Modo recomendado: reemplazar <strong>dashboard.xlsx</strong> en GitHub Pages</div>
-        <div class="status-box">Modo alterno: cargar archivo local desde el navegador</div>
+
+      <div class="hero-grid">
+        <div class="hero-kpis">
+          <div class="hero-card">
+            <div class="label">Aportes del período</div>
+            <div class="value" id="heroAportes">$0</div>
+            <div class="sub" id="heroAportesSub">Meses seleccionados</div>
+          </div>
+          <div class="hero-card">
+            <div class="label">Gastos del período</div>
+            <div class="value" id="heroGastos">$0</div>
+            <div class="sub" id="heroGastosSub">Clasificaciones visibles</div>
+          </div>
+          <div class="hero-card">
+            <div class="label">Flujo neto</div>
+            <div class="value" id="heroNeto">$0</div>
+            <div class="sub" id="heroNetoSub">Resultado operativo</div>
+          </div>
+          <div class="hero-card">
+            <div class="label">Inversionistas activos</div>
+            <div class="value" id="heroActivos">0</div>
+            <div class="sub" id="heroActivosSub">Con aportes en el período</div>
+          </div>
+        </div>
+
+        <div class="hero-summary">
+          <div class="signal-wrap">
+            <div class="signal">
+              <div class="top">
+                <div class="title">Liquidez operativa</div>
+                <span class="badge" id="signalLiquidityBadge">--</span>
+              </div>
+              <div class="metric" id="signalLiquidityValue">$0</div>
+              <div class="sub">Flujo neto del período</div>
+            </div>
+            <div class="signal">
+              <div class="top">
+                <div class="title">Eficiencia de gasto</div>
+                <span class="badge" id="signalEfficiencyBadge">--</span>
+              </div>
+              <div class="metric" id="signalEfficiencyValue">0%</div>
+              <div class="sub">Gastos / aportes</div>
+            </div>
+            <div class="signal">
+              <div class="top">
+                <div class="title">Concentración</div>
+                <span class="badge" id="signalConcentrationBadge">--</span>
+              </div>
+              <div class="metric" id="signalConcentrationValue">0%</div>
+              <div class="sub">Participación de la localidad líder</div>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
 
-    <section class="section filters card">
-      <div class="panel-head">
+    <section class="section card filters">
+      <div class="section-head">
         <div>
-          <h2>Filtros ejecutivos</h2>
-          <p>Usa varios filtros al tiempo para comparar ciudades, cuotas, formas de recaudo y comportamiento mensual.</p>
+          <h2>Centro de filtros ejecutivos</h2>
+          <p>Filtra por territorio, cuotas, recaudo, gasto y meses. El dashboard recalcula KPIs, comparativos, tablas y detalle territorial.</p>
         </div>
       </div>
 
@@ -187,7 +273,7 @@
           <select id="filterClasif" multiple></select>
         </div>
         <div class="field">
-          <label>Meses incluidos en el análisis</label>
+          <label>Meses incluidos</label>
           <select id="filterMeses" multiple></select>
         </div>
       </div>
@@ -231,6 +317,10 @@
             <label>Mes comparativo B</label>
             <select id="compareMonthB"></select>
           </div>
+          <div class="field" style="min-width:230px">
+            <label>Detalle por ciudad</label>
+            <select id="cityDetailSelect"></select>
+          </div>
         </div>
         <div class="actions">
           <button class="btn-secondary" id="uploadButton">Cargar archivo local</button>
@@ -241,51 +331,77 @@
       </div>
     </section>
 
-    <section class="section kpis" id="kpiGrid">
-      <div class="card kpi brand">
-        <div class="label">Aportes del período</div>
-        <div class="value" id="kpiAportes">$0</div>
-        <div class="sub" id="kpiAportesSub">Suma de meses seleccionados</div>
+    <section class="section summary-grid">
+      <div class="card panel">
+        <div class="section-head">
+          <div>
+            <h2>Tarjetas comparativas mensuales</h2>
+            <p>Resumen ejecutivo entre los dos meses seleccionados.</p>
+          </div>
+        </div>
+        <div class="compare-cards">
+          <div class="compare-card card-soft">
+            <h3>Aportes</h3>
+            <div class="big" id="cmpAportesValue">$0</div>
+            <div class="sub" id="cmpAportesSub">Comparativo</div>
+          </div>
+          <div class="compare-card card-soft">
+            <h3>Gastos</h3>
+            <div class="big" id="cmpGastosValue">$0</div>
+            <div class="sub" id="cmpGastosSub">Comparativo</div>
+          </div>
+          <div class="compare-card card-soft">
+            <h3>Flujo neto</h3>
+            <div class="big" id="cmpNetoValue">$0</div>
+            <div class="sub" id="cmpNetoSub">Comparativo</div>
+          </div>
+        </div>
       </div>
-      <div class="card kpi red">
-        <div class="label">Gastos del período</div>
-        <div class="value" id="kpiGastos">$0</div>
-        <div class="sub" id="kpiGastosSub">Egresos clasificados del período</div>
-      </div>
-      <div class="card kpi green">
-        <div class="label">Flujo neto</div>
-        <div class="value" id="kpiNeto">$0</div>
-        <div class="sub" id="kpiNetoSub">Aportes menos gastos</div>
-      </div>
-      <div class="card kpi gold">
-        <div class="label">Saldo base inicial</div>
-        <div class="value" id="kpiSaldo">$0</div>
-        <div class="sub">Saldo a dic 2024 filtrado</div>
-      </div>
-      <div class="card kpi brand">
-        <div class="label">Inversionistas activos</div>
-        <div class="value" id="kpiActivos">0</div>
-        <div class="sub">Con aportes en el período</div>
-      </div>
-      <div class="card kpi brand">
-        <div class="label">Localidades activas</div>
-        <div class="value" id="kpiLocalidades">0</div>
-        <div class="sub" id="kpiComparativoSub">Comparativo mensual listo</div>
+
+      <div class="card panel">
+        <div class="section-head">
+          <div>
+            <h2>Indicadores complementarios</h2>
+            <p>Lecturas rápidas para comité y seguimiento mensual.</p>
+          </div>
+        </div>
+        <div class="cards-inline">
+          <div class="small-card card">
+            <div class="label">Saldo base filtrado</div>
+            <div class="value" id="miniSaldo">$0</div>
+            <div class="sub">Saldo a dic 2024</div>
+          </div>
+          <div class="small-card card">
+            <div class="label">Localidades activas</div>
+            <div class="value" id="miniLocalidades">0</div>
+            <div class="sub">Con aportes visibles</div>
+          </div>
+          <div class="small-card card">
+            <div class="label">Cuotas enteras</div>
+            <div class="value" id="miniCuotas">0</div>
+            <div class="sub">Acumuladas en filtro</div>
+          </div>
+          <div class="small-card card">
+            <div class="label">Ticket promedio</div>
+            <div class="value" id="miniTicket">$0</div>
+            <div class="sub">Aportes / activos</div>
+          </div>
+        </div>
       </div>
     </section>
 
-    <section class="section panels">
+    <section class="section layout-2">
       <div class="card panel wide">
-        <div class="panel-head">
+        <div class="section-head">
           <div>
-            <h2>Evolución mensual</h2>
+            <h2>Evolución mensual consolidada</h2>
             <p>Aportes, gastos y flujo neto por mes.</p>
           </div>
         </div>
         <canvas id="trendChart"></canvas>
       </div>
       <div class="card panel">
-        <div class="panel-head">
+        <div class="section-head">
           <div>
             <h2>Top localidades</h2>
             <p id="rankingSubtitle">Ranking según la métrica seleccionada.</p>
@@ -295,79 +411,115 @@
       </div>
     </section>
 
-    <section class="section panels">
+    <section class="section layout-2">
       <div class="card panel">
-        <div class="panel-head">
+        <div class="section-head">
           <div>
-            <h2>Comparativo por meses</h2>
-            <p id="compareSubtitle">Mes A vs. Mes B sobre las principales localidades.</p>
+            <h2>Comparativo mensual por localidad</h2>
+            <p id="compareSubtitle">Mes A vs. Mes B para las principales localidades.</p>
           </div>
         </div>
         <canvas id="compareChart"></canvas>
       </div>
       <div class="card panel">
-        <div class="panel-head">
+        <div class="section-head">
           <div>
             <h2>Composición de gastos</h2>
-            <p>Participación de clasificaciones de gasto según filtro actual.</p>
+            <p>Participación por clasificación.</p>
           </div>
         </div>
         <canvas id="gastosChart"></canvas>
       </div>
     </section>
 
-    <section class="section panels">
-      <div class="card panel">
-        <div class="panel-head">
-          <div>
-            <h2>Ranking ejecutivo de localidades</h2>
-            <p>Consolidado de aportes, saldo, gastos, neto e inversionistas activos.</p>
-          </div>
-        </div>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Localidad</th>
-                <th>Aportes</th>
-                <th>Gastos</th>
-                <th>Neto</th>
-                <th>Saldo inicial</th>
-                <th>Cuotas enteras</th>
-                <th>Activos</th>
-              </tr>
-            </thead>
-            <tbody id="rankingTable"></tbody>
-          </table>
+    <section class="section card city-detail">
+      <div class="section-head">
+        <div>
+          <h2>Detalle por ciudad</h2>
+          <p>Vista ejecutiva de la ciudad seleccionada con KPIs, evolución y principales inversionistas.</p>
         </div>
       </div>
-      <div class="card panel">
-        <div class="panel-head">
-          <div>
-            <h2>Top inversionistas del período</h2>
-            <p>Los mayores aportantes según meses y filtros seleccionados.</p>
+
+      <div class="city-top">
+        <div class="city-kpis">
+          <div class="mini">
+            <div class="label">Ciudad</div>
+            <div class="value" id="cityName">--</div>
+            <div class="sub" id="citySub">Detalle territorial</div>
+          </div>
+          <div class="mini">
+            <div class="label">Aportes de la ciudad</div>
+            <div class="value" id="cityAportes">$0</div>
+            <div class="sub">Meses filtrados</div>
+          </div>
+          <div class="mini">
+            <div class="label">Gastos de la ciudad</div>
+            <div class="value" id="cityGastos">$0</div>
+            <div class="sub">Clasificaciones visibles</div>
+          </div>
+          <div class="mini">
+            <div class="label">Flujo neto</div>
+            <div class="value" id="cityNeto">$0</div>
+            <div class="sub">Resultado operativo ciudad</div>
           </div>
         </div>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Nombre</th>
-                <th>Localidad</th>
-                <th>Aportes</th>
-                <th>Cuotas enteras</th>
-                <th>Saldo inicial</th>
-                <th>Forma</th>
-              </tr>
-            </thead>
-            <tbody id="investorsTable"></tbody>
-          </table>
+        <div class="panel" style="padding:0;border:none;box-shadow:none">
+          <canvas id="cityTrendChart" style="height:260px !important"></canvas>
+        </div>
+      </div>
+
+      <div class="section layout-2" style="margin-top:12px">
+        <div class="card panel">
+          <div class="section-head">
+            <div>
+              <h2>Top inversionistas de la ciudad</h2>
+              <p>Consolidado del período filtrado.</p>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Nombre</th>
+                  <th>Aportes</th>
+                  <th>Cuotas enteras</th>
+                  <th>Saldo inicial</th>
+                  <th>Forma</th>
+                </tr>
+              </thead>
+              <tbody id="cityInvestorsTable"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card panel">
+          <div class="section-head">
+            <div>
+              <h2>Ranking ejecutivo de localidades</h2>
+              <p>Consolidado territorial del filtro actual.</p>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Localidad</th>
+                  <th>Aportes</th>
+                  <th>Gastos</th>
+                  <th>Neto</th>
+                  <th>Saldo</th>
+                  <th>Activos</th>
+                </tr>
+              </thead>
+              <tbody id="rankingTable"></tbody>
+            </table>
+          </div>
         </div>
       </div>
     </section>
 
     <section class="section card footer-note">
-      Recomendación operativa: para actualizar el dashboard online, reemplaza el archivo <strong>data/dashboard.xlsx</strong> dentro del repositorio. El HTML leerá el libro actualizado al recargar la página.
+      Recomendación operativa: para actualizar el dashboard online, reemplaza el archivo <strong>data/dashboard.xlsx</strong>. También puedes hacer una futura versión conectada a Google Sheets + Apps Script para actualización casi inmediata.
     </section>
   </div>
 
@@ -375,8 +527,7 @@
 (() => {
   const CONFIG = {
     title: "Inversionistas del Reino - Colombia",
-    workbookPath: "./data/dashboard.xlsx",
-    dataMode: "xlsx-file"
+    workbookPath: "./data/dashboard.xlsx"
   };
 
   const SHEET_INV = "Base Inversionistas 26";
@@ -400,7 +551,8 @@
     topN: $("filterTopN"),
     rankingMetric: $("filterRankingMetric"),
     compareA: $("compareMonthA"),
-    compareB: $("compareMonthB")
+    compareB: $("compareMonthB"),
+    city: $("cityDetailSelect")
   };
 
   document.title = CONFIG.title;
@@ -409,9 +561,11 @@
     const num = Number(value || 0);
     return new Intl.NumberFormat("es-CO", { style:"currency", currency:"COP", maximumFractionDigits:0 }).format(num);
   }
-
   function formatNumber(value){
     return new Intl.NumberFormat("es-CO", { maximumFractionDigits:0 }).format(Number(value || 0));
+  }
+  function formatPct(value){
+    return `${(Number(value || 0) * 100).toFixed(1)}%`;
   }
 
   function normalizeText(value){
@@ -426,9 +580,8 @@
     const raw = normalizeText(value || "SIN LOCALIDAD");
     if (!raw) return "SIN LOCALIDAD";
     if (raw === "BOGOTA" || raw === "BOGOTA D.C.") return "BOGOTÁ";
-    if (raw === "PTO. COLOM" || raw === "PUERTO COLOM" || raw === "PTO COLOM") return "PUERTO COLOMBIA";
     if (raw === "MEDELLIN") return "MEDELLÍN";
-    if (raw === "ITSMINA") return "ITSMINA";
+    if (raw === "PTO. COLOM" || raw === "PTO COLOM" || raw === "PUERTO COLOM") return "PUERTO COLOMBIA";
     if (raw === "NO REGISTRA") return "SIN LOCALIDAD";
     return raw;
   }
@@ -481,12 +634,10 @@
       out._id = idx + 1;
       out.LOCALIDAD_NORM = canonicalLocalidad(row["LOCALIDAD"]);
       out.FORMA_NORM = normalizeText(row["FORMA"] || "SIN FORMA") || "SIN FORMA";
-      out.TIPO_NORM = normalizeText(row["TIPO DE MOVIMIENTO"] || "SIN TIPO") || "SIN TIPO";
       out["SALDO A DIC2024"] = toNumber(row["SALDO A DIC2024"]);
-      out["Total_Aportes"] = toNumber(row["Total_Aportes"]);
+      out["Cuotas_Enteras"] = toNumber(row["Cuotas_Enteras"]);
       out["Cuotas_Calculadas"] = toNumber(row["Cuotas_Calculadas"]);
       out["Meses_Con_Aporte"] = toNumber(row["Meses_Con_Aporte"]);
-      out["Cuotas_Enteras"] = toNumber(row["Cuotas_Enteras"]);
       out["No. Cuotas"] = toNumber(row["No. Cuotas"]);
       MONTHS.forEach(m => out[m] = toNumber(row[m]));
       return out;
@@ -497,9 +648,7 @@
       out._id = idx + 1;
       out.LOCALIDAD_NORM = canonicalLocalidad(row["LOCALIDAD"]);
       out.CLASIF_NORM = normalizeText(row["CLASIF"] || "SIN CLASIFICACIÓN") || "SIN CLASIFICACIÓN";
-      out.TIPO_NORM = normalizeText(row["TIPO DE MOVIMIENTO"] || "SIN TIPO") || "SIN TIPO";
       out["SALDO A DIC2024"] = toNumber(row["SALDO A DIC2024"]);
-      out["No. Cuotas"] = toNumber(row["No. Cuotas"]);
       MONTHS.forEach(m => out[m] = toNumber(row[m]));
       return out;
     });
@@ -522,12 +671,13 @@
     });
   }
 
-  function setSingleOptions(select, values){
+  function setSingleOptions(select, values, selectedValue = null){
     select.innerHTML = "";
     values.forEach(v => {
       const option = document.createElement("option");
       option.value = v;
       option.textContent = v;
+      if (selectedValue && selectedValue === v) option.selected = true;
       select.appendChild(option);
     });
   }
@@ -545,10 +695,13 @@
     setMultiOptions(filters.forma, formas);
     setMultiOptions(filters.clasif, clasifs);
     setMultiOptions(filters.meses, MONTHS);
-    setSingleOptions(filters.compareA, MONTHS);
-    setSingleOptions(filters.compareB, MONTHS);
-    filters.compareA.value = "ENERO";
-    filters.compareB.value = "JUNIO";
+    setSingleOptions(filters.compareA, MONTHS, "ENERO");
+    setSingleOptions(filters.compareB, MONTHS, "JUNIO");
+    setSingleOptions(filters.city, localidades, localidades[0] || null);
+
+    filters.cuotasMin.value = "0";
+    filters.topN.value = "10";
+    filters.rankingMetric.value = "aportes";
   }
 
   function getFilterState(){
@@ -561,7 +714,8 @@
       topN: Number(filters.topN.value || 10),
       rankingMetric: filters.rankingMetric.value,
       compareA: filters.compareA.value,
-      compareB: filters.compareB.value
+      compareB: filters.compareB.value,
+      city: filters.city.value
     };
   }
 
@@ -572,7 +726,7 @@
     const investors = state.investors.filter(r =>
       f.localidades.includes(r.LOCALIDAD_NORM) &&
       f.formas.includes(r.FORMA_NORM) &&
-      (Number(r["Cuotas_Enteras"] || 0) >= f.cuotasMin)
+      Number(r["Cuotas_Enteras"] || 0) >= f.cuotasMin
     );
 
     const gastos = state.gastos.filter(r =>
@@ -586,13 +740,13 @@
   function summarize(ctx){
     const { investors, gastos, months } = ctx;
     const aportesPeriodo = investors.reduce((sum, r) => sum + monthTotal(r, months), 0);
-    const gastosPeriodoSigned = gastos.reduce((sum, r) => sum + monthTotal(r, months), 0);
-    const gastosPeriodo = Math.abs(gastosPeriodoSigned);
+    const gastosPeriodo = Math.abs(gastos.reduce((sum, r) => sum + monthTotal(r, months), 0));
     const neto = aportesPeriodo - gastosPeriodo;
     const saldoInicial = investors.reduce((sum, r) => sum + toNumber(r["SALDO A DIC2024"]), 0);
     const activos = investors.filter(r => monthTotal(r, months) > 0).length;
     const localidadesActivas = new Set(investors.filter(r => monthTotal(r, months) > 0).map(r => r.LOCALIDAD_NORM)).size;
     const cuotasEnteras = investors.reduce((sum, r) => sum + toNumber(r["Cuotas_Enteras"]), 0);
+    const ticketPromedio = activos ? aportesPeriodo / activos : 0;
 
     const monthly = MONTHS.map(month => {
       const aportes = investors.reduce((sum, r) => sum + toNumber(r[month]), 0);
@@ -613,11 +767,16 @@
     gastos.forEach(r => {
       const key = r.LOCALIDAD_NORM || "SIN LOCALIDAD";
       if (!localityMap.has(key)) localityMap.set(key, { localidad:key, aportes:0, saldo:0, cuotas:0, activos:0, gastos:0 });
-      const item = localityMap.get(key);
-      item.gastos += Math.abs(monthTotal(r, months));
+      localityMap.get(key).gastos += Math.abs(monthTotal(r, months));
     });
 
     const ranking = [...localityMap.values()].map(r => ({ ...r, neto: r.aportes - r.gastos }));
+    const rankingSortedAportes = [...ranking].sort((a,b) => b.aportes - a.aportes);
+    const topLocalityShare = aportesPeriodo ? (rankingSortedAportes[0]?.aportes || 0) / aportesPeriodo : 0;
+    const gastoRatio = aportesPeriodo ? gastosPeriodo / aportesPeriodo : 0;
+
+    const compareA = monthly.find(m => m.month === ctx.f.compareA) || { aportes:0, gastos:0, neto:0 };
+    const compareB = monthly.find(m => m.month === ctx.f.compareB) || { aportes:0, gastos:0, neto:0 };
 
     const compareLocalities = uniqueSorted(investors.map(r => r.LOCALIDAD_NORM))
       .map(loc => ({
@@ -629,10 +788,13 @@
       .sort((x,y) => (y.a + y.b) - (x.a + x.b))
       .slice(0, ctx.f.topN);
 
-    const gastosByClasif = uniqueSorted(gastos.map(g => g.CLASIF_NORM)).map(c => ({
-      clasif:c,
-      total: Math.abs(gastos.filter(g => g.CLASIF_NORM === c).reduce((s,g) => s + monthTotal(g, months), 0))
-    })).filter(x => x.total > 0).sort((a,b)=>b.total-a.total);
+    const gastosByClasif = uniqueSorted(gastos.map(g => g.CLASIF_NORM))
+      .map(c => ({
+        clasif:c,
+        total: Math.abs(gastos.filter(g => g.CLASIF_NORM === c).reduce((s,g) => s + monthTotal(g, months), 0))
+      }))
+      .filter(x => x.total > 0)
+      .sort((a,b)=>b.total-a.total);
 
     const topInvestors = investors
       .map(r => ({
@@ -645,117 +807,38 @@
       }))
       .filter(r => r.aportes > 0 || r.saldo > 0)
       .sort((a,b) => b.aportes - a.aportes)
-      .slice(0, ctx.f.topN);
+      .slice(0, Math.max(ctx.f.topN, 10));
 
-    return { aportesPeriodo, gastosPeriodo, neto, saldoInicial, activos, localidadesActivas, cuotasEnteras, monthly, ranking, compareLocalities, gastosByClasif, topInvestors };
-  }
+    const city = ctx.f.city || rankingSortedAportes[0]?.localidad || "";
+    const cityInvestors = investors.filter(r => r.LOCALIDAD_NORM === city);
+    const cityGastos = gastos.filter(r => r.LOCALIDAD_NORM === city || (city === "SIN LOCALIDAD" && !r.LOCALIDAD_NORM));
+    const cityAportes = cityInvestors.reduce((s,r)=>s+monthTotal(r,months),0);
+    const cityGastosTotal = Math.abs(cityGastos.reduce((s,r)=>s+monthTotal(r,months),0));
+    const cityNeto = cityAportes - cityGastosTotal;
+    const cityMonthly = MONTHS.map(month => ({
+      month,
+      aportes: cityInvestors.reduce((s,r)=>s+toNumber(r[month]),0),
+      gastos: Math.abs(cityGastos.reduce((s,r)=>s+toNumber(r[month]),0))
+    })).map(x => ({...x, neto:x.aportes - x.gastos}));
 
-  function topRankingData(summary, filterState){
-    const metric = filterState.rankingMetric;
-    const orderMap = {
-      aportes: "aportes",
-      cuotas: "cuotas",
-      saldo: "saldo",
-      neto: "neto"
+    const cityTopInvestors = cityInvestors
+      .map(r => ({
+        nombre: r["NOMBRES"] || "Sin nombre",
+        aportes: monthTotal(r, months),
+        cuotas: toNumber(r["Cuotas_Enteras"]),
+        saldo: toNumber(r["SALDO A DIC2024"]),
+        forma: r.FORMA_NORM
+      }))
+      .filter(r => r.aportes > 0 || r.saldo > 0)
+      .sort((a,b)=>b.aportes-a.aportes)
+      .slice(0, 12);
+
+    return {
+      aportesPeriodo, gastosPeriodo, neto, saldoInicial, activos, localidadesActivas, cuotasEnteras, ticketPromedio,
+      monthly, ranking, rankingSortedAportes, topLocalityShare, gastoRatio, compareA, compareB,
+      compareLocalities, gastosByClasif, topInvestors,
+      city, cityAportes, cityGastosTotal, cityNeto, cityMonthly, cityTopInvestors
     };
-    const key = orderMap[metric];
-    return [...summary.ranking]
-      .sort((a,b) => (b[key] || 0) - (a[key] || 0))
-      .slice(0, filterState.topN);
-  }
-
-  function setKpis(ctx, summary){
-    $("kpiAportes").textContent = formatCurrency(summary.aportesPeriodo);
-    $("kpiGastos").textContent = formatCurrency(summary.gastosPeriodo);
-    $("kpiNeto").textContent = formatCurrency(summary.neto);
-    $("kpiSaldo").textContent = formatCurrency(summary.saldoInicial);
-    $("kpiActivos").textContent = formatNumber(summary.activos);
-    $("kpiLocalidades").textContent = formatNumber(summary.localidadesActivas);
-
-    const compareA = ctx.f.compareA;
-    const compareB = ctx.f.compareB;
-    const totalA = summary.monthly.find(m => m.month === compareA)?.aportes || 0;
-    const totalB = summary.monthly.find(m => m.month === compareB)?.aportes || 0;
-    const diff = totalB - totalA;
-    const signClass = diff >= 0 ? "up" : "down";
-    $("kpiComparativoSub").innerHTML = `${compareA} vs ${compareB}: <span class="delta ${signClass}">${diff >= 0 ? "+" : ""}${formatCurrency(diff)}</span>`;
-    $("kpiAportesSub").textContent = `Meses seleccionados: ${ctx.months.join(", ")}`;
-    $("kpiGastosSub").textContent = `Clasificaciones visibles: ${selectedMultiValues(filters.clasif).length}`;
-    $("kpiNetoSub").textContent = `Cuotas enteras filtradas: ${formatNumber(summary.cuotasEnteras)}`;
-  }
-
-  function makeOrUpdateChart(key, config){
-    if (state.charts[key]) {
-      state.charts[key].data = config.data;
-      state.charts[key].options = config.options;
-      state.charts[key].update();
-      return;
-    }
-    const ctx = document.getElementById(key).getContext("2d");
-    state.charts[key] = new Chart(ctx, config);
-  }
-
-  function drawCharts(ctx, summary){
-    makeOrUpdateChart("trendChart", {
-      type:"bar",
-      data:{
-        labels: MONTHS,
-        datasets:[
-          { label:"Aportes", data: summary.monthly.map(x => x.aportes), backgroundColor:"#1f5eb8", borderRadius:8 },
-          { label:"Gastos", data: summary.monthly.map(x => x.gastos), backgroundColor:"#d9534f", borderRadius:8 },
-          { label:"Flujo neto", data: summary.monthly.map(x => x.neto), type:"line", borderColor:"#0f9d78", backgroundColor:"#0f9d78", tension:.35, pointRadius:3, yAxisID:"y" }
-        ]
-      },
-      options:baseChartOptions("COP", true)
-    });
-
-    const topData = topRankingData(summary, ctx.f);
-    $("rankingSubtitle").textContent = `Top ${ctx.f.topN} por ${metricLabel(ctx.f.rankingMetric)}.`;
-    makeOrUpdateChart("rankingChart", {
-      type:"bar",
-      data:{
-        labels: topData.map(x => x.localidad),
-        datasets:[{
-          label: metricLabel(ctx.f.rankingMetric),
-          data: topData.map(x => x[metricKey(ctx.f.rankingMetric)] || 0),
-          backgroundColor:"#c7a33a",
-          borderRadius:8
-        }]
-      },
-      options:baseChartOptions("COP", false, true)
-    });
-
-    $("compareSubtitle").textContent = `${ctx.f.compareA} vs ${ctx.f.compareB} sobre las ${ctx.f.topN} principales localidades.`;
-    makeOrUpdateChart("compareChart", {
-      type:"bar",
-      data:{
-        labels: summary.compareLocalities.map(x => x.localidad),
-        datasets:[
-          { label: ctx.f.compareA, data: summary.compareLocalities.map(x => x.a), backgroundColor:"#183b73", borderRadius:8 },
-          { label: ctx.f.compareB, data: summary.compareLocalities.map(x => x.b), backgroundColor:"#2c61b5", borderRadius:8 }
-        ]
-      },
-      options:baseChartOptions("COP", false, true)
-    });
-
-    makeOrUpdateChart("gastosChart", {
-      type:"doughnut",
-      data:{
-        labels: summary.gastosByClasif.map(x => x.clasif),
-        datasets:[{
-          data: summary.gastosByClasif.map(x => x.total),
-          backgroundColor:["#183b73","#2c61b5","#c7a33a","#0f9d78","#e67e22","#9b59b6","#f39c12","#16a085","#c0392b","#7f8c8d"]
-        }]
-      },
-      options:{
-        responsive:true,
-        maintainAspectRatio:false,
-        plugins:{
-          legend:{ position:"bottom" },
-          tooltip:{ callbacks:{ label:ctx => `${ctx.label}: ${formatCurrency(ctx.raw)}` } }
-        }
-      }
-    });
   }
 
   function metricLabel(metric){
@@ -775,7 +858,18 @@
     })[metric] || "aportes";
   }
 
-  function baseChartOptions(mode = "COP", stacked = false, horizontal = false){
+  function makeOrUpdateChart(id, config){
+    if (state.charts[id]) {
+      state.charts[id].data = config.data;
+      state.charts[id].options = config.options;
+      state.charts[id].update();
+      return;
+    }
+    const ctx = document.getElementById(id).getContext("2d");
+    state.charts[id] = new Chart(ctx, config);
+  }
+
+  function chartOptions(mode="COP", horizontal=false){
     return {
       responsive:true,
       maintainAspectRatio:false,
@@ -784,28 +878,179 @@
         legend:{ position:"bottom" },
         tooltip:{
           callbacks:{
-            label: (ctx) => `${ctx.dataset.label}: ${mode === "COP" ? formatCurrency(ctx.raw) : formatNumber(ctx.raw)}`
+            label:(ctx) => `${ctx.dataset.label}: ${mode === "COP" ? formatCurrency(ctx.raw) : formatNumber(ctx.raw)}`
           }
         }
       },
       scales:{
-        x:{ stacked, ticks:{ color:"#5b6475" }, grid:{ color:"rgba(15,23,42,.05)" } },
+        x:{ ticks:{ color:"#5d6b82" }, grid:{ color:"rgba(15,23,42,.05)" } },
         y:{
-          stacked,
-          ticks:{
-            color:"#5b6475",
-            callback:(v) => mode === "COP" ? formatCurrency(v) : formatNumber(v)
-          },
+          ticks:{ color:"#5d6b82", callback:(v) => mode === "COP" ? formatCurrency(v) : formatNumber(v) },
           grid:{ color:"rgba(15,23,42,.05)" }
         }
       }
     };
   }
 
-  function renderTables(ctx, summary){
+  function signalStatus(type, value){
+    if (type === "liquidity") {
+      if (value > 0) return { cls:"ok", text:"saludable" };
+      if (value === 0) return { cls:"warn", text:"estable" };
+      return { cls:"alert", text:"alerta" };
+    }
+    if (type === "efficiency") {
+      if (value <= 0.35) return { cls:"ok", text:"eficiente" };
+      if (value <= 0.55) return { cls:"warn", text:"vigilar" };
+      return { cls:"alert", text:"alto gasto" };
+    }
+    if (type === "concentration") {
+      if (value <= 0.25) return { cls:"ok", text:"diversificado" };
+      if (value <= 0.4) return { cls:"warn", text:"medio" };
+      return { cls:"alert", text:"concentrado" };
+    }
+    return { cls:"warn", text:"revisar" };
+  }
+
+  function setBadge(id, status){
+    const el = document.getElementById(id);
+    el.className = `badge ${status.cls}`;
+    el.textContent = status.text;
+  }
+
+  function setExecutiveHeader(ctx, summary){
+    $("sourceLabel").textContent = state.fileName || "dashboard.xlsx";
+    $("heroAportes").textContent = formatCurrency(summary.aportesPeriodo);
+    $("heroGastos").textContent = formatCurrency(summary.gastosPeriodo);
+    $("heroNeto").textContent = formatCurrency(summary.neto);
+    $("heroActivos").textContent = formatNumber(summary.activos);
+    $("heroAportesSub").textContent = `Meses: ${ctx.months.join(", ")}`;
+    $("heroGastosSub").textContent = `Clasificaciones: ${selectedMultiValues(filters.clasif).length}`;
+    $("heroNetoSub").textContent = `Neto = aportes - gastos`;
+    $("heroActivosSub").textContent = `${formatNumber(summary.localidadesActivas)} localidades activas`;
+
+    const s1 = signalStatus("liquidity", summary.neto);
+    const s2 = signalStatus("efficiency", summary.gastoRatio);
+    const s3 = signalStatus("concentration", summary.topLocalityShare);
+    setBadge("signalLiquidityBadge", s1);
+    setBadge("signalEfficiencyBadge", s2);
+    setBadge("signalConcentrationBadge", s3);
+    $("signalLiquidityValue").textContent = formatCurrency(summary.neto);
+    $("signalEfficiencyValue").textContent = formatPct(summary.gastoRatio);
+    $("signalConcentrationValue").textContent = formatPct(summary.topLocalityShare);
+  }
+
+  function setCompareCards(ctx, summary){
+    const delta = (b,a) => a === 0 ? (b === 0 ? 0 : 1) : (b - a) / Math.abs(a);
+    const dA = delta(summary.compareB.aportes, summary.compareA.aportes);
+    const dG = delta(summary.compareB.gastos, summary.compareA.gastos);
+    const dN = delta(summary.compareB.neto, summary.compareA.neto);
+
+    $("cmpAportesValue").textContent = formatCurrency(summary.compareB.aportes);
+    $("cmpAportesSub").innerHTML = `${ctx.f.compareA} → ${ctx.f.compareB}: <strong class="delta ${trendClass(dA)}">${signedPct(dA)}</strong>`;
+    $("cmpGastosValue").textContent = formatCurrency(summary.compareB.gastos);
+    $("cmpGastosSub").innerHTML = `${ctx.f.compareA} → ${ctx.f.compareB}: <strong class="delta ${trendClass(-dG)}">${signedPct(dG)}</strong>`;
+    $("cmpNetoValue").textContent = formatCurrency(summary.compareB.neto);
+    $("cmpNetoSub").innerHTML = `${ctx.f.compareA} → ${ctx.f.compareB}: <strong class="delta ${trendClass(dN)}">${signedPct(dN)}</strong>`;
+
+    $("miniSaldo").textContent = formatCurrency(summary.saldoInicial);
+    $("miniLocalidades").textContent = formatNumber(summary.localidadesActivas);
+    $("miniCuotas").textContent = formatNumber(summary.cuotasEnteras);
+    $("miniTicket").textContent = formatCurrency(summary.ticketPromedio);
+  }
+
+  function trendClass(val){
+    if (Math.abs(val) < 0.001) return "flat";
+    return val >= 0 ? "up" : "down";
+  }
+  function signedPct(val){
+    const pct = `${(Math.abs(val) * 100).toFixed(1)}%`;
+    if (Math.abs(val) < 0.001) return `0.0%`;
+    return `${val > 0 ? "+" : "-"}${pct}`;
+  }
+
+  function drawCharts(ctx, summary){
+    makeOrUpdateChart("trendChart", {
+      type:"bar",
+      data:{
+        labels: MONTHS,
+        datasets:[
+          { label:"Aportes", data: summary.monthly.map(x=>x.aportes), backgroundColor:"#183b73", borderRadius:8 },
+          { label:"Gastos", data: summary.monthly.map(x=>x.gastos), backgroundColor:"#d9534f", borderRadius:8 },
+          { label:"Flujo neto", data: summary.monthly.map(x=>x.neto), type:"line", borderColor:"#0f9d78", backgroundColor:"#0f9d78", tension:.35, pointRadius:3 }
+        ]
+      },
+      options: chartOptions("COP")
+    });
+
+    const rankingData = [...summary.ranking]
+      .sort((a,b) => (b[metricKey(ctx.f.rankingMetric)] || 0) - (a[metricKey(ctx.f.rankingMetric)] || 0))
+      .slice(0, ctx.f.topN);
+
+    $("rankingSubtitle").textContent = `Top ${ctx.f.topN} por ${metricLabel(ctx.f.rankingMetric)}.`;
+
+    makeOrUpdateChart("rankingChart", {
+      type:"bar",
+      data:{
+        labels: rankingData.map(x=>x.localidad),
+        datasets:[{
+          label: metricLabel(ctx.f.rankingMetric),
+          data: rankingData.map(x=>x[metricKey(ctx.f.rankingMetric)] || 0),
+          backgroundColor:"#c8a13f",
+          borderRadius:8
+        }]
+      },
+      options: chartOptions("COP", true)
+    });
+
+    $("compareSubtitle").textContent = `${ctx.f.compareA} vs ${ctx.f.compareB} sobre las ${ctx.f.topN} principales localidades.`;
+    makeOrUpdateChart("compareChart", {
+      type:"bar",
+      data:{
+        labels: summary.compareLocalities.map(x=>x.localidad),
+        datasets:[
+          { label: ctx.f.compareA, data: summary.compareLocalities.map(x=>x.a), backgroundColor:"#16345f", borderRadius:8 },
+          { label: ctx.f.compareB, data: summary.compareLocalities.map(x=>x.b), backgroundColor:"#5d8edc", borderRadius:8 }
+        ]
+      },
+      options: chartOptions("COP", true)
+    });
+
+    makeOrUpdateChart("gastosChart", {
+      type:"doughnut",
+      data:{
+        labels: summary.gastosByClasif.map(x=>x.clasif),
+        datasets:[{
+          data: summary.gastosByClasif.map(x=>x.total),
+          backgroundColor:["#183b73","#2559a7","#5d8edc","#c8a13f","#0f9d78","#d9534f","#9b59b6","#16a085","#f39c12","#7f8c8d"]
+        }]
+      },
+      options:{
+        responsive:true,
+        maintainAspectRatio:false,
+        plugins:{
+          legend:{ position:"bottom" },
+          tooltip:{ callbacks:{ label: ctx => `${ctx.label}: ${formatCurrency(ctx.raw)}` } }
+        }
+      }
+    });
+
+    makeOrUpdateChart("cityTrendChart", {
+      type:"bar",
+      data:{
+        labels: MONTHS,
+        datasets:[
+          { label:"Aportes ciudad", data: summary.cityMonthly.map(x=>x.aportes), backgroundColor:"#2559a7", borderRadius:8 },
+          { label:"Gastos ciudad", data: summary.cityMonthly.map(x=>x.gastos), backgroundColor:"#d9534f", borderRadius:8 }
+        ]
+      },
+      options: chartOptions("COP")
+    });
+  }
+
+  function renderTables(summary){
     const rankingRows = [...summary.ranking]
-      .sort((a,b) => b.aportes - a.aportes)
-      .slice(0, Math.max(ctx.f.topN, 12))
+      .sort((a,b)=>b.aportes-a.aportes)
+      .slice(0, 15)
       .map(r => `
         <tr>
           <td>${r.localidad}</td>
@@ -813,27 +1058,33 @@
           <td>${formatCurrency(r.gastos)}</td>
           <td>${formatCurrency(r.neto)}</td>
           <td>${formatCurrency(r.saldo)}</td>
-          <td>${formatNumber(r.cuotas)}</td>
           <td>${formatNumber(r.activos)}</td>
         </tr>
       `).join("");
-    $("rankingTable").innerHTML = rankingRows || `<tr><td colspan="7" class="small-note">No hay datos para la combinación de filtros actual.</td></tr>`;
+    $("rankingTable").innerHTML = rankingRows || `<tr><td colspan="6">No hay datos para el filtro actual.</td></tr>`;
 
-    const investorsRows = summary.topInvestors.map(r => `
+    const cityRows = summary.cityTopInvestors.map(r => `
       <tr>
         <td>${r.nombre}</td>
-        <td>${r.localidad}</td>
         <td>${formatCurrency(r.aportes)}</td>
         <td>${formatNumber(r.cuotas)}</td>
         <td>${formatCurrency(r.saldo)}</td>
         <td>${r.forma}</td>
       </tr>
     `).join("");
-    $("investorsTable").innerHTML = investorsRows || `<tr><td colspan="6" class="small-note">No hay inversionistas con aportes visibles.</td></tr>`;
+    $("cityInvestorsTable").innerHTML = cityRows || `<tr><td colspan="5">No hay inversionistas visibles para la ciudad seleccionada.</td></tr>`;
+  }
+
+  function renderCityDetail(summary){
+    $("cityName").textContent = summary.city || "--";
+    $("citySub").textContent = `Detalle territorial del período seleccionado`;
+    $("cityAportes").textContent = formatCurrency(summary.cityAportes);
+    $("cityGastos").textContent = formatCurrency(summary.cityGastosTotal);
+    $("cityNeto").textContent = formatCurrency(summary.cityNeto);
   }
 
   async function loadWorkbookFromPath(path){
-    const response = await fetch(path, { cache: "no-cache" });
+    const response = await fetch(path, { cache:"no-cache" });
     if (!response.ok) throw new Error(`No fue posible cargar el archivo ${path}`);
     const arrayBuffer = await response.arrayBuffer();
     return XLSX.read(arrayBuffer, { type:"array" });
@@ -842,13 +1093,11 @@
   async function loadWorkbookFromFile(file){
     const arrayBuffer = await file.arrayBuffer();
     state.fileName = file.name;
-    $("sourceLabel").textContent = file.name;
     return XLSX.read(arrayBuffer, { type:"array" });
   }
 
   function setTimestamp(){
-    const stamp = new Date().toLocaleString("es-CO", { dateStyle:"medium", timeStyle:"short" });
-    $("lastUpdated").textContent = stamp;
+    $("lastUpdated").textContent = new Date().toLocaleString("es-CO", { dateStyle:"medium", timeStyle:"short" });
   }
 
   async function boot(workbookPromise){
@@ -858,28 +1107,29 @@
       state.investors = datasets.investors;
       state.gastos = datasets.gastos;
       initializeFilters();
-      wireEvents();
+      wireEventsOnce();
       refresh();
       setTimestamp();
+      $("sourceLabel").textContent = state.fileName;
     }catch(error){
       console.error(error);
       alert(`No fue posible cargar el dashboard: ${error.message || error}`);
     }
   }
 
-  function wireEvents(){
-    const inputs = [filters.localidad, filters.forma, filters.clasif, filters.meses, filters.cuotasMin, filters.topN, filters.rankingMetric, filters.compareA, filters.compareB];
-    inputs.forEach(el => el.addEventListener("change", refresh));
+  let eventsWired = false;
+  function wireEventsOnce(){
+    if (eventsWired) return;
+    eventsWired = true;
+    const controls = [filters.localidad, filters.forma, filters.clasif, filters.meses, filters.cuotasMin, filters.topN, filters.rankingMetric, filters.compareA, filters.compareB, filters.city];
+    controls.forEach(el => el.addEventListener("change", refresh));
+
     $("resetFilters").addEventListener("click", () => {
       initializeFilters();
-      filters.cuotasMin.value = "0";
-      filters.topN.value = "10";
-      filters.rankingMetric.value = "aportes";
-      filters.compareA.value = "ENERO";
-      filters.compareB.value = "JUNIO";
       refresh();
     });
     $("reloadSource").addEventListener("click", async () => {
+      state.fileName = "dashboard.xlsx";
       await boot(loadWorkbookFromPath(CONFIG.workbookPath));
     });
     $("uploadButton").addEventListener("click", () => $("fileInput").click());
@@ -893,9 +1143,11 @@
   function refresh(){
     const ctx = applyFilters();
     const summary = summarize(ctx);
-    setKpis(ctx, summary);
+    setExecutiveHeader(ctx, summary);
+    setCompareCards(ctx, summary);
     drawCharts(ctx, summary);
-    renderTables(ctx, summary);
+    renderCityDetail(summary);
+    renderTables(summary);
   }
 
   boot(loadWorkbookFromPath(CONFIG.workbookPath));
