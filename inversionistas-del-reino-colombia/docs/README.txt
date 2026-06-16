@@ -1,27 +1,15 @@
-Inversionistas del Reino - Colombia · V2 Premium
+Inversionistas del Reino - Colombia · paquete adaptado con index_3
 
 CONTENIDO
-- index.html
-- data/dashboard.xlsx
+- index.html  -> versión visual basada en el archivo index_3.html suministrado
+- data/dashboard.xlsx -> libro fuente del dashboard
 
-QUÉ TRAE ESTA VERSIÓN
-- portada KPI premium estilo comité ejecutivo
-- semáforos de desempeño
-- comparativos mensuales A vs B
-- ranking territorial
-- detalle por ciudad
-- lectura directa del libro Excel en navegador
-- carga alternativa de archivo local
+FORMA DE USO
+1. Sube la carpeta al repositorio o hosting estático.
+2. Publica con GitHub Pages, Netlify u otro hosting.
+3. Para actualizar el dashboard online, reemplaza data/dashboard.xlsx.
+4. Recarga la página.
 
-ACTUALIZACIÓN ONLINE
-1. Reemplaza data/dashboard.xlsx por la versión nueva.
-2. Recarga la página.
-
-REQUISITOS DEL LIBRO
-- Hoja: Base Inversionistas 26
-- Hoja: Gastos 26
-- Encabezados en fila 4
-
-RECOMENDACIÓN SIGUIENTE
-- versión conectada a Google Sheets + Apps Script para refresco casi inmediato
-- control de acceso si el dashboard va a compartirse fuera del equipo interno
+NOTA
+- Este paquete usa exactamente el diseño del index compartido por el usuario.
+- El libro fuente incluido es Copia_dashboard.xlsx, renombrado internamente como dashboard.xlsx.

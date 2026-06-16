@@ -8,192 +8,323 @@
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
   <style>
-    :root{
-      --bg:#eff4fb;
-      --card:#ffffff;
-      --card-soft:#f8fbff;
-      --ink:#0f172a;
-      --muted:#5d6b82;
-      --line:#d9e3ef;
-      --brand:#16345f;
-      --brand-2:#2559a7;
-      --brand-3:#5d8edc;
-      --gold:#c8a13f;
-      --green:#0f9d78;
-      --green-soft:#e9fbf4;
-      --red:#da4f49;
-      --red-soft:#fff1f0;
-      --amber:#f5a623;
-      --amber-soft:#fff7e8;
-      --shadow:0 16px 40px rgba(15,23,42,.08);
-      --radius:22px;
+    :root {
+      --bg: #0d0d0d;
+      --surface: #181818;
+      --surface-2: #1f1f1f;
+      --surface-3: #252525;
+      --border: rgba(255,255,255,.08);
+      --border-bright: rgba(200,161,63,.28);
+
+      --gold: #c8a13f;
+      --gold-light: #e0b84a;
+      --gold-dim: rgba(200,161,63,.14);
+
+      --ink: #f0ead6;
+      --ink-2: #b8b0a0;
+      --ink-3: #6b6560;
+
+      --green: #22c993;
+      --green-soft: rgba(34,201,147,.12);
+      --red: #e05252;
+      --red-soft: rgba(224,82,82,.12);
+      --amber: #f5a623;
+      --amber-soft: rgba(245,166,35,.12);
+
+      --shadow: 0 8px 32px rgba(0,0,0,.6);
+      --shadow-gold: 0 0 60px rgba(200,161,63,.1);
+      --radius: 16px;
+      --radius-sm: 10px;
     }
-    *{box-sizing:border-box}
-    html,body{margin:0;padding:0}
-    body{
-      font-family:Inter,Segoe UI,system-ui,-apple-system,sans-serif;
-      color:var(--ink);
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      background: var(--bg);
+      color: var(--ink);
+      font-family: Inter, 'Segoe UI', system-ui, sans-serif;
+      min-height: 100vh;
+    }
+
+    body::before {
+      content: "";
+      position: fixed; inset: 0; z-index: 0;
       background:
-        radial-gradient(circle at top right, rgba(37,89,167,.08), transparent 20%),
-        linear-gradient(180deg,#edf3fb 0%,#f7f9fd 100%);
+        radial-gradient(ellipse 80% 40% at 50% -5%, rgba(200,161,63,.08), transparent),
+        radial-gradient(ellipse 50% 50% at 90% 85%, rgba(200,161,63,.04), transparent);
+      pointer-events: none;
     }
-    .page{max-width:1540px;margin:0 auto;padding:18px}
-    .hero{
-      position:relative; overflow:hidden; color:#fff;
-      background:
-        radial-gradient(circle at 85% 20%, rgba(255,255,255,.18), transparent 18%),
-        radial-gradient(circle at 100% 0%, rgba(200,161,63,.22), transparent 24%),
-        linear-gradient(135deg,#122a4d 0%, #1c4278 45%, #2b63b8 100%);
-      border-radius:28px; padding:26px 26px 24px;
-      box-shadow:var(--shadow);
+
+    .page { position: relative; z-index: 1; max-width: 1600px; margin: 0 auto; padding: 20px; }
+
+    /* ── HERO ── */
+    .hero {
+      position: relative; overflow: hidden;
+      background: var(--surface);
+      border: 1px solid var(--border-bright);
+      border-radius: 24px;
+      padding: 28px 28px 24px;
+      box-shadow: var(--shadow), var(--shadow-gold);
     }
-    .hero::after{
-      content:"";position:absolute;right:-60px;bottom:-60px;width:220px;height:220px;border-radius:999px;background:rgba(255,255,255,.06)
+    .hero::before {
+      content: "";
+      position: absolute; top: 0; right: 0;
+      width: 460px; height: 260px;
+      background: radial-gradient(ellipse at top right, rgba(200,161,63,.13), transparent 70%);
+      pointer-events: none;
     }
-    .hero h1{margin:0;font-size:32px;letter-spacing:.2px}
-    .hero p{margin:8px 0 0;color:rgba(255,255,255,.86);max-width:980px;font-size:14px;line-height:1.55}
-    .hero-meta{margin-top:16px;display:flex;flex-wrap:wrap;gap:10px}
-    .pill{
-      display:inline-flex;align-items:center;gap:8px;
-      padding:8px 12px;border-radius:999px;
-      border:1px solid rgba(255,255,255,.16);
-      background:rgba(255,255,255,.12);
-      font-size:13px
+
+    .flag-stripe {
+      height: 3px; border-radius: 2px;
+      background: linear-gradient(90deg, #FCD116 33%, #003087 33% 66%, #CE1126 66%);
+      margin-bottom: 18px; opacity: .55;
     }
-    .hero-grid{
-      margin-top:18px;
-      display:grid;grid-template-columns:1.25fr .75fr;gap:16px;
-      align-items:end;
+
+    .hero-brand { display: flex; align-items: center; gap: 14px; }
+    .hero-icon {
+      width: 48px; height: 48px; border-radius: 12px;
+      background: var(--gold-dim);
+      border: 1px solid var(--border-bright);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px; flex-shrink: 0;
     }
-    .hero-kpis{
-      display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;
+    .hero h1 {
+      font-size: 22px; font-weight: 800; letter-spacing: -.3px;
+      background: linear-gradient(135deg, #ead98a 0%, var(--gold) 50%, #a07820 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
     }
-    .hero-card{
-      backdrop-filter: blur(10px);
-      background:rgba(255,255,255,.12);
-      border:1px solid rgba(255,255,255,.12);
-      border-radius:20px;
-      padding:16px;
-      min-height:112px;
+    .hero .subtitle { font-size: 13px; color: var(--ink-2); margin-top: 3px; }
+
+    .hero-pills { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+    .pill {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 5px 12px; border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,.04);
+      font-size: 12px; color: var(--ink-2);
     }
-    .hero-card .label{
-      font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.72)
+    .pill strong { color: var(--gold); }
+    .pill-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+    .hero-grid { margin-top: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .hero-kpis { display: grid; grid-template-columns: repeat(2,1fr); gap: 12px; }
+
+    .hero-card {
+      background: rgba(255,255,255,.04);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px 18px;
+      position: relative; overflow: hidden;
+      transition: border-color .2s, transform .15s;
     }
-    .hero-card .value{margin-top:10px;font-size:28px;font-weight:800}
-    .hero-card .sub{margin-top:6px;font-size:12px;color:rgba(255,255,255,.8)}
-    .hero-summary{
-      display:grid;gap:12px
+    .hero-card:hover { border-color: var(--border-bright); transform: translateY(-1px); }
+    .hero-card .label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--ink-3); }
+    .hero-card .value { margin-top: 8px; font-size: 26px; font-weight: 900; color: var(--gold-light); letter-spacing: -.5px; }
+    .hero-card .sub { margin-top: 4px; font-size: 11px; color: var(--ink-3); }
+
+    .signals { display: grid; gap: 12px; }
+    .signal-wrap { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; }
+    .signal {
+      background: rgba(255,255,255,.04);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 14px;
     }
-    .signal-wrap{
-      display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px
+    .signal .top { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+    .signal .title { font-size: 12px; font-weight: 700; color: var(--ink-2); line-height: 1.3; }
+    .badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 3px 9px; border-radius: 999px;
+      font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em;
+      white-space: nowrap; flex-shrink: 0;
     }
-    .signal{
-      background:rgba(255,255,255,.12);
-      border:1px solid rgba(255,255,255,.12);
-      border-radius:18px;padding:14px
+    .badge::before { content:""; width:5px; height:5px; border-radius:50%; }
+    .badge.ok   { background: var(--green-soft); color: var(--green); }
+    .badge.ok::before { background: var(--green); }
+    .badge.warn { background: var(--amber-soft); color: var(--amber); }
+    .badge.warn::before { background: var(--amber); }
+    .badge.alert { background: var(--red-soft); color: var(--red); }
+    .badge.alert::before { background: var(--red); }
+    .signal .metric { margin-top: 8px; font-size: 20px; font-weight: 800; color: var(--ink); }
+    .signal .sub { margin-top: 3px; font-size: 11px; color: var(--ink-3); }
+
+    /* ── SECCIONES ── */
+    .section { margin-top: 14px; }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: 0 4px 20px rgba(0,0,0,.4);
     }
-    .signal .top{display:flex;align-items:center;justify-content:space-between;gap:10px}
-    .signal .title{font-size:13px;font-weight:700}
-    .badge{
-      display:inline-flex;align-items:center;justify-content:center;
-      min-width:86px;padding:6px 10px;border-radius:999px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.06em
+
+    /* ── FILTROS ── */
+    .filters { padding: 20px 22px; }
+    .section-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+    .section-title-line { display: flex; align-items: center; gap: 10px; }
+    .section-accent { width: 3px; height: 18px; border-radius: 2px; background: linear-gradient(to bottom, var(--gold-light), var(--gold)); flex-shrink:0; }
+    .section-head h2 { font-size: 15px; font-weight: 700; color: var(--ink); }
+    .section-head p { margin-top: 2px; font-size: 12px; color: var(--ink-3); }
+
+    .filter-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; }
+    .filter-row-2 { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 12px; align-items: flex-end; }
+
+    .field { display: flex; flex-direction: column; gap: 6px; }
+    .field label { font-size: 11px; font-weight: 700; color: var(--ink-3); text-transform: uppercase; letter-spacing: .07em; }
+
+    select, input {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 10px 12px;
+      font-size: 13px;
+      background: var(--surface-2);
+      color: var(--ink);
+      outline: none;
+      transition: border-color .15s, box-shadow .15s;
+      font-family: inherit;
     }
-    .badge.ok{background:rgba(15,157,120,.22);color:#dff7ee}
-    .badge.warn{background:rgba(245,166,35,.22);color:#fff4d8}
-    .badge.alert{background:rgba(218,79,73,.22);color:#ffe3e0}
-    .signal .metric{margin-top:10px;font-size:24px;font-weight:800}
-    .signal .sub{margin-top:4px;font-size:12px;color:rgba(255,255,255,.76)}
-    .section{margin-top:18px}
-    .card{
-      background:var(--card);
-      border:1px solid var(--line);
-      border-radius:var(--radius);
-      box-shadow:var(--shadow);
+    select:focus, input:focus {
+      border-color: var(--border-bright);
+      box-shadow: 0 0 0 3px rgba(200,161,63,.1);
     }
-    .filters{padding:18px}
-    .section-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px}
-    .section-head h2{margin:0;font-size:18px}
-    .section-head p{margin:4px 0 0;font-size:12px;color:var(--muted)}
-    .controls{display:grid;grid-template-columns:1.15fr 1fr 1fr 1fr;gap:12px}
-    .field{display:flex;flex-direction:column;gap:8px}
-    .field label{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
-    select,input{
-      width:100%;border:1px solid var(--line);border-radius:14px;padding:11px 12px;
-      font-size:14px;background:#fff;color:var(--ink);outline:none
+    select[multiple] { min-height: 110px; padding: 6px; font-size: 12px; }
+    select[multiple] option { padding: 5px 8px; border-radius: 4px; cursor: pointer; color: var(--ink-2); background: var(--surface-2); }
+    select[multiple] option:checked { background: var(--gold-dim) !important; color: var(--gold-light); font-weight: 600; }
+
+    .select-wrap { position: relative; }
+    .select-wrap select { padding-right: 30px; -webkit-appearance: none; appearance: none; }
+    .select-wrap::after { content:"▾"; position:absolute; right:10px; top:50%; transform:translateY(-50%); color:var(--ink-3); font-size:12px; pointer-events:none; }
+
+    .filter-hint {
+      font-size: 11px; color: var(--ink-3);
+      display: flex; align-items: center; gap: 6px;
+      padding: 8px 12px; border-radius: var(--radius-sm);
+      background: rgba(200,161,63,.05);
+      border: 1px solid rgba(200,161,63,.1);
+      margin-top: 10px;
     }
-    select[multiple]{min-height:130px;padding:8px}
-    .toolbar{
-      display:flex;flex-wrap:wrap;gap:10px;align-items:end;justify-content:space-between;margin-top:14px
+
+    .toolbar {
+      display: flex; flex-wrap: wrap; gap: 10px;
+      align-items: center; justify-content: space-between;
+      margin-top: 14px; padding-top: 14px;
+      border-top: 1px solid var(--border);
     }
-    .toolbar .actions{display:flex;gap:10px;flex-wrap:wrap}
-    button{
-      border:none;border-radius:14px;padding:11px 14px;font-size:14px;font-weight:800;cursor:pointer;transition:.18s ease
+    .toolbar .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+    button {
+      border: none; border-radius: var(--radius-sm);
+      padding: 10px 16px; font-size: 13px; font-weight: 700;
+      cursor: pointer; transition: .15s ease; white-space: nowrap;
+      font-family: inherit;
     }
-    button:hover{transform:translateY(-1px)}
-    .btn-primary{background:var(--brand);color:#fff}
-    .btn-secondary{background:#eef4ff;color:var(--brand);border:1px solid #d6e5ff}
-    .btn-light{background:#fff;color:var(--ink);border:1px solid var(--line)}
-    .summary-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:12px}
-    .cards-inline{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
-    .small-card{padding:16px;background:linear-gradient(180deg,#fbfdff 0%,#f5f8fe 100%)}
-    .small-card .label{font-size:12px;color:var(--muted);text-transform:uppercase;font-weight:800}
-    .small-card .value{margin-top:8px;font-size:24px;font-weight:800}
-    .small-card .sub{margin-top:6px;font-size:12px;color:var(--muted)}
-    .compare-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
-    .compare-card{padding:16px}
-    .compare-card h3{margin:0 0 6px;font-size:15px}
-    .compare-card .big{font-size:26px;font-weight:800}
-    .compare-card .delta.up{color:var(--green)}
-    .compare-card .delta.down{color:var(--red)}
-    .compare-card .delta.flat{color:var(--amber)}
-    .layout-2{display:grid;grid-template-columns:1.1fr .9fr;gap:12px}
-    .layout-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
-    .panel{padding:16px}
-    .panel canvas{width:100%!important;height:320px!important}
-    .wide canvas{height:360px!important}
-    .table-wrap{overflow:auto;border:1px solid var(--line);border-radius:16px}
-    table{border-collapse:collapse;width:100%;font-size:13px;background:#fff}
-    thead th{
-      position:sticky;top:0;background:#f7fbff;color:#28436b;
-      text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);
-      font-size:12px;text-transform:uppercase;letter-spacing:.05em
+    button:hover { transform: translateY(-1px); }
+    button:active { transform: translateY(0); }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--gold-light), var(--gold));
+      color: #0d0d0d;
+      box-shadow: 0 2px 12px rgba(200,161,63,.3);
     }
-    tbody td{padding:10px 12px;border-bottom:1px solid #eef2f7}
-    tbody tr:hover{background:#fbfdff}
-    .city-detail{padding:16px}
-    .city-top{
-      display:grid;grid-template-columns:.9fr 1.1fr;gap:12px
+    .btn-primary:hover { box-shadow: 0 4px 20px rgba(200,161,63,.5); }
+    .btn-secondary { background: rgba(200,161,63,.1); color: var(--gold-light); border: 1px solid rgba(200,161,63,.2); }
+    .btn-light { background: var(--surface-2); color: var(--ink-2); border: 1px solid var(--border); }
+
+    /* ── LAYOUTS ── */
+    .summary-grid { display: grid; grid-template-columns: 1.1fr .9fr; gap: 12px; }
+    .layout-2 { display: grid; grid-template-columns: 1.1fr .9fr; gap: 12px; }
+
+    .panel { padding: 18px 20px; }
+    .panel canvas { width: 100% !important; height: 280px !important; }
+    .wide canvas { height: 320px !important; }
+
+    /* ── COMPARATIVAS ── */
+    .compare-cards { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; margin-top: 4px; }
+    .compare-card {
+      background: var(--surface-2); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); padding: 16px;
     }
-    .city-kpis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
-    .mini{
-      border:1px solid var(--line);border-radius:16px;padding:14px;background:var(--card-soft)
+    .compare-card h3 { font-size: 11px; font-weight: 700; color: var(--ink-3); text-transform: uppercase; letter-spacing: .06em; }
+    .compare-card .big { font-size: 22px; font-weight: 900; color: var(--ink); margin-top: 6px; letter-spacing: -.3px; }
+    .compare-card .sub { margin-top: 5px; font-size: 12px; color: var(--ink-3); }
+    .delta.up { color: var(--green); }
+    .delta.down { color: var(--red); }
+    .delta.flat { color: var(--amber); }
+
+    .cards-inline { display: grid; grid-template-columns: repeat(2,1fr); gap: 10px; margin-top: 4px; }
+    .small-card { background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 14px 16px; }
+    .small-card .label { font-size: 11px; color: var(--ink-3); text-transform: uppercase; font-weight: 700; letter-spacing: .06em; }
+    .small-card .value { margin-top: 6px; font-size: 20px; font-weight: 800; color: var(--gold-light); }
+    .small-card .sub { margin-top: 3px; font-size: 11px; color: var(--ink-3); }
+
+    /* ── TABLAS ── */
+    .table-wrap { overflow: auto; border-radius: var(--radius-sm); border: 1px solid var(--border); }
+    table { border-collapse: collapse; width: 100%; font-size: 13px; background: var(--surface); }
+    thead th {
+      position: sticky; top: 0;
+      background: var(--surface-3);
+      color: var(--ink-3);
+      text-align: left; padding: 10px 14px;
+      border-bottom: 1px solid var(--border);
+      font-size: 11px; text-transform: uppercase; letter-spacing: .06em; font-weight: 700;
     }
-    .mini .label{font-size:12px;color:var(--muted);text-transform:uppercase;font-weight:800}
-    .mini .value{margin-top:8px;font-size:24px;font-weight:800}
-    .mini .sub{margin-top:5px;font-size:12px;color:var(--muted)}
-    .footer-note{padding:14px 18px;font-size:12px;color:var(--muted)}
-    .hidden{display:none!important}
-    @media (max-width:1320px){
-      .hero-grid,.summary-grid,.layout-2,.city-top,.controls{grid-template-columns:1fr}
-      .hero-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
-      .cards-inline,.compare-cards,.signal-wrap,.layout-3{grid-template-columns:repeat(2,minmax(0,1fr))}
+    tbody td { padding: 10px 14px; border-bottom: 1px solid rgba(255,255,255,.04); color: var(--ink-2); }
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr:hover { background: rgba(200,161,63,.05); }
+    tbody tr:hover td { color: var(--ink); }
+
+    /* ── CIUDAD ── */
+    .city-detail { padding: 20px 22px; }
+    .city-top { display: grid; grid-template-columns: .9fr 1.1fr; gap: 14px; margin-bottom: 14px; }
+    .city-kpis { display: grid; grid-template-columns: repeat(2,1fr); gap: 10px; }
+    .mini {
+      border: 1px solid var(--border); border-radius: var(--radius-sm);
+      padding: 14px; background: var(--surface-2);
     }
-    @media (max-width:900px){
-      .page{padding:12px}
-      .hero h1{font-size:26px}
-      .hero-kpis,.cards-inline,.compare-cards,.signal-wrap,.layout-3,.city-kpis{grid-template-columns:1fr}
+    .mini .label { font-size: 11px; color: var(--ink-3); text-transform: uppercase; font-weight: 700; letter-spacing: .05em; }
+    .mini .value { margin-top: 6px; font-size: 20px; font-weight: 800; color: var(--gold-light); }
+    .mini .sub { margin-top: 3px; font-size: 11px; color: var(--ink-3); }
+
+    .gold-divider { height: 1px; background: linear-gradient(90deg, transparent, var(--border-bright), transparent); margin: 4px 0; }
+
+    /* ── FOOTER ── */
+    .footer-note { padding: 14px 18px; font-size: 12px; color: var(--ink-3); display: flex; align-items: center; gap: 8px; }
+
+    /* ── UTIL ── */
+    .hidden { display: none !important; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width:1320px) {
+      .hero-grid, .summary-grid, .layout-2, .city-top, .filter-row { grid-template-columns: 1fr; }
+      .hero-kpis { grid-template-columns: repeat(2,1fr); }
+      .compare-cards, .signal-wrap { grid-template-columns: repeat(2,1fr); }
+      .cards-inline { grid-template-columns: repeat(2,1fr); }
+    }
+    @media (max-width:900px) {
+      .page { padding: 12px; }
+      .hero h1 { font-size: 20px; }
+      .hero-kpis, .compare-cards, .signal-wrap, .city-kpis, .cards-inline { grid-template-columns: 1fr; }
     }
   </style>
 </head>
 <body>
   <div class="page">
+
+    <!-- HERO -->
     <section class="hero">
-      <h1>Inversionistas del Reino - Colombia</h1>
-      <p>Vista ejecutiva premium para comité: desempeño financiero, comparativos mensuales, semáforos de gestión, ranking territorial y detalle por ciudad a partir del libro Excel oficial.</p>
-      <div class="hero-meta">
-        <span class="pill">Fuente activa: <strong id="sourceLabel">dashboard.xlsx</strong></span>
-        <span class="pill">Hojas: <strong>Base Inversionistas 26</strong> + <strong>Gastos 26</strong></span>
-        <span class="pill">Última actualización: <strong id="lastUpdated">pendiente</strong></span>
+      <div class="flag-stripe"></div>
+      <div class="hero-brand">
+        <div class="hero-icon">👑</div>
+        <div>
+          <h1>Inversionistas del Reino</h1>
+          <div class="subtitle">Dashboard ejecutivo · Colombia 2026</div>
+        </div>
+      </div>
+
+      <div class="hero-pills">
+        <span class="pill"><span class="pill-dot"></span> Fuente: <strong id="sourceLabel">dashboard.xlsx</strong></span>
+        <span class="pill">📊 <strong>Base Inversionistas 26</strong> + <strong>Gastos 26</strong></span>
+        <span class="pill">🕐 Actualizado: <strong id="lastUpdated">pendiente</strong></span>
       </div>
 
       <div class="hero-grid">
@@ -205,7 +336,7 @@
           </div>
           <div class="hero-card">
             <div class="label">Gastos del período</div>
-            <div class="value" id="heroGastos">$0</div>
+            <div class="value" id="heroGastos" style="color:var(--red)">$0</div>
             <div class="sub" id="heroGastosSub">Clasificaciones visibles</div>
           </div>
           <div class="hero-card">
@@ -220,7 +351,7 @@
           </div>
         </div>
 
-        <div class="hero-summary">
+        <div class="signals">
           <div class="signal-wrap">
             <div class="signal">
               <div class="top">
@@ -244,44 +375,52 @@
                 <span class="badge" id="signalConcentrationBadge">--</span>
               </div>
               <div class="metric" id="signalConcentrationValue">0%</div>
-              <div class="sub">Participación de la localidad líder</div>
+              <div class="sub">Participación localidad líder</div>
             </div>
           </div>
         </div>
       </div>
     </section>
 
+    <!-- FILTROS -->
     <section class="section card filters">
       <div class="section-head">
         <div>
-          <h2>Centro de filtros ejecutivos</h2>
-          <p>Filtra por territorio, cuotas, recaudo, gasto y meses. El dashboard recalcula KPIs, comparativos, tablas y detalle territorial.</p>
+          <div class="section-title-line">
+            <div class="section-accent"></div>
+            <h2>Filtros ejecutivos</h2>
+          </div>
+          <p>El dashboard recalcula todos los KPIs, gráficas y tablas en tiempo real.</p>
         </div>
       </div>
 
-      <div class="controls">
+      <div class="filter-row">
         <div class="field">
-          <label>Localidades</label>
+          <label>🏙 Localidades</label>
           <select id="filterLocalidad" multiple></select>
         </div>
         <div class="field">
-          <label>Forma de recaudo</label>
+          <label>💳 Forma de recaudo</label>
           <select id="filterForma" multiple></select>
         </div>
         <div class="field">
-          <label>Clasificación de gastos</label>
+          <label>📁 Clasificación de gastos</label>
           <select id="filterClasif" multiple></select>
         </div>
         <div class="field">
-          <label>Meses incluidos</label>
+          <label>📅 Meses incluidos</label>
           <select id="filterMeses" multiple></select>
         </div>
       </div>
 
-      <div class="toolbar">
-        <div class="actions">
-          <div class="field" style="min-width:170px">
-            <label>Cuotas enteras mínimas</label>
+      <div class="filter-hint">
+        💡 Mantén <strong style="color:var(--gold)">Ctrl / Cmd</strong> para seleccionar varios valores. <strong style="color:var(--gold)">Ctrl+A</strong> selecciona todo.
+      </div>
+
+      <div class="filter-row-2">
+        <div class="field" style="min-width:160px">
+          <label>📈 Cuotas mínimas</label>
+          <div class="select-wrap">
             <select id="filterCuotasMin">
               <option value="0">Todas</option>
               <option value="1">1 o más</option>
@@ -291,8 +430,10 @@
               <option value="10">10 o más</option>
             </select>
           </div>
-          <div class="field" style="min-width:170px">
-            <label>Top localidades</label>
+        </div>
+        <div class="field" style="min-width:140px">
+          <label>🏆 Top localidades</label>
+          <div class="select-wrap">
             <select id="filterTopN">
               <option value="5">Top 5</option>
               <option value="10" selected>Top 10</option>
@@ -300,8 +441,10 @@
               <option value="20">Top 20</option>
             </select>
           </div>
-          <div class="field" style="min-width:190px">
-            <label>Métrica del ranking</label>
+        </div>
+        <div class="field" style="min-width:180px">
+          <label>📊 Métrica del ranking</label>
+          <div class="select-wrap">
             <select id="filterRankingMetric">
               <option value="aportes" selected>Aportes del período</option>
               <option value="cuotas">Cuotas enteras</option>
@@ -309,48 +452,59 @@
               <option value="neto">Flujo neto</option>
             </select>
           </div>
-          <div class="field" style="min-width:190px">
-            <label>Mes comparativo A</label>
+        </div>
+        <div class="field" style="min-width:155px">
+          <label>🔵 Mes comparativo A</label>
+          <div class="select-wrap">
             <select id="compareMonthA"></select>
           </div>
-          <div class="field" style="min-width:190px">
-            <label>Mes comparativo B</label>
+        </div>
+        <div class="field" style="min-width:155px">
+          <label>🟡 Mes comparativo B</label>
+          <div class="select-wrap">
             <select id="compareMonthB"></select>
           </div>
-          <div class="field" style="min-width:230px">
-            <label>Detalle por ciudad</label>
+        </div>
+        <div class="field" style="min-width:190px">
+          <label>📍 Detalle por ciudad</label>
+          <div class="select-wrap">
             <select id="cityDetailSelect"></select>
           </div>
         </div>
+      </div>
+
+      <div class="toolbar">
         <div class="actions">
-          <button class="btn-secondary" id="uploadButton">Cargar archivo local</button>
+          <button class="btn-secondary" id="uploadButton">📂 Cargar Excel</button>
           <input type="file" id="fileInput" class="hidden" accept=".xlsx,.xlsm,.xls" />
-          <button class="btn-light" id="resetFilters">Restablecer filtros</button>
-          <button class="btn-primary" id="reloadSource">Recargar dashboard</button>
+          <button class="btn-light" id="reloadSource">🔄 Recargar fuente</button>
+          <button class="btn-light" id="resetFilters">✕ Restablecer</button>
         </div>
+        <button class="btn-primary" onclick="window.print()">🖨 Exportar vista</button>
       </div>
     </section>
 
+    <!-- COMPARATIVAS + COMPLEMENTARIOS -->
     <section class="section summary-grid">
       <div class="card panel">
         <div class="section-head">
           <div>
-            <h2>Tarjetas comparativas mensuales</h2>
+            <div class="section-title-line"><div class="section-accent"></div><h2>Comparativo mensual</h2></div>
             <p>Resumen ejecutivo entre los dos meses seleccionados.</p>
           </div>
         </div>
         <div class="compare-cards">
-          <div class="compare-card card-soft">
+          <div class="compare-card">
             <h3>Aportes</h3>
             <div class="big" id="cmpAportesValue">$0</div>
             <div class="sub" id="cmpAportesSub">Comparativo</div>
           </div>
-          <div class="compare-card card-soft">
+          <div class="compare-card">
             <h3>Gastos</h3>
             <div class="big" id="cmpGastosValue">$0</div>
             <div class="sub" id="cmpGastosSub">Comparativo</div>
           </div>
-          <div class="compare-card card-soft">
+          <div class="compare-card">
             <h3>Flujo neto</h3>
             <div class="big" id="cmpNetoValue">$0</div>
             <div class="sub" id="cmpNetoSub">Comparativo</div>
@@ -361,27 +515,27 @@
       <div class="card panel">
         <div class="section-head">
           <div>
-            <h2>Indicadores complementarios</h2>
-            <p>Lecturas rápidas para comité y seguimiento mensual.</p>
+            <div class="section-title-line"><div class="section-accent"></div><h2>Indicadores complementarios</h2></div>
+            <p>Lecturas rápidas para comité.</p>
           </div>
         </div>
         <div class="cards-inline">
-          <div class="small-card card">
+          <div class="small-card">
             <div class="label">Saldo base filtrado</div>
             <div class="value" id="miniSaldo">$0</div>
             <div class="sub">Saldo a dic 2024</div>
           </div>
-          <div class="small-card card">
+          <div class="small-card">
             <div class="label">Localidades activas</div>
             <div class="value" id="miniLocalidades">0</div>
             <div class="sub">Con aportes visibles</div>
           </div>
-          <div class="small-card card">
+          <div class="small-card">
             <div class="label">Cuotas enteras</div>
             <div class="value" id="miniCuotas">0</div>
             <div class="sub">Acumuladas en filtro</div>
           </div>
-          <div class="small-card card">
+          <div class="small-card">
             <div class="label">Ticket promedio</div>
             <div class="value" id="miniTicket">$0</div>
             <div class="sub">Aportes / activos</div>
@@ -390,11 +544,12 @@
       </div>
     </section>
 
+    <!-- TENDENCIA + RANKING -->
     <section class="section layout-2">
       <div class="card panel wide">
         <div class="section-head">
           <div>
-            <h2>Evolución mensual consolidada</h2>
+            <div class="section-title-line"><div class="section-accent"></div><h2>Evolución mensual consolidada</h2></div>
             <p>Aportes, gastos y flujo neto por mes.</p>
           </div>
         </div>
@@ -403,20 +558,21 @@
       <div class="card panel">
         <div class="section-head">
           <div>
-            <h2>Top localidades</h2>
-            <p id="rankingSubtitle">Ranking según la métrica seleccionada.</p>
+            <div class="section-title-line"><div class="section-accent"></div><h2>Ranking de localidades</h2></div>
+            <p id="rankingSubtitle">Según la métrica seleccionada.</p>
           </div>
         </div>
         <canvas id="rankingChart"></canvas>
       </div>
     </section>
 
+    <!-- COMPARATIVO POR LOCALIDAD + GASTOS -->
     <section class="section layout-2">
       <div class="card panel">
         <div class="section-head">
           <div>
-            <h2>Comparativo mensual por localidad</h2>
-            <p id="compareSubtitle">Mes A vs. Mes B para las principales localidades.</p>
+            <div class="section-title-line"><div class="section-accent"></div><h2>Comparativo por localidad</h2></div>
+            <p id="compareSubtitle">Mes A vs. Mes B.</p>
           </div>
         </div>
         <canvas id="compareChart"></canvas>
@@ -424,7 +580,7 @@
       <div class="card panel">
         <div class="section-head">
           <div>
-            <h2>Composición de gastos</h2>
+            <div class="section-title-line"><div class="section-accent"></div><h2>Composición de gastos</h2></div>
             <p>Participación por clasificación.</p>
           </div>
         </div>
@@ -432,21 +588,20 @@
       </div>
     </section>
 
+    <!-- DETALLE CIUDAD -->
     <section class="section card city-detail">
       <div class="section-head">
         <div>
-          <h2>Detalle por ciudad</h2>
-          <p>Vista ejecutiva de la ciudad seleccionada con KPIs, evolución y principales inversionistas.</p>
+          <div class="section-title-line">
+            <div class="section-accent"></div>
+            <h2>Detalle por ciudad: <span id="cityName" style="color:var(--gold)">--</span></h2>
+          </div>
+          <p id="citySub">Vista ejecutiva de la ciudad seleccionada</p>
         </div>
       </div>
 
       <div class="city-top">
         <div class="city-kpis">
-          <div class="mini">
-            <div class="label">Ciudad</div>
-            <div class="value" id="cityName">--</div>
-            <div class="sub" id="citySub">Detalle territorial</div>
-          </div>
           <div class="mini">
             <div class="label">Aportes de la ciudad</div>
             <div class="value" id="cityAportes">$0</div>
@@ -454,37 +609,40 @@
           </div>
           <div class="mini">
             <div class="label">Gastos de la ciudad</div>
-            <div class="value" id="cityGastos">$0</div>
+            <div class="value" id="cityGastos" style="color:var(--red)">$0</div>
             <div class="sub">Clasificaciones visibles</div>
           </div>
           <div class="mini">
-            <div class="label">Flujo neto</div>
+            <div class="label">Flujo neto ciudad</div>
             <div class="value" id="cityNeto">$0</div>
-            <div class="sub">Resultado operativo ciudad</div>
+            <div class="sub">Resultado operativo</div>
+          </div>
+          <div class="mini">
+            <div class="label">Top inversionistas</div>
+            <div class="value" style="font-size:13px;margin-top:10px;color:var(--ink-2)">Ver tabla abajo →</div>
+            <div class="sub">Activos en el período</div>
           </div>
         </div>
-        <div class="panel" style="padding:0;border:none;box-shadow:none">
-          <canvas id="cityTrendChart" style="height:260px !important"></canvas>
+        <div>
+          <canvas id="cityTrendChart" style="height:240px !important;width:100%!important"></canvas>
         </div>
       </div>
+
+      <div class="gold-divider"></div>
 
       <div class="section layout-2" style="margin-top:12px">
         <div class="card panel">
           <div class="section-head">
             <div>
-              <h2>Top inversionistas de la ciudad</h2>
-              <p>Consolidado del período filtrado.</p>
+              <div class="section-title-line"><div class="section-accent"></div><h2>Top inversionistas de la ciudad</h2></div>
+              <p>Período filtrado.</p>
             </div>
           </div>
           <div class="table-wrap">
             <table>
               <thead>
                 <tr>
-                  <th>Nombre</th>
-                  <th>Aportes</th>
-                  <th>Cuotas enteras</th>
-                  <th>Saldo inicial</th>
-                  <th>Forma</th>
+                  <th>Nombre</th><th>Aportes</th><th>Cuotas</th><th>Saldo inicial</th><th>Forma</th>
                 </tr>
               </thead>
               <tbody id="cityInvestorsTable"></tbody>
@@ -495,7 +653,7 @@
         <div class="card panel">
           <div class="section-head">
             <div>
-              <h2>Ranking ejecutivo de localidades</h2>
+              <div class="section-title-line"><div class="section-accent"></div><h2>Ranking ejecutivo de localidades</h2></div>
               <p>Consolidado territorial del filtro actual.</p>
             </div>
           </div>
@@ -503,12 +661,7 @@
             <table>
               <thead>
                 <tr>
-                  <th>Localidad</th>
-                  <th>Aportes</th>
-                  <th>Gastos</th>
-                  <th>Neto</th>
-                  <th>Saldo</th>
-                  <th>Activos</th>
+                  <th>#</th><th>Localidad</th><th>Aportes</th><th>Gastos</th><th>Neto</th><th>Activos</th>
                 </tr>
               </thead>
               <tbody id="rankingTable"></tbody>
@@ -519,635 +672,375 @@
     </section>
 
     <section class="section card footer-note">
-      Recomendación operativa: para actualizar el dashboard online, reemplaza el archivo <strong>data/dashboard.xlsx</strong>. También puedes hacer una futura versión conectada a Google Sheets + Apps Script para actualización casi inmediata.
+      💡 Para actualizar online, reemplaza <strong>data/dashboard.xlsx</strong>. Considera conectar a Google Sheets + Apps Script para sincronización automática.
     </section>
+
   </div>
 
 <script>
 (() => {
-  const CONFIG = {
-    title: "Inversionistas del Reino - Colombia",
-    workbookPath: "./data/dashboard.xlsx"
-  };
-
+  const CONFIG = { title:"Inversionistas del Reino - Colombia", workbookPath:"./data/dashboard.xlsx" };
   const SHEET_INV = "Base Inversionistas 26";
   const SHEET_GASTOS = "Gastos 26";
   const MONTHS = ["ENERO","FEBRERO","MARZO","ABRIL","MAYO","JUNIO","JULIO","AGOSTO","SEPTIEMBRE","OCTUBRE","NOVIEMBRE","DICIEMBRE"];
-
-  const state = {
-    investors: [],
-    gastos: [],
-    charts: {},
-    fileName: "dashboard.xlsx"
-  };
-
+  const state = { investors:[], gastos:[], charts:{}, fileName:"dashboard.xlsx" };
   const $ = (id) => document.getElementById(id);
   const filters = {
-    localidad: $("filterLocalidad"),
-    forma: $("filterForma"),
-    clasif: $("filterClasif"),
-    meses: $("filterMeses"),
-    cuotasMin: $("filterCuotasMin"),
-    topN: $("filterTopN"),
-    rankingMetric: $("filterRankingMetric"),
-    compareA: $("compareMonthA"),
-    compareB: $("compareMonthB"),
-    city: $("cityDetailSelect")
+    localidad:$("filterLocalidad"), forma:$("filterForma"), clasif:$("filterClasif"),
+    meses:$("filterMeses"), cuotasMin:$("filterCuotasMin"), topN:$("filterTopN"),
+    rankingMetric:$("filterRankingMetric"), compareA:$("compareMonthA"),
+    compareB:$("compareMonthB"), city:$("cityDetailSelect")
   };
-
   document.title = CONFIG.title;
 
-  function formatCurrency(value){
-    const num = Number(value || 0);
-    return new Intl.NumberFormat("es-CO", { style:"currency", currency:"COP", maximumFractionDigits:0 }).format(num);
-  }
-  function formatNumber(value){
-    return new Intl.NumberFormat("es-CO", { maximumFractionDigits:0 }).format(Number(value || 0));
-  }
-  function formatPct(value){
-    return `${(Number(value || 0) * 100).toFixed(1)}%`;
-  }
-
-  function normalizeText(value){
-    return String(value ?? "")
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .trim()
-      .toUpperCase();
-  }
-
-  function canonicalLocalidad(value){
-    const raw = normalizeText(value || "SIN LOCALIDAD");
-    if (!raw) return "SIN LOCALIDAD";
-    if (raw === "BOGOTA" || raw === "BOGOTA D.C.") return "BOGOTÁ";
-    if (raw === "MEDELLIN") return "MEDELLÍN";
-    if (raw === "PTO. COLOM" || raw === "PTO COLOM" || raw === "PUERTO COLOM") return "PUERTO COLOMBIA";
-    if (raw === "NO REGISTRA") return "SIN LOCALIDAD";
+  function formatCurrency(v){ return new Intl.NumberFormat("es-CO",{style:"currency",currency:"COP",maximumFractionDigits:0}).format(Number(v||0)); }
+  function formatNumber(v){ return new Intl.NumberFormat("es-CO",{maximumFractionDigits:0}).format(Number(v||0)); }
+  function formatPct(v){ return `${(Number(v||0)*100).toFixed(1)}%`; }
+  function normalizeText(v){ return String(v??"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").trim().toUpperCase(); }
+  function canonicalLocalidad(v){
+    const raw = normalizeText(v||"SIN LOCALIDAD");
+    if(!raw) return "SIN LOCALIDAD";
+    if(raw==="BOGOTA"||raw==="BOGOTA D.C.") return "BOGOTÁ";
+    if(raw==="MEDELLIN") return "MEDELLÍN";
+    if(raw==="PTO. COLOM"||raw==="PTO COLOM"||raw==="PUERTO COLOM") return "PUERTO COLOMBIA";
+    if(raw==="NO REGISTRA") return "SIN LOCALIDAD";
     return raw;
   }
-
-  function cleanHeader(header, index, used){
-    let h = String(header ?? "").trim();
-    if (!h) h = `COL_${index+1}`;
-    if (h === "ABRIL ") h = "ABRIL";
-    if (used[h]) {
-      used[h] += 1;
-      h = `${h}_${used[h]}`;
-    } else {
-      used[h] = 1;
-    }
-    return h;
+  function cleanHeader(h,i,used){
+    let s=String(h??"").trim(); if(!s)s=`COL_${i+1}`; if(s==="ABRIL ")s="ABRIL";
+    if(used[s]){used[s]+=1;s=`${s}_${used[s]}`;}else{used[s]=1;} return s;
   }
-
-  function sheetToObjects(workbook, sheetName){
-    const ws = workbook.Sheets[sheetName];
-    if (!ws) throw new Error(`No se encontró la hoja "${sheetName}"`);
-    const matrix = XLSX.utils.sheet_to_json(ws, { header:1, defval:null, raw:true });
-    const headerRowIndex = 3;
-    const rawHeaders = matrix[headerRowIndex] || [];
-    const used = {};
-    const headers = rawHeaders.map((h, i) => cleanHeader(h, i, used));
-    return matrix.slice(headerRowIndex + 1)
-      .filter(row => row.some(cell => cell !== null && cell !== ""))
-      .map(row => {
-        const obj = {};
-        headers.forEach((h, i) => obj[h] = row[i] ?? null);
-        return obj;
-      });
+  function sheetToObjects(wb,name){
+    const ws=wb.Sheets[name]; if(!ws) throw new Error(`No se encontró la hoja "${name}"`);
+    const matrix=XLSX.utils.sheet_to_json(ws,{header:1,defval:null,raw:true});
+    const hri=3; const used={}; const headers=(matrix[hri]||[]).map((h,i)=>cleanHeader(h,i,used));
+    return matrix.slice(hri+1).filter(row=>row.some(c=>c!==null&&c!==""))
+      .map(row=>{const obj={};headers.forEach((h,i)=>obj[h]=row[i]??null);return obj;});
   }
-
-  function toNumber(value){
-    if (value === null || value === undefined || value === "") return 0;
-    if (typeof value === "number") return value;
-    const normalized = String(value).replace(/\./g, "").replace(/,/g, ".").replace(/[^\d.-]/g, "");
-    const parsed = Number(normalized);
-    return Number.isFinite(parsed) ? parsed : 0;
+  function toNumber(v){
+    if(v===null||v===undefined||v==="") return 0;
+    if(typeof v==="number") return v;
+    const n=Number(String(v).replace(/\./g,"").replace(/,/g,".").replace(/[^\d.-]/g,""));
+    return Number.isFinite(n)?n:0;
   }
-
-  function monthTotal(row, months){
-    return months.reduce((sum, month) => sum + toNumber(row[month]), 0);
-  }
-
-  function buildDatasets(workbook){
-    const investors = sheetToObjects(workbook, SHEET_INV).map((row, idx) => {
-      const out = { ...row };
-      out._id = idx + 1;
-      out.LOCALIDAD_NORM = canonicalLocalidad(row["LOCALIDAD"]);
-      out.FORMA_NORM = normalizeText(row["FORMA"] || "SIN FORMA") || "SIN FORMA";
-      out["SALDO A DIC2024"] = toNumber(row["SALDO A DIC2024"]);
-      out["Cuotas_Enteras"] = toNumber(row["Cuotas_Enteras"]);
-      out["Cuotas_Calculadas"] = toNumber(row["Cuotas_Calculadas"]);
-      out["Meses_Con_Aporte"] = toNumber(row["Meses_Con_Aporte"]);
-      out["No. Cuotas"] = toNumber(row["No. Cuotas"]);
-      MONTHS.forEach(m => out[m] = toNumber(row[m]));
-      return out;
+  function monthTotal(row,months){ return months.reduce((s,m)=>s+toNumber(row[m]),0); }
+  function buildDatasets(wb){
+    const investors=sheetToObjects(wb,SHEET_INV).map((row,idx)=>{
+      const o={...row,_id:idx+1};
+      o.LOCALIDAD_NORM=canonicalLocalidad(row["LOCALIDAD"]);
+      o.FORMA_NORM=normalizeText(row["FORMA"]||"SIN FORMA")||"SIN FORMA";
+      o["SALDO A DIC2024"]=toNumber(row["SALDO A DIC2024"]);
+      o["Cuotas_Enteras"]=toNumber(row["Cuotas_Enteras"]);
+      o["Cuotas_Calculadas"]=toNumber(row["Cuotas_Calculadas"]);
+      o["Meses_Con_Aporte"]=toNumber(row["Meses_Con_Aporte"]);
+      o["No. Cuotas"]=toNumber(row["No. Cuotas"]);
+      MONTHS.forEach(m=>o[m]=toNumber(row[m])); return o;
     });
-
-    const gastos = sheetToObjects(workbook, SHEET_GASTOS).map((row, idx) => {
-      const out = { ...row };
-      out._id = idx + 1;
-      out.LOCALIDAD_NORM = canonicalLocalidad(row["LOCALIDAD"]);
-      out.CLASIF_NORM = normalizeText(row["CLASIF"] || "SIN CLASIFICACIÓN") || "SIN CLASIFICACIÓN";
-      out["SALDO A DIC2024"] = toNumber(row["SALDO A DIC2024"]);
-      MONTHS.forEach(m => out[m] = toNumber(row[m]));
-      return out;
+    const gastos=sheetToObjects(wb,SHEET_GASTOS).map((row,idx)=>{
+      const o={...row,_id:idx+1};
+      o.LOCALIDAD_NORM=canonicalLocalidad(row["LOCALIDAD"]);
+      o.CLASIF_NORM=normalizeText(row["CLASIF"]||"SIN CLASIFICACIÓN")||"SIN CLASIFICACIÓN";
+      o["SALDO A DIC2024"]=toNumber(row["SALDO A DIC2024"]);
+      MONTHS.forEach(m=>o[m]=toNumber(row[m])); return o;
     });
-
-    return { investors, gastos };
+    return {investors,gastos};
   }
-
-  function uniqueSorted(values){
-    return [...new Set(values.filter(Boolean))].sort((a,b) => a.localeCompare(b, "es"));
+  function uniqueSorted(vals){ return [...new Set(vals.filter(Boolean))].sort((a,b)=>a.localeCompare(b,"es")); }
+  function setMultiOptions(sel,vals){
+    sel.innerHTML="";
+    vals.forEach(v=>{const o=document.createElement("option");o.value=v;o.textContent=v;o.selected=true;sel.appendChild(o);});
   }
-
-  function setMultiOptions(select, values){
-    select.innerHTML = "";
-    values.forEach(v => {
-      const option = document.createElement("option");
-      option.value = v;
-      option.textContent = v;
-      option.selected = true;
-      select.appendChild(option);
-    });
+  function setSingleOptions(sel,vals,selected=null){
+    sel.innerHTML="";
+    vals.forEach(v=>{const o=document.createElement("option");o.value=v;o.textContent=v;if(selected&&selected===v)o.selected=true;sel.appendChild(o);});
   }
-
-  function setSingleOptions(select, values, selectedValue = null){
-    select.innerHTML = "";
-    values.forEach(v => {
-      const option = document.createElement("option");
-      option.value = v;
-      option.textContent = v;
-      if (selectedValue && selectedValue === v) option.selected = true;
-      select.appendChild(option);
-    });
-  }
-
-  function selectedMultiValues(select){
-    return [...select.selectedOptions].map(o => o.value);
-  }
-
+  function selMulti(sel){ return [...sel.selectedOptions].map(o=>o.value); }
   function initializeFilters(){
-    const localidades = uniqueSorted(state.investors.map(r => r.LOCALIDAD_NORM));
-    const formas = uniqueSorted(state.investors.map(r => r.FORMA_NORM));
-    const clasifs = uniqueSorted(state.gastos.map(r => r.CLASIF_NORM));
-
-    setMultiOptions(filters.localidad, localidades);
-    setMultiOptions(filters.forma, formas);
-    setMultiOptions(filters.clasif, clasifs);
-    setMultiOptions(filters.meses, MONTHS);
-    setSingleOptions(filters.compareA, MONTHS, "ENERO");
-    setSingleOptions(filters.compareB, MONTHS, "JUNIO");
-    setSingleOptions(filters.city, localidades, localidades[0] || null);
-
-    filters.cuotasMin.value = "0";
-    filters.topN.value = "10";
-    filters.rankingMetric.value = "aportes";
+    const localidades=uniqueSorted(state.investors.map(r=>r.LOCALIDAD_NORM));
+    const formas=uniqueSorted(state.investors.map(r=>r.FORMA_NORM));
+    const clasifs=uniqueSorted(state.gastos.map(r=>r.CLASIF_NORM));
+    setMultiOptions(filters.localidad,localidades);
+    setMultiOptions(filters.forma,formas);
+    setMultiOptions(filters.clasif,clasifs);
+    setMultiOptions(filters.meses,MONTHS);
+    setSingleOptions(filters.compareA,MONTHS,"ENERO");
+    setSingleOptions(filters.compareB,MONTHS,"JUNIO");
+    setSingleOptions(filters.city,localidades,localidades[0]||null);
+    filters.cuotasMin.value="0"; filters.topN.value="10"; filters.rankingMetric.value="aportes";
   }
-
   function getFilterState(){
     return {
-      localidades: selectedMultiValues(filters.localidad),
-      formas: selectedMultiValues(filters.forma),
-      clasifs: selectedMultiValues(filters.clasif),
-      meses: selectedMultiValues(filters.meses),
-      cuotasMin: Number(filters.cuotasMin.value || 0),
-      topN: Number(filters.topN.value || 10),
-      rankingMetric: filters.rankingMetric.value,
-      compareA: filters.compareA.value,
-      compareB: filters.compareB.value,
-      city: filters.city.value
+      localidades:selMulti(filters.localidad), formas:selMulti(filters.forma),
+      clasifs:selMulti(filters.clasif), meses:selMulti(filters.meses),
+      cuotasMin:Number(filters.cuotasMin.value||0), topN:Number(filters.topN.value||10),
+      rankingMetric:filters.rankingMetric.value, compareA:filters.compareA.value,
+      compareB:filters.compareB.value, city:filters.city.value
     };
   }
-
   function applyFilters(){
-    const f = getFilterState();
-    const months = f.meses.length ? f.meses : MONTHS;
-
-    const investors = state.investors.filter(r =>
-      f.localidades.includes(r.LOCALIDAD_NORM) &&
-      f.formas.includes(r.FORMA_NORM) &&
-      Number(r["Cuotas_Enteras"] || 0) >= f.cuotasMin
+    const f=getFilterState(); const months=f.meses.length?f.meses:MONTHS;
+    const investors=state.investors.filter(r=>
+      f.localidades.includes(r.LOCALIDAD_NORM)&&f.formas.includes(r.FORMA_NORM)&&
+      Number(r["Cuotas_Enteras"]||0)>=f.cuotasMin
     );
-
-    const gastos = state.gastos.filter(r =>
-      (f.localidades.length === 0 || f.localidades.includes(r.LOCALIDAD_NORM) || r.LOCALIDAD_NORM === "SIN LOCALIDAD") &&
+    const gastos=state.gastos.filter(r=>
+      (f.localidades.length===0||f.localidades.includes(r.LOCALIDAD_NORM)||r.LOCALIDAD_NORM==="SIN LOCALIDAD")&&
       f.clasifs.includes(r.CLASIF_NORM)
     );
-
-    return { f, months, investors, gastos };
+    return {f,months,investors,gastos};
   }
-
   function summarize(ctx){
-    const { investors, gastos, months } = ctx;
-    const aportesPeriodo = investors.reduce((sum, r) => sum + monthTotal(r, months), 0);
-    const gastosPeriodo = Math.abs(gastos.reduce((sum, r) => sum + monthTotal(r, months), 0));
-    const neto = aportesPeriodo - gastosPeriodo;
-    const saldoInicial = investors.reduce((sum, r) => sum + toNumber(r["SALDO A DIC2024"]), 0);
-    const activos = investors.filter(r => monthTotal(r, months) > 0).length;
-    const localidadesActivas = new Set(investors.filter(r => monthTotal(r, months) > 0).map(r => r.LOCALIDAD_NORM)).size;
-    const cuotasEnteras = investors.reduce((sum, r) => sum + toNumber(r["Cuotas_Enteras"]), 0);
-    const ticketPromedio = activos ? aportesPeriodo / activos : 0;
-
-    const monthly = MONTHS.map(month => {
-      const aportes = investors.reduce((sum, r) => sum + toNumber(r[month]), 0);
-      const gastosVal = Math.abs(gastos.reduce((sum, r) => sum + toNumber(r[month]), 0));
-      return { month, aportes, gastos:gastosVal, neto: aportes - gastosVal };
+    const {investors,gastos,months}=ctx;
+    const aportesPeriodo=investors.reduce((s,r)=>s+monthTotal(r,months),0);
+    const gastosPeriodo=Math.abs(gastos.reduce((s,r)=>s+monthTotal(r,months),0));
+    const neto=aportesPeriodo-gastosPeriodo;
+    const saldoInicial=investors.reduce((s,r)=>s+toNumber(r["SALDO A DIC2024"]),0);
+    const activos=investors.filter(r=>monthTotal(r,months)>0).length;
+    const localidadesActivas=new Set(investors.filter(r=>monthTotal(r,months)>0).map(r=>r.LOCALIDAD_NORM)).size;
+    const cuotasEnteras=investors.reduce((s,r)=>s+toNumber(r["Cuotas_Enteras"]),0);
+    const ticketPromedio=activos?aportesPeriodo/activos:0;
+    const monthly=MONTHS.map(month=>{
+      const aportes=investors.reduce((s,r)=>s+toNumber(r[month]),0);
+      const g=Math.abs(gastos.reduce((s,r)=>s+toNumber(r[month]),0));
+      return {month,aportes,gastos:g,neto:aportes-g};
     });
-
-    const localityMap = new Map();
-    investors.forEach(r => {
-      const key = r.LOCALIDAD_NORM;
-      if (!localityMap.has(key)) localityMap.set(key, { localidad:key, aportes:0, saldo:0, cuotas:0, activos:0, gastos:0 });
-      const item = localityMap.get(key);
-      item.aportes += monthTotal(r, months);
-      item.saldo += toNumber(r["SALDO A DIC2024"]);
-      item.cuotas += toNumber(r["Cuotas_Enteras"]);
-      if (monthTotal(r, months) > 0) item.activos += 1;
+    const lmap=new Map();
+    investors.forEach(r=>{
+      const k=r.LOCALIDAD_NORM;
+      if(!lmap.has(k)) lmap.set(k,{localidad:k,aportes:0,saldo:0,cuotas:0,activos:0,gastos:0});
+      const it=lmap.get(k);
+      it.aportes+=monthTotal(r,months); it.saldo+=toNumber(r["SALDO A DIC2024"]);
+      it.cuotas+=toNumber(r["Cuotas_Enteras"]); if(monthTotal(r,months)>0) it.activos+=1;
     });
-    gastos.forEach(r => {
-      const key = r.LOCALIDAD_NORM || "SIN LOCALIDAD";
-      if (!localityMap.has(key)) localityMap.set(key, { localidad:key, aportes:0, saldo:0, cuotas:0, activos:0, gastos:0 });
-      localityMap.get(key).gastos += Math.abs(monthTotal(r, months));
+    gastos.forEach(r=>{
+      const k=r.LOCALIDAD_NORM||"SIN LOCALIDAD";
+      if(!lmap.has(k)) lmap.set(k,{localidad:k,aportes:0,saldo:0,cuotas:0,activos:0,gastos:0});
+      lmap.get(k).gastos+=Math.abs(monthTotal(r,months));
     });
-
-    const ranking = [...localityMap.values()].map(r => ({ ...r, neto: r.aportes - r.gastos }));
-    const rankingSortedAportes = [...ranking].sort((a,b) => b.aportes - a.aportes);
-    const topLocalityShare = aportesPeriodo ? (rankingSortedAportes[0]?.aportes || 0) / aportesPeriodo : 0;
-    const gastoRatio = aportesPeriodo ? gastosPeriodo / aportesPeriodo : 0;
-
-    const compareA = monthly.find(m => m.month === ctx.f.compareA) || { aportes:0, gastos:0, neto:0 };
-    const compareB = monthly.find(m => m.month === ctx.f.compareB) || { aportes:0, gastos:0, neto:0 };
-
-    const compareLocalities = uniqueSorted(investors.map(r => r.LOCALIDAD_NORM))
-      .map(loc => ({
-        localidad: loc,
-        a: investors.filter(r => r.LOCALIDAD_NORM === loc).reduce((s,r) => s + toNumber(r[ctx.f.compareA]), 0),
-        b: investors.filter(r => r.LOCALIDAD_NORM === loc).reduce((s,r) => s + toNumber(r[ctx.f.compareB]), 0),
+    const ranking=[...lmap.values()].map(r=>({...r,neto:r.aportes-r.gastos}));
+    const rankingSortedAportes=[...ranking].sort((a,b)=>b.aportes-a.aportes);
+    const topLocalityShare=aportesPeriodo?(rankingSortedAportes[0]?.aportes||0)/aportesPeriodo:0;
+    const gastoRatio=aportesPeriodo?gastosPeriodo/aportesPeriodo:0;
+    const compareA=monthly.find(m=>m.month===ctx.f.compareA)||{aportes:0,gastos:0,neto:0};
+    const compareB=monthly.find(m=>m.month===ctx.f.compareB)||{aportes:0,gastos:0,neto:0};
+    const compareLocalities=uniqueSorted(investors.map(r=>r.LOCALIDAD_NORM))
+      .map(loc=>({
+        localidad:loc,
+        a:investors.filter(r=>r.LOCALIDAD_NORM===loc).reduce((s,r)=>s+toNumber(r[ctx.f.compareA]),0),
+        b:investors.filter(r=>r.LOCALIDAD_NORM===loc).reduce((s,r)=>s+toNumber(r[ctx.f.compareB]),0),
       }))
-      .filter(x => x.a !== 0 || x.b !== 0)
-      .sort((x,y) => (y.a + y.b) - (x.a + x.b))
-      .slice(0, ctx.f.topN);
-
-    const gastosByClasif = uniqueSorted(gastos.map(g => g.CLASIF_NORM))
-      .map(c => ({
-        clasif:c,
-        total: Math.abs(gastos.filter(g => g.CLASIF_NORM === c).reduce((s,g) => s + monthTotal(g, months), 0))
-      }))
-      .filter(x => x.total > 0)
-      .sort((a,b)=>b.total-a.total);
-
-    const topInvestors = investors
-      .map(r => ({
-        nombre: r["NOMBRES"] || "Sin nombre",
-        localidad: r.LOCALIDAD_NORM,
-        aportes: monthTotal(r, months),
-        cuotas: toNumber(r["Cuotas_Enteras"]),
-        saldo: toNumber(r["SALDO A DIC2024"]),
-        forma: r.FORMA_NORM
-      }))
-      .filter(r => r.aportes > 0 || r.saldo > 0)
-      .sort((a,b) => b.aportes - a.aportes)
-      .slice(0, Math.max(ctx.f.topN, 10));
-
-    const city = ctx.f.city || rankingSortedAportes[0]?.localidad || "";
-    const cityInvestors = investors.filter(r => r.LOCALIDAD_NORM === city);
-    const cityGastos = gastos.filter(r => r.LOCALIDAD_NORM === city || (city === "SIN LOCALIDAD" && !r.LOCALIDAD_NORM));
-    const cityAportes = cityInvestors.reduce((s,r)=>s+monthTotal(r,months),0);
-    const cityGastosTotal = Math.abs(cityGastos.reduce((s,r)=>s+monthTotal(r,months),0));
-    const cityNeto = cityAportes - cityGastosTotal;
-    const cityMonthly = MONTHS.map(month => ({
+      .filter(x=>x.a!==0||x.b!==0).sort((x,y)=>(y.a+y.b)-(x.a+x.b)).slice(0,ctx.f.topN);
+    const gastosByClasif=uniqueSorted(gastos.map(g=>g.CLASIF_NORM))
+      .map(c=>({clasif:c,total:Math.abs(gastos.filter(g=>g.CLASIF_NORM===c).reduce((s,g)=>s+monthTotal(g,months),0))}))
+      .filter(x=>x.total>0).sort((a,b)=>b.total-a.total);
+    const city=ctx.f.city||rankingSortedAportes[0]?.localidad||"";
+    const cityInvestors=investors.filter(r=>r.LOCALIDAD_NORM===city);
+    const cityGastos=gastos.filter(r=>r.LOCALIDAD_NORM===city||(city==="SIN LOCALIDAD"&&!r.LOCALIDAD_NORM));
+    const cityAportes=cityInvestors.reduce((s,r)=>s+monthTotal(r,months),0);
+    const cityGastosTotal=Math.abs(cityGastos.reduce((s,r)=>s+monthTotal(r,months),0));
+    const cityNeto=cityAportes-cityGastosTotal;
+    const cityMonthly=MONTHS.map(month=>({
       month,
-      aportes: cityInvestors.reduce((s,r)=>s+toNumber(r[month]),0),
-      gastos: Math.abs(cityGastos.reduce((s,r)=>s+toNumber(r[month]),0))
-    })).map(x => ({...x, neto:x.aportes - x.gastos}));
-
-    const cityTopInvestors = cityInvestors
-      .map(r => ({
-        nombre: r["NOMBRES"] || "Sin nombre",
-        aportes: monthTotal(r, months),
-        cuotas: toNumber(r["Cuotas_Enteras"]),
-        saldo: toNumber(r["SALDO A DIC2024"]),
-        forma: r.FORMA_NORM
-      }))
-      .filter(r => r.aportes > 0 || r.saldo > 0)
-      .sort((a,b)=>b.aportes-a.aportes)
-      .slice(0, 12);
-
+      aportes:cityInvestors.reduce((s,r)=>s+toNumber(r[month]),0),
+      gastos:Math.abs(cityGastos.reduce((s,r)=>s+toNumber(r[month]),0))
+    })).map(x=>({...x,neto:x.aportes-x.gastos}));
+    const cityTopInvestors=cityInvestors
+      .map(r=>({nombre:r["NOMBRES"]||"Sin nombre",aportes:monthTotal(r,months),cuotas:toNumber(r["Cuotas_Enteras"]),saldo:toNumber(r["SALDO A DIC2024"]),forma:r.FORMA_NORM}))
+      .filter(r=>r.aportes>0||r.saldo>0).sort((a,b)=>b.aportes-a.aportes).slice(0,12);
     return {
-      aportesPeriodo, gastosPeriodo, neto, saldoInicial, activos, localidadesActivas, cuotasEnteras, ticketPromedio,
-      monthly, ranking, rankingSortedAportes, topLocalityShare, gastoRatio, compareA, compareB,
-      compareLocalities, gastosByClasif, topInvestors,
-      city, cityAportes, cityGastosTotal, cityNeto, cityMonthly, cityTopInvestors
+      aportesPeriodo,gastosPeriodo,neto,saldoInicial,activos,localidadesActivas,cuotasEnteras,ticketPromedio,
+      monthly,ranking,rankingSortedAportes,topLocalityShare,gastoRatio,compareA,compareB,
+      compareLocalities,gastosByClasif,city,cityAportes,cityGastosTotal,cityNeto,cityMonthly,cityTopInvestors
     };
   }
-
-  function metricLabel(metric){
-    return ({
-      aportes:"Aportes del período",
-      cuotas:"Cuotas enteras",
-      saldo:"Saldo inicial",
-      neto:"Flujo neto"
-    })[metric] || metric;
-  }
-  function metricKey(metric){
-    return ({
-      aportes:"aportes",
-      cuotas:"cuotas",
-      saldo:"saldo",
-      neto:"neto"
-    })[metric] || "aportes";
+  function metricLabel(m){ return ({aportes:"Aportes del período",cuotas:"Cuotas enteras",saldo:"Saldo inicial",neto:"Flujo neto"})[m]||m; }
+  function metricKey(m){ return ({aportes:"aportes",cuotas:"cuotas",saldo:"saldo",neto:"neto"})[m]||"aportes"; }
+  function makeOrUpdateChart(id,cfg){
+    if(state.charts[id]){state.charts[id].data=cfg.data;state.charts[id].options=cfg.options;state.charts[id].update();return;}
+    state.charts[id]=new Chart(document.getElementById(id).getContext("2d"),cfg);
   }
 
-  function makeOrUpdateChart(id, config){
-    if (state.charts[id]) {
-      state.charts[id].data = config.data;
-      state.charts[id].options = config.options;
-      state.charts[id].update();
-      return;
-    }
-    const ctx = document.getElementById(id).getContext("2d");
-    state.charts[id] = new Chart(ctx, config);
-  }
+  const GOLD="#c8a13f", GOLD2="#e0b84a", RED="#e05252", GREEN="#22c993", BLUE="#5b8dee", BLUE2="#3a6bd4";
+  const GRID="rgba(255,255,255,.06)", TICK="#6b6560";
 
-  function chartOptions(mode="COP", horizontal=false){
+  function chartOpts(mode="COP",horiz=false){
     return {
-      responsive:true,
-      maintainAspectRatio:false,
-      indexAxis: horizontal ? "y" : "x",
+      responsive:true,maintainAspectRatio:false,indexAxis:horiz?"y":"x",
       plugins:{
-        legend:{ position:"bottom" },
-        tooltip:{
-          callbacks:{
-            label:(ctx) => `${ctx.dataset.label}: ${mode === "COP" ? formatCurrency(ctx.raw) : formatNumber(ctx.raw)}`
-          }
-        }
+        legend:{position:"bottom",labels:{color:"#b8b0a0",font:{size:11},boxWidth:12,padding:14}},
+        tooltip:{backgroundColor:"#1f1f1f",borderColor:"rgba(200,161,63,.3)",borderWidth:1,
+          titleColor:"#e0b84a",bodyColor:"#b8b0a0",
+          callbacks:{label:ctx=>` ${ctx.dataset.label}: ${mode==="COP"?formatCurrency(ctx.raw):formatNumber(ctx.raw)}`}}
       },
       scales:{
-        x:{ ticks:{ color:"#5d6b82" }, grid:{ color:"rgba(15,23,42,.05)" } },
-        y:{
-          ticks:{ color:"#5d6b82", callback:(v) => mode === "COP" ? formatCurrency(v) : formatNumber(v) },
-          grid:{ color:"rgba(15,23,42,.05)" }
-        }
+        x:{ticks:{color:TICK,font:{size:11}},grid:{color:GRID}},
+        y:{ticks:{color:TICK,font:{size:11},callback:v=>mode==="COP"?formatCurrency(v):formatNumber(v)},grid:{color:GRID}}
       }
     };
   }
 
-  function signalStatus(type, value){
-    if (type === "liquidity") {
-      if (value > 0) return { cls:"ok", text:"saludable" };
-      if (value === 0) return { cls:"warn", text:"estable" };
-      return { cls:"alert", text:"alerta" };
-    }
-    if (type === "efficiency") {
-      if (value <= 0.35) return { cls:"ok", text:"eficiente" };
-      if (value <= 0.55) return { cls:"warn", text:"vigilar" };
-      return { cls:"alert", text:"alto gasto" };
-    }
-    if (type === "concentration") {
-      if (value <= 0.25) return { cls:"ok", text:"diversificado" };
-      if (value <= 0.4) return { cls:"warn", text:"medio" };
-      return { cls:"alert", text:"concentrado" };
-    }
-    return { cls:"warn", text:"revisar" };
-  }
+  function drawCharts(ctx,summary){
+    makeOrUpdateChart("trendChart",{type:"bar",data:{
+      labels:MONTHS.map(m=>m.slice(0,3)),
+      datasets:[
+        {label:"Aportes",data:summary.monthly.map(x=>x.aportes),backgroundColor:GOLD,borderRadius:6},
+        {label:"Gastos",data:summary.monthly.map(x=>x.gastos),backgroundColor:RED,borderRadius:6},
+        {label:"Flujo neto",data:summary.monthly.map(x=>x.neto),type:"line",borderColor:GREEN,backgroundColor:"transparent",tension:.35,pointRadius:3,pointBackgroundColor:GREEN}
+      ]
+    },options:chartOpts("COP")});
 
-  function setBadge(id, status){
-    const el = document.getElementById(id);
-    el.className = `badge ${status.cls}`;
-    el.textContent = status.text;
-  }
+    const rdata=[...summary.ranking].sort((a,b)=>(b[metricKey(ctx.f.rankingMetric)]||0)-(a[metricKey(ctx.f.rankingMetric)]||0)).slice(0,ctx.f.topN);
+    $("rankingSubtitle").textContent=`Top ${ctx.f.topN} por ${metricLabel(ctx.f.rankingMetric)}.`;
+    makeOrUpdateChart("rankingChart",{type:"bar",data:{
+      labels:rdata.map(x=>x.localidad),
+      datasets:[{label:metricLabel(ctx.f.rankingMetric),data:rdata.map(x=>x[metricKey(ctx.f.rankingMetric)]||0),backgroundColor:GOLD,borderRadius:6}]
+    },options:chartOpts("COP",true)});
 
-  function setExecutiveHeader(ctx, summary){
-    $("sourceLabel").textContent = state.fileName || "dashboard.xlsx";
-    $("heroAportes").textContent = formatCurrency(summary.aportesPeriodo);
-    $("heroGastos").textContent = formatCurrency(summary.gastosPeriodo);
-    $("heroNeto").textContent = formatCurrency(summary.neto);
-    $("heroActivos").textContent = formatNumber(summary.activos);
-    $("heroAportesSub").textContent = `Meses: ${ctx.months.join(", ")}`;
-    $("heroGastosSub").textContent = `Clasificaciones: ${selectedMultiValues(filters.clasif).length}`;
-    $("heroNetoSub").textContent = `Neto = aportes - gastos`;
-    $("heroActivosSub").textContent = `${formatNumber(summary.localidadesActivas)} localidades activas`;
+    $("compareSubtitle").textContent=`${ctx.f.compareA} vs ${ctx.f.compareB} — top ${ctx.f.topN} localidades.`;
+    makeOrUpdateChart("compareChart",{type:"bar",data:{
+      labels:summary.compareLocalities.map(x=>x.localidad),
+      datasets:[
+        {label:ctx.f.compareA,data:summary.compareLocalities.map(x=>x.a),backgroundColor:BLUE2,borderRadius:6},
+        {label:ctx.f.compareB,data:summary.compareLocalities.map(x=>x.b),backgroundColor:GOLD,borderRadius:6}
+      ]
+    },options:chartOpts("COP",true)});
 
-    const s1 = signalStatus("liquidity", summary.neto);
-    const s2 = signalStatus("efficiency", summary.gastoRatio);
-    const s3 = signalStatus("concentration", summary.topLocalityShare);
-    setBadge("signalLiquidityBadge", s1);
-    setBadge("signalEfficiencyBadge", s2);
-    setBadge("signalConcentrationBadge", s3);
-    $("signalLiquidityValue").textContent = formatCurrency(summary.neto);
-    $("signalEfficiencyValue").textContent = formatPct(summary.gastoRatio);
-    $("signalConcentrationValue").textContent = formatPct(summary.topLocalityShare);
-  }
+    makeOrUpdateChart("gastosChart",{type:"doughnut",data:{
+      labels:summary.gastosByClasif.map(x=>x.clasif),
+      datasets:[{data:summary.gastosByClasif.map(x=>x.total),
+        backgroundColor:[GOLD,BLUE,"#9b59b6",GREEN,"#e67e22",RED,"#1abc9c","#e74c3c","#3498db","#95a5a6"],
+        borderWidth:2,borderColor:"#181818"}]
+    },options:{responsive:true,maintainAspectRatio:false,plugins:{
+      legend:{position:"bottom",labels:{color:"#b8b0a0",font:{size:11},boxWidth:12,padding:10}},
+      tooltip:{backgroundColor:"#1f1f1f",borderColor:"rgba(200,161,63,.3)",borderWidth:1,titleColor:"#e0b84a",bodyColor:"#b8b0a0",
+        callbacks:{label:ctx=>` ${ctx.label}: ${formatCurrency(ctx.raw)}`}}
+    }}});
 
-  function setCompareCards(ctx, summary){
-    const delta = (b,a) => a === 0 ? (b === 0 ? 0 : 1) : (b - a) / Math.abs(a);
-    const dA = delta(summary.compareB.aportes, summary.compareA.aportes);
-    const dG = delta(summary.compareB.gastos, summary.compareA.gastos);
-    const dN = delta(summary.compareB.neto, summary.compareA.neto);
-
-    $("cmpAportesValue").textContent = formatCurrency(summary.compareB.aportes);
-    $("cmpAportesSub").innerHTML = `${ctx.f.compareA} → ${ctx.f.compareB}: <strong class="delta ${trendClass(dA)}">${signedPct(dA)}</strong>`;
-    $("cmpGastosValue").textContent = formatCurrency(summary.compareB.gastos);
-    $("cmpGastosSub").innerHTML = `${ctx.f.compareA} → ${ctx.f.compareB}: <strong class="delta ${trendClass(-dG)}">${signedPct(dG)}</strong>`;
-    $("cmpNetoValue").textContent = formatCurrency(summary.compareB.neto);
-    $("cmpNetoSub").innerHTML = `${ctx.f.compareA} → ${ctx.f.compareB}: <strong class="delta ${trendClass(dN)}">${signedPct(dN)}</strong>`;
-
-    $("miniSaldo").textContent = formatCurrency(summary.saldoInicial);
-    $("miniLocalidades").textContent = formatNumber(summary.localidadesActivas);
-    $("miniCuotas").textContent = formatNumber(summary.cuotasEnteras);
-    $("miniTicket").textContent = formatCurrency(summary.ticketPromedio);
-  }
-
-  function trendClass(val){
-    if (Math.abs(val) < 0.001) return "flat";
-    return val >= 0 ? "up" : "down";
-  }
-  function signedPct(val){
-    const pct = `${(Math.abs(val) * 100).toFixed(1)}%`;
-    if (Math.abs(val) < 0.001) return `0.0%`;
-    return `${val > 0 ? "+" : "-"}${pct}`;
-  }
-
-  function drawCharts(ctx, summary){
-    makeOrUpdateChart("trendChart", {
-      type:"bar",
-      data:{
-        labels: MONTHS,
-        datasets:[
-          { label:"Aportes", data: summary.monthly.map(x=>x.aportes), backgroundColor:"#183b73", borderRadius:8 },
-          { label:"Gastos", data: summary.monthly.map(x=>x.gastos), backgroundColor:"#d9534f", borderRadius:8 },
-          { label:"Flujo neto", data: summary.monthly.map(x=>x.neto), type:"line", borderColor:"#0f9d78", backgroundColor:"#0f9d78", tension:.35, pointRadius:3 }
-        ]
-      },
-      options: chartOptions("COP")
-    });
-
-    const rankingData = [...summary.ranking]
-      .sort((a,b) => (b[metricKey(ctx.f.rankingMetric)] || 0) - (a[metricKey(ctx.f.rankingMetric)] || 0))
-      .slice(0, ctx.f.topN);
-
-    $("rankingSubtitle").textContent = `Top ${ctx.f.topN} por ${metricLabel(ctx.f.rankingMetric)}.`;
-
-    makeOrUpdateChart("rankingChart", {
-      type:"bar",
-      data:{
-        labels: rankingData.map(x=>x.localidad),
-        datasets:[{
-          label: metricLabel(ctx.f.rankingMetric),
-          data: rankingData.map(x=>x[metricKey(ctx.f.rankingMetric)] || 0),
-          backgroundColor:"#c8a13f",
-          borderRadius:8
-        }]
-      },
-      options: chartOptions("COP", true)
-    });
-
-    $("compareSubtitle").textContent = `${ctx.f.compareA} vs ${ctx.f.compareB} sobre las ${ctx.f.topN} principales localidades.`;
-    makeOrUpdateChart("compareChart", {
-      type:"bar",
-      data:{
-        labels: summary.compareLocalities.map(x=>x.localidad),
-        datasets:[
-          { label: ctx.f.compareA, data: summary.compareLocalities.map(x=>x.a), backgroundColor:"#16345f", borderRadius:8 },
-          { label: ctx.f.compareB, data: summary.compareLocalities.map(x=>x.b), backgroundColor:"#5d8edc", borderRadius:8 }
-        ]
-      },
-      options: chartOptions("COP", true)
-    });
-
-    makeOrUpdateChart("gastosChart", {
-      type:"doughnut",
-      data:{
-        labels: summary.gastosByClasif.map(x=>x.clasif),
-        datasets:[{
-          data: summary.gastosByClasif.map(x=>x.total),
-          backgroundColor:["#183b73","#2559a7","#5d8edc","#c8a13f","#0f9d78","#d9534f","#9b59b6","#16a085","#f39c12","#7f8c8d"]
-        }]
-      },
-      options:{
-        responsive:true,
-        maintainAspectRatio:false,
-        plugins:{
-          legend:{ position:"bottom" },
-          tooltip:{ callbacks:{ label: ctx => `${ctx.label}: ${formatCurrency(ctx.raw)}` } }
-        }
-      }
-    });
-
-    makeOrUpdateChart("cityTrendChart", {
-      type:"bar",
-      data:{
-        labels: MONTHS,
-        datasets:[
-          { label:"Aportes ciudad", data: summary.cityMonthly.map(x=>x.aportes), backgroundColor:"#2559a7", borderRadius:8 },
-          { label:"Gastos ciudad", data: summary.cityMonthly.map(x=>x.gastos), backgroundColor:"#d9534f", borderRadius:8 }
-        ]
-      },
-      options: chartOptions("COP")
-    });
+    makeOrUpdateChart("cityTrendChart",{type:"bar",data:{
+      labels:MONTHS.map(m=>m.slice(0,3)),
+      datasets:[
+        {label:"Aportes ciudad",data:summary.cityMonthly.map(x=>x.aportes),backgroundColor:GOLD,borderRadius:5},
+        {label:"Gastos ciudad",data:summary.cityMonthly.map(x=>x.gastos),backgroundColor:RED,borderRadius:5}
+      ]
+    },options:chartOpts("COP")});
   }
 
   function renderTables(summary){
-    const rankingRows = [...summary.ranking]
-      .sort((a,b)=>b.aportes-a.aportes)
-      .slice(0, 15)
-      .map(r => `
-        <tr>
-          <td>${r.localidad}</td>
-          <td>${formatCurrency(r.aportes)}</td>
-          <td>${formatCurrency(r.gastos)}</td>
-          <td>${formatCurrency(r.neto)}</td>
-          <td>${formatCurrency(r.saldo)}</td>
-          <td>${formatNumber(r.activos)}</td>
-        </tr>
-      `).join("");
-    $("rankingTable").innerHTML = rankingRows || `<tr><td colspan="6">No hay datos para el filtro actual.</td></tr>`;
-
-    const cityRows = summary.cityTopInvestors.map(r => `
-      <tr>
-        <td>${r.nombre}</td>
+    const rows=[...summary.ranking].sort((a,b)=>b.aportes-a.aportes).slice(0,15)
+      .map((r,i)=>`<tr>
+        <td style="color:var(--gold);font-weight:700">${i+1}</td>
+        <td>${r.localidad}</td>
         <td>${formatCurrency(r.aportes)}</td>
-        <td>${formatNumber(r.cuotas)}</td>
-        <td>${formatCurrency(r.saldo)}</td>
-        <td>${r.forma}</td>
-      </tr>
-    `).join("");
-    $("cityInvestorsTable").innerHTML = cityRows || `<tr><td colspan="5">No hay inversionistas visibles para la ciudad seleccionada.</td></tr>`;
+        <td>${formatCurrency(r.gastos)}</td>
+        <td style="color:${r.neto>=0?"var(--green)":"var(--red)"}">${formatCurrency(r.neto)}</td>
+        <td>${formatNumber(r.activos)}</td>
+      </tr>`).join("");
+    $("rankingTable").innerHTML=rows||`<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--ink-3)">Sin datos para el filtro actual.</td></tr>`;
+
+    const cityRows=summary.cityTopInvestors.map(r=>`<tr>
+      <td>${r.nombre}</td>
+      <td>${formatCurrency(r.aportes)}</td>
+      <td>${formatNumber(r.cuotas)}</td>
+      <td>${formatCurrency(r.saldo)}</td>
+      <td><span style="background:var(--gold-dim);color:var(--gold-light);padding:2px 8px;border-radius:999px;font-size:11px;font-weight:700">${r.forma}</span></td>
+    </tr>`).join("");
+    $("cityInvestorsTable").innerHTML=cityRows||`<tr><td colspan="5" style="text-align:center;padding:24px;color:var(--ink-3)">Sin inversionistas para esta ciudad.</td></tr>`;
   }
 
   function renderCityDetail(summary){
-    $("cityName").textContent = summary.city || "--";
-    $("citySub").textContent = `Detalle territorial del período seleccionado`;
-    $("cityAportes").textContent = formatCurrency(summary.cityAportes);
-    $("cityGastos").textContent = formatCurrency(summary.cityGastosTotal);
-    $("cityNeto").textContent = formatCurrency(summary.cityNeto);
+    $("cityName").textContent=summary.city||"--";
+    $("citySub").textContent="Detalle territorial del período seleccionado";
+    $("cityAportes").textContent=formatCurrency(summary.cityAportes);
+    $("cityGastos").textContent=formatCurrency(summary.cityGastosTotal);
+    const ne=$("cityNeto"); ne.textContent=formatCurrency(summary.cityNeto);
+    ne.style.color=summary.cityNeto>=0?"var(--green)":"var(--red)";
+  }
+
+  function signalStatus(type,value){
+    if(type==="liquidity"){ if(value>0)return{cls:"ok",text:"saludable"}; if(value===0)return{cls:"warn",text:"estable"}; return{cls:"alert",text:"alerta"}; }
+    if(type==="efficiency"){ if(value<=.35)return{cls:"ok",text:"eficiente"}; if(value<=.55)return{cls:"warn",text:"vigilar"}; return{cls:"alert",text:"alto gasto"}; }
+    if(type==="concentration"){ if(value<=.25)return{cls:"ok",text:"diversificado"}; if(value<=.4)return{cls:"warn",text:"medio"}; return{cls:"alert",text:"concentrado"}; }
+    return{cls:"warn",text:"revisar"};
+  }
+  function setBadge(id,s){ const el=$(id); el.className=`badge ${s.cls}`; el.textContent=s.text; }
+
+  function setExecutiveHeader(ctx,summary){
+    $("sourceLabel").textContent=state.fileName||"dashboard.xlsx";
+    $("heroAportes").textContent=formatCurrency(summary.aportesPeriodo);
+    $("heroGastos").textContent=formatCurrency(summary.gastosPeriodo);
+    const ne=$("heroNeto"); ne.textContent=formatCurrency(summary.neto);
+    ne.style.color=summary.neto>=0?"var(--green)":"var(--red)";
+    $("heroActivos").textContent=formatNumber(summary.activos);
+    $("heroAportesSub").textContent=`Meses: ${ctx.months.join(", ")}`;
+    $("heroGastosSub").textContent=`Clasificaciones: ${selMulti(filters.clasif).length}`;
+    $("heroNetoSub").textContent="Neto = aportes − gastos";
+    $("heroActivosSub").textContent=`${formatNumber(summary.localidadesActivas)} localidades activas`;
+    setBadge("signalLiquidityBadge",signalStatus("liquidity",summary.neto));
+    setBadge("signalEfficiencyBadge",signalStatus("efficiency",summary.gastoRatio));
+    setBadge("signalConcentrationBadge",signalStatus("concentration",summary.topLocalityShare));
+    $("signalLiquidityValue").textContent=formatCurrency(summary.neto);
+    $("signalEfficiencyValue").textContent=formatPct(summary.gastoRatio);
+    $("signalConcentrationValue").textContent=formatPct(summary.topLocalityShare);
+  }
+
+  function setCompareCards(ctx,summary){
+    const delta=(b,a)=>a===0?(b===0?0:1):(b-a)/Math.abs(a);
+    const dA=delta(summary.compareB.aportes,summary.compareA.aportes);
+    const dG=delta(summary.compareB.gastos,summary.compareA.gastos);
+    const dN=delta(summary.compareB.neto,summary.compareA.neto);
+    const sp=v=>{const p=`${(Math.abs(v)*100).toFixed(1)}%`;return Math.abs(v)<.001?"0.0%":`${v>0?"+":"-"}${p}`;};
+    const tc=v=>{if(Math.abs(v)<.001)return"flat";return v>=0?"up":"down";};
+    $("cmpAportesValue").textContent=formatCurrency(summary.compareB.aportes);
+    $("cmpAportesSub").innerHTML=`${ctx.f.compareA} → ${ctx.f.compareB}: <strong class="delta ${tc(dA)}">${sp(dA)}</strong>`;
+    $("cmpGastosValue").textContent=formatCurrency(summary.compareB.gastos);
+    $("cmpGastosSub").innerHTML=`${ctx.f.compareA} → ${ctx.f.compareB}: <strong class="delta ${tc(-dG)}">${sp(dG)}</strong>`;
+    $("cmpNetoValue").textContent=formatCurrency(summary.compareB.neto);
+    $("cmpNetoSub").innerHTML=`${ctx.f.compareA} → ${ctx.f.compareB}: <strong class="delta ${tc(dN)}">${sp(dN)}</strong>`;
+    $("miniSaldo").textContent=formatCurrency(summary.saldoInicial);
+    $("miniLocalidades").textContent=formatNumber(summary.localidadesActivas);
+    $("miniCuotas").textContent=formatNumber(summary.cuotasEnteras);
+    $("miniTicket").textContent=formatCurrency(summary.ticketPromedio);
   }
 
   async function loadWorkbookFromPath(path){
-    const response = await fetch(path, { cache:"no-cache" });
-    if (!response.ok) throw new Error(`No fue posible cargar el archivo ${path}`);
-    const arrayBuffer = await response.arrayBuffer();
-    return XLSX.read(arrayBuffer, { type:"array" });
+    const res=await fetch(path,{cache:"no-cache"});
+    if(!res.ok) throw new Error(`No fue posible cargar ${path}`);
+    return XLSX.read(await res.arrayBuffer(),{type:"array"});
   }
-
   async function loadWorkbookFromFile(file){
-    const arrayBuffer = await file.arrayBuffer();
-    state.fileName = file.name;
-    return XLSX.read(arrayBuffer, { type:"array" });
+    state.fileName=file.name;
+    return XLSX.read(await file.arrayBuffer(),{type:"array"});
   }
-
-  function setTimestamp(){
-    $("lastUpdated").textContent = new Date().toLocaleString("es-CO", { dateStyle:"medium", timeStyle:"short" });
-  }
-
-  async function boot(workbookPromise){
-    try{
-      const workbook = await workbookPromise;
-      const datasets = buildDatasets(workbook);
-      state.investors = datasets.investors;
-      state.gastos = datasets.gastos;
-      initializeFilters();
-      wireEventsOnce();
-      refresh();
-      setTimestamp();
-      $("sourceLabel").textContent = state.fileName;
-    }catch(error){
-      console.error(error);
-      alert(`No fue posible cargar el dashboard: ${error.message || error}`);
-    }
-  }
-
-  let eventsWired = false;
-  function wireEventsOnce(){
-    if (eventsWired) return;
-    eventsWired = true;
-    const controls = [filters.localidad, filters.forma, filters.clasif, filters.meses, filters.cuotasMin, filters.topN, filters.rankingMetric, filters.compareA, filters.compareB, filters.city];
-    controls.forEach(el => el.addEventListener("change", refresh));
-
-    $("resetFilters").addEventListener("click", () => {
-      initializeFilters();
-      refresh();
-    });
-    $("reloadSource").addEventListener("click", async () => {
-      state.fileName = "dashboard.xlsx";
-      await boot(loadWorkbookFromPath(CONFIG.workbookPath));
-    });
-    $("uploadButton").addEventListener("click", () => $("fileInput").click());
-    $("fileInput").addEventListener("change", async (e) => {
-      const file = e.target.files?.[0];
-      if (!file) return;
-      await boot(loadWorkbookFromFile(file));
-    });
-  }
+  function setTimestamp(){ $("lastUpdated").textContent=new Date().toLocaleString("es-CO",{dateStyle:"medium",timeStyle:"short"}); }
 
   function refresh(){
-    const ctx = applyFilters();
-    const summary = summarize(ctx);
-    setExecutiveHeader(ctx, summary);
-    setCompareCards(ctx, summary);
-    drawCharts(ctx, summary);
-    renderCityDetail(summary);
-    renderTables(summary);
+    const ctx=applyFilters(); const summary=summarize(ctx);
+    setExecutiveHeader(ctx,summary); setCompareCards(ctx,summary);
+    drawCharts(ctx,summary); renderCityDetail(summary); renderTables(summary);
+  }
+
+  let wired=false;
+  function wireEventsOnce(){
+    if(wired)return; wired=true;
+    [filters.localidad,filters.forma,filters.clasif,filters.meses,filters.cuotasMin,
+     filters.topN,filters.rankingMetric,filters.compareA,filters.compareB,filters.city]
+    .forEach(el=>el.addEventListener("change",refresh));
+    $("resetFilters").addEventListener("click",()=>{initializeFilters();refresh();});
+    $("reloadSource").addEventListener("click",async()=>{state.fileName="dashboard.xlsx";await boot(loadWorkbookFromPath(CONFIG.workbookPath));});
+    $("uploadButton").addEventListener("click",()=>$("fileInput").click());
+    $("fileInput").addEventListener("change",async e=>{const f=e.target.files?.[0];if(!f)return;await boot(loadWorkbookFromFile(f));});
+  }
+
+  async function boot(p){
+    try{
+      const wb=await p; const ds=buildDatasets(wb);
+      state.investors=ds.investors; state.gastos=ds.gastos;
+      initializeFilters(); wireEventsOnce(); refresh(); setTimestamp();
+      $("sourceLabel").textContent=state.fileName;
+    }catch(err){
+      console.error(err);
+      alert(`No fue posible cargar el dashboard: ${err.message||err}`);
+    }
   }
 
   boot(loadWorkbookFromPath(CONFIG.workbookPath));
