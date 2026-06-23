@@ -265,7 +265,7 @@
 
     .city-detail { padding: 20px 22px; }
     .city-top { display: grid; grid-template-columns: .9fr 1.1fr; gap: 14px; margin-bottom: 14px; }
-    .city-kpis { display: grid; grid-template-columns: repeat(2,1fr); gap: 10px; }
+    .city-kpis { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; }
     .mini {
       border: 1px solid var(--border); border-radius: var(--radius-sm);
       padding: 14px; background: var(--surface-2);
@@ -645,11 +645,6 @@
             <div class="sub">Meses filtrados</div>
           </div>
           <div class="mini">
-            <div class="label">Gastos de la ciudad</div>
-            <div class="value" id="cityGastos" style="color:var(--red)">$0</div>
-            <div class="sub">Clasificaciones visibles</div>
-          </div>
-          <div class="mini">
             <div class="label">Flujo neto ciudad</div>
             <div class="value" id="cityNeto">$0</div>
             <div class="sub">Resultado operativo</div>
@@ -752,7 +747,7 @@
             <table>
               <thead>
                 <tr>
-                  <th>#</th><th>Localidad</th><th>Aportes</th><th>Gastos</th><th>Neto</th><th>Cuotas</th><th>Activos</th>
+                  <th>#</th><th>Localidad</th><th>Aportes</th><th>Neto</th><th>Cuotas</th><th>Activos</th>
                 </tr>
               </thead>
               <tbody id="rankingTable"></tbody>
@@ -1208,8 +1203,7 @@
       data:{
         labels:MONTHS.map(m=>m.slice(0,3)),
         datasets:[
-          {label:"Aportes ciudad",data:summary.cityMonthly.map(x=>x.aportes),backgroundColor:GOLD,borderRadius:5},
-          {label:"Gastos ciudad",data:summary.cityMonthly.map(x=>x.gastos),backgroundColor:RED,borderRadius:5}
+          {label:"Aportes ciudad",data:summary.cityMonthly.map(x=>x.aportes),backgroundColor:GOLD,borderRadius:5}
         ]
       },
       options: chartOpts("COP")
@@ -1238,12 +1232,11 @@
         <td style="color:var(--gold);font-weight:700">${i+1}</td>
         <td>${r.localidad}</td>
         <td>${formatCurrency(r.aportes)}</td>
-        <td>${formatCurrency(r.gastos)}</td>
         <td style="color:${r.neto>=0?'var(--green)':'var(--red)'}">${formatCurrency(r.neto)}</td>
         <td>${formatNumber(r.cuotas)}</td>
         <td>${formatNumber(r.activos)}</td>
       </tr>`).join("");
-    $("rankingTable").innerHTML = rankingRows || `<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--ink-3)">Sin datos para el filtro actual.</td></tr>`;
+    $("rankingTable").innerHTML = rankingRows || `<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--ink-3)">Sin datos para el filtro actual.</td></tr>`;
 
     const cityRows = summary.cityTopInvestors.map(r=>`<tr>
       <td>${r.nombre}</td>
@@ -1277,7 +1270,6 @@
     $("cityName").textContent = summary.city || "--";
     $("citySub").textContent = "Vista ejecutiva de la ciudad seleccionada";
     $("cityAportes").textContent = formatCurrency(summary.cityAportes);
-    $("cityGastos").textContent = formatCurrency(summary.cityGastosTotal);
     $("cityNeto").textContent = formatCurrency(summary.cityNeto);
     $("cityNeto").style.color = summary.cityNeto >= 0 ? "var(--green)" : "var(--red)";
     $("cityCuotas").textContent = formatNumber(summary.cityCuotas);
