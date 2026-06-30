@@ -355,412 +355,585 @@
     }
   </style>
 </head>
+
 <body>
   <div class="page">
-
-    <section class="hero">
-      <div class="flag-stripe"></div>
-      <div class="hero-brand">
-        <div class="hero-icon">👑</div>
-        <div>
-          <h1>Inversionistas del Reino</h1>
-          <div class="subtitle">Dashboard ejecutivo · Colombia 2026</div>
-        </div>
-      </div>
-
-      <div class="hero-pills">
-        <span class="pill"><span class="pill-dot"></span> Fuente: <strong id="sourceLabel">dashboard.xlsx</strong></span>
-        <span class="pill">📊 <strong>Base Inversionistas 26</strong> + <strong>Gastos 26</strong></span>
-        <span class="pill">🕐 Actualizado: <strong id="lastUpdated">pendiente</strong></span>
-      </div>
-
-      <div class="hero-grid">
-        <div class="hero-kpis">
-          <div class="hero-card">
-            <div class="label">Aportes del período</div>
-            <div class="value" id="heroAportes">$0</div>
-            <div class="sub" id="heroAportesSub">Meses seleccionados de 2026</div>
-          </div>
-          <div class="hero-card">
-            <div class="label">Gastos del período</div>
-            <div class="value" id="heroGastos" style="color:var(--red)">$0</div>
-            <div class="sub" id="heroGastosSub">Clasificaciones visibles</div>
-          </div>
-          <div class="hero-card">
-            <div class="label">Flujo neto</div>
-            <div class="value" id="heroNeto">$0</div>
-            <div class="sub" id="heroNetoSub">Resultado operativo</div>
-          </div>
-          <div class="hero-card">
-            <div class="label">Inversionistas activos</div>
-            <div class="value" id="heroActivos">0</div>
-            <div class="sub" id="heroActivosSub">Con aportes en el período</div>
-          </div>
-        </div>
-
-        <div class="signals">
-          <div class="signal-wrap">
-            <div class="signal">
-              <div class="top">
-                <div class="title">Liquidez operativa</div>
-                <span class="badge" id="signalLiquidityBadge">--</span>
-              </div>
-              <div class="metric" id="signalLiquidityValue">$0</div>
-              <div class="sub">Flujo neto del período</div>
-            </div>
-            <div class="signal">
-              <div class="top">
-                <div class="title">Eficiencia de gasto</div>
-                <span class="badge" id="signalEfficiencyBadge">--</span>
-              </div>
-              <div class="metric" id="signalEfficiencyValue">0%</div>
-              <div class="sub">Gastos / aportes</div>
-            </div>
-            <div class="signal">
-              <div class="top">
-                <div class="title">Concentración</div>
-                <span class="badge" id="signalConcentrationBadge">--</span>
-              </div>
-              <div class="metric" id="signalConcentrationValue">0%</div>
-              <div class="sub">Participación localidad líder</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section class="section card filters">
-      <div class="section-head">
-        <div>
-          <div class="section-title-line">
-            <div class="section-accent"></div>
-            <h2>Filtros ejecutivos</h2>
-          </div>
-          <p>Solo se analiza información mensual de enero 2026 en adelante. Se excluyen acumulados y totales históricos.</p>
-        </div>
-      </div>
-
-      <div class="filter-row">
-        <div class="field">
-          <label>🏙 Localidades</label>
-          <select id="filterLocalidad" multiple></select>
-        </div>
-        <div class="field">
-          <label>📁 Clasificación de gastos</label>
-          <select id="filterClasif" multiple></select>
-        </div>
-        <div class="field">
-          <label>📅 Meses incluidos</label>
-          <select id="filterMeses" multiple></select>
-        </div>
-        <div class="field">
-          <label>📍 Detalle por ciudad</label>
-          <div class="select-wrap">
-            <select id="cityDetailSelect"></select>
-          </div>
-        </div>
-      </div>
-
-      <div class="filter-hint">
-        💡 Mantén <strong style="color:var(--gold)">Ctrl / Cmd</strong> para seleccionar varios valores. <strong style="color:var(--gold)">Ctrl+A</strong> selecciona todo.
-      </div>
-
-      <div class="filter-row-2">
-        <div class="field" style="min-width:160px">
-          <label>📈 Cuotas mínimas</label>
-          <div class="select-wrap">
-            <select id="filterCuotasMin">
-              <option value="0">Todas</option>
-              <option value="1">1 o más</option>
-              <option value="2">2 o más</option>
-              <option value="3">3 o más</option>
-              <option value="5">5 o más</option>
-              <option value="10">10 o más</option>
-            </select>
-          </div>
-        </div>
-        <div class="field" style="min-width:140px">
-          <label>🏆 Top localidades</label>
-          <div class="select-wrap">
-            <select id="filterTopN">
-              <option value="5">Top 5</option>
-              <option value="10" selected>Top 10</option>
-              <option value="15">Top 15</option>
-              <option value="20">Top 20</option>
-            </select>
-          </div>
-        </div>
-        <div class="field" style="min-width:180px">
-          <label>📊 Métrica del ranking</label>
-          <div class="select-wrap">
-            <select id="filterRankingMetric">
-              <option value="aportes" selected>Aportes del período</option>
-              <option value="cuotas">Cuotas enteras</option>
-              <option value="neto">Flujo neto</option>
-            </select>
-          </div>
-        </div>
-        <div class="field" style="min-width:155px">
-          <label>🔵 Mes comparativo A</label>
-          <div class="select-wrap">
-            <select id="compareMonthA"></select>
-          </div>
-        </div>
-        <div class="field" style="min-width:155px">
-          <label>🟡 Mes comparativo B</label>
-          <div class="select-wrap">
-            <select id="compareMonthB"></select>
-          </div>
-        </div>
-      </div>
-
-      <div class="toolbar">
-        <div class="actions">
-          <button class="btn-secondary" id="uploadButton">📂 Cargar Excel</button>
-          <input type="file" id="fileInput" class="hidden" accept=".xlsx,.xlsm,.xls" />
-          <button class="btn-light" id="reloadSource">🔄 Recargar fuente</button>
-          <button class="btn-light" id="resetFilters">✕ Restablecer</button>
-        </div>
-        <button class="btn-primary" onclick="window.print()">🖨 Exportar vista</button>
-      </div>
-    </section>
-
-    <section class="section summary-grid">
-      <div class="card panel">
-        <div class="section-head">
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="sidebar-brand">
+          <div class="sidebar-logo">👑</div>
           <div>
-            <div class="section-title-line"><div class="section-accent"></div><h2>Comparativo mensual</h2></div>
-            <p>Comparación exacta de los meses seleccionados, sin filas de totales del Excel.</p>
+            <h2>Inversionistas del Reino</h2>
+            <p>Centro ejecutivo · Colombia 2026</p>
           </div>
         </div>
-        <div class="compare-cards">
-          <div class="compare-card">
-            <h3>Aportes</h3>
-            <div class="big" id="cmpAportesValue">$0</div>
-            <div class="sub" id="cmpAportesSub">Comparativo</div>
-          </div>
-          <div class="compare-card">
-            <h3>Gastos</h3>
-            <div class="big" id="cmpGastosValue">$0</div>
-            <div class="sub" id="cmpGastosSub">Comparativo</div>
-          </div>
-          <div class="compare-card">
-            <h3>Flujo neto</h3>
-            <div class="big" id="cmpNetoValue">$0</div>
-            <div class="sub" id="cmpNetoSub">Comparativo</div>
-          </div>
-        </div>
-      </div>
 
-      <div class="card panel">
-        <div class="section-head">
-          <div>
-            <div class="section-title-line"><div class="section-accent"></div><h2>Indicadores complementarios</h2></div>
-            <p>Lecturas rápidas para comité.</p>
-          </div>
+        <div class="nav-group-title">Resumen</div>
+        <div class="nav-list">
+          <button class="nav-btn active" data-view="view-overview">
+            <span class="nav-icon">🏠</span>
+            <span class="nav-copy"><strong>Dashboard</strong><span>KPIs, comparativos y tendencia general.</span></span>
+          </button>
+          <button class="nav-btn" data-view="view-alerts">
+            <span class="nav-icon">🚨</span>
+            <span class="nav-copy"><strong>Alertas</strong><span>Nuevos inversionistas y seguimiento de no aporte.</span></span>
+          </button>
         </div>
-        <div class="cards-inline">
-          <div class="small-card">
-            <div class="label">Localidades activas</div>
-            <div class="value" id="miniLocalidades">0</div>
-            <div class="sub">Con aportes visibles</div>
-          </div>
-          <div class="small-card">
-            <div class="label">Cuotas enteras</div>
-            <div class="value" id="miniCuotas">0</div>
-            <div class="sub">Acumuladas en filtro</div>
-          </div>
-          <div class="small-card">
-            <div class="label">Ticket promedio</div>
-            <div class="value" id="miniTicket">$0</div>
-            <div class="sub">Aportes / activos</div>
-          </div>
-          <div class="small-card">
-            <div class="label">Promedio mensual</div>
-            <div class="value" id="miniPromedioMensual">$0</div>
-            <div class="sub">Promedio meses seleccionados</div>
-          </div>
-        </div>
-      </div>
-    </section>
 
-    <section class="section layout-2">
-      <div class="card panel wide">
-        <div class="section-head">
-          <div>
-            <div class="section-title-line"><div class="section-accent"></div><h2>Evolución mensual consolidada 2026</h2></div>
-            <p>Aportes, gastos y flujo neto por mes.</p>
-          </div>
+        <div class="nav-group-title">Consulta</div>
+        <div class="nav-list">
+          <button class="nav-btn" data-view="view-territory">
+            <span class="nav-icon">🗺️</span>
+            <span class="nav-copy"><strong>Territorio</strong><span>Detalle por ciudad y ranking territorial.</span></span>
+          </button>
+          <button class="nav-btn" data-view="view-investors">
+            <span class="nav-icon">👥</span>
+            <span class="nav-copy"><strong>Inversionistas</strong><span>Historial y exploración individual o múltiple.</span></span>
+          </button>
         </div>
-        <canvas id="trendChart"></canvas>
-      </div>
-      <div class="card panel">
-        <div class="section-head">
-          <div>
-            <div class="section-title-line"><div class="section-accent"></div><h2>Ranking de localidades</h2></div>
-            <p id="rankingSubtitle">Según la métrica seleccionada.</p>
-          </div>
-        </div>
-        <canvas id="rankingChart"></canvas>
-      </div>
-    </section>
 
-    <section class="section layout-2">
-      <div class="card panel">
-        <div class="section-head">
-          <div>
-            <div class="section-title-line"><div class="section-accent"></div><h2>Comparativo por localidad</h2></div>
-            <p id="compareSubtitle">Mes A vs. Mes B.</p>
-          </div>
+        <div class="nav-group-title">Análisis</div>
+        <div class="nav-list">
+          <button class="nav-btn" data-view="view-trends">
+            <span class="nav-icon">📈</span>
+            <span class="nav-copy"><strong>Tendencias</strong><span>Comportamiento financiero y comparativos.</span></span>
+          </button>
         </div>
-        <canvas id="compareChart"></canvas>
-      </div>
-      <div class="card panel">
-        <div class="section-head">
-          <div>
-            <div class="section-title-line"><div class="section-accent"></div><h2>Composición de gastos</h2></div>
-            <p>Participación por clasificación.</p>
-          </div>
-        </div>
-        <canvas id="gastosChart"></canvas>
-      </div>
-    </section>
+      </aside>
 
-    <section class="section card city-detail">
-      <div class="section-head">
-        <div>
-          <div class="section-title-line">
-            <div class="section-accent"></div>
-            <h2>Detalle por ciudad: <span id="cityName" style="color:var(--gold)">--</span></h2>
+      <main class="workspace">
+        <div class="workspace-top">
+          <div class="workspace-title">
+            <h1>Panel ejecutivo</h1>
+            <p>Una arquitectura más clara: resumen al inicio y consultas específicas en secciones separadas como si fueran páginas.</p>
           </div>
-          <p id="citySub">Vista ejecutiva de la ciudad seleccionada</p>
-        </div>
-      </div>
-
-      <div class="city-top">
-        <div class="city-kpis">
-          <div class="mini">
-            <div class="label">Aportes de la ciudad</div>
-            <div class="value" id="cityAportes">$0</div>
-            <div class="sub">Meses filtrados</div>
-          </div>
-          <div class="mini">
-            <div class="label">Flujo neto ciudad</div>
-            <div class="value" id="cityNeto">$0</div>
-            <div class="sub">Resultado operativo</div>
-          </div>
-          <div class="mini">
-            <div class="label">Cuotas enteras ciudad</div>
-            <div class="value" id="cityCuotas">0</div>
-            <div class="sub">Acumuladas en el período</div>
+          <div class="quick-pills">
+            <span class="quick-pill">UX modular</span>
+            <span class="quick-pill">Navegación lateral</span>
+            <span class="quick-pill">Menor carga cognitiva</span>
           </div>
         </div>
-        <div>
-          <canvas id="cityTrendChart" style="height:240px !important;width:100%!important"></canvas>
-        </div>
-      </div>
 
-      <div class="gold-divider"></div>
-
-      <div class="section" style="margin-top:12px">
-        <div class="card panel">
-          <div class="section-head">
+        <section id="view-overview" class="view active">
+          <div class="view-header">
             <div>
-              <div class="section-title-line"><div class="section-accent"></div><h2>Historial de aportes por inversionista</h2></div>
-              <p>Selecciona uno o varios inversionistas de la ciudad para ver su comportamiento mensual.</p>
+              <h2>Dashboard principal</h2>
+              <p>Vista de lectura rápida para junta o comité, con KPIs, filtros globales y los gráficos más relevantes.</p>
             </div>
           </div>
 
-          <div class="field" style="margin-bottom:12px;">
-            <label>👤 Inversionistas de la ciudad seleccionada</label>
-            <div class="chip-selector">
-              <input id="cityInvestorSearch" class="chip-search" type="text" placeholder="Buscar inversionista..." />
-              <div class="chip-actions">
-                <button type="button" id="investorSelectAllBtn">Seleccionar todos</button>
-                <button type="button" id="investorClearBtn">Limpiar selección</button>
+          <section class="hero hero--compact">
+            <div class="flag-stripe"></div>
+            <div class="hero-brand">
+              <div class="hero-icon">👑</div>
+              <div>
+                <h1>Inversionistas del Reino</h1>
+                <div class="subtitle">Dashboard ejecutivo · Colombia 2026</div>
               </div>
-              <div id="cityInvestorChips" class="chips-wrap"></div>
-              <div id="cityInvestorChipCount" class="chip-count">0 seleccionados</div>
             </div>
-            <select id="cityInvestorSelect" multiple class="hidden"></select>
-          </div>
 
-          <div class="cards-inline" style="margin-bottom:12px;">
-            <div class="small-card">
-              <div class="label">Inversionistas seleccionados</div>
-              <div class="value" id="investorSelectionCount">0</div>
-              <div class="sub" id="investorSelectionSummary">Sin selección</div>
+            <div class="hero-pills">
+              <span class="pill"><span class="pill-dot"></span> Fuente: <strong id="sourceLabel">dashboard.xlsx</strong></span>
+              <span class="pill">📊 <strong>Base Inversionistas 26</strong> + <strong>Gastos 26</strong></span>
+              <span class="pill">🕐 Actualizado: <strong id="lastUpdated">pendiente</strong></span>
             </div>
-            <div class="small-card">
-              <div class="label">Aportes de la selección</div>
-              <div class="value" id="investorSelectionTotal">$0</div>
-              <div class="sub" id="investorSelectionNote">Historial por meses de la selección</div>
-            </div>
-          </div>
 
-          <div class="layout-2">
+            <div class="hero-grid">
+              <div class="hero-kpis">
+                <div class="hero-card">
+                  <div class="label">Aportes del período</div>
+                  <div class="value" id="heroAportes">$0</div>
+                  <div class="sub" id="heroAportesSub">Meses seleccionados de 2026</div>
+                </div>
+                <div class="hero-card">
+                  <div class="label">Gastos del período</div>
+                  <div class="value" id="heroGastos" style="color:var(--red)">$0</div>
+                  <div class="sub" id="heroGastosSub">Clasificaciones visibles</div>
+                </div>
+                <div class="hero-card">
+                  <div class="label">Flujo neto</div>
+                  <div class="value" id="heroNeto">$0</div>
+                  <div class="sub" id="heroNetoSub">Resultado operativo</div>
+                </div>
+                <div class="hero-card">
+                  <div class="label">Inversionistas activos</div>
+                  <div class="value" id="heroActivos">0</div>
+                  <div class="sub" id="heroActivosSub">Con aportes en el período</div>
+                </div>
+              </div>
+
+              <div class="signals">
+                <div class="signal-wrap">
+                  <div class="signal">
+                    <div class="top">
+                      <div class="title">Liquidez operativa</div>
+                      <span class="badge" id="signalLiquidityBadge">--</span>
+                    </div>
+                    <div class="metric" id="signalLiquidityValue">$0</div>
+                    <div class="sub">Flujo neto del período</div>
+                  </div>
+                  <div class="signal">
+                    <div class="top">
+                      <div class="title">Inversionistas nuevos</div>
+                      <span class="badge" id="signalNewBadge">--</span>
+                    </div>
+                    <div class="metric" id="signalNewValue">0</div>
+                    <div class="sub" id="signalNewSub">Comparado con el mes anterior</div>
+                  </div>
+                  <div class="signal">
+                    <div class="top">
+                      <div class="title">Inversionistas sin aporte</div>
+                      <span class="badge" id="signalInactiveBadge">--</span>
+                    </div>
+                    <div class="metric" id="signalInactiveValue">0</div>
+                    <div class="sub" id="signalInactiveSub">Aportaron el mes anterior</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="section card filters">
+            <div class="section-head">
+              <div>
+                <div class="section-title-line">
+                  <div class="section-accent"></div>
+                  <h2>Filtros ejecutivos</h2>
+                </div>
+                <p>Control maestro para todas las vistas del dashboard.</p>
+              </div>
+            </div>
+
+            <div class="filter-row">
+              <div class="field">
+                <label>🏙 Localidades</label>
+                <select id="filterLocalidad" multiple></select>
+              </div>
+              <div class="field">
+                <label>📁 Clasificación de gastos</label>
+                <select id="filterClasif" multiple></select>
+              </div>
+              <div class="field">
+                <label>📅 Meses incluidos</label>
+                <select id="filterMeses" multiple></select>
+              </div>
+              <div class="field">
+                <label>📍 Detalle por ciudad</label>
+                <div class="select-wrap">
+                  <select id="cityDetailSelect"></select>
+                </div>
+              </div>
+            </div>
+
+            <div class="filter-hint">
+              💡 Mantén <strong style="color:var(--gold)">Ctrl / Cmd</strong> para seleccionar varios valores. <strong style="color:var(--gold)">Ctrl+A</strong> selecciona todo.
+            </div>
+
+            <div class="filter-row-2">
+              <div class="field" style="min-width:160px">
+                <label>📈 Cuotas mínimas</label>
+                <div class="select-wrap">
+                  <select id="filterCuotasMin">
+                    <option value="0">Todas</option>
+                    <option value="1">1 o más</option>
+                    <option value="2">2 o más</option>
+                    <option value="3">3 o más</option>
+                    <option value="5">5 o más</option>
+                    <option value="10">10 o más</option>
+                  </select>
+                </div>
+              </div>
+              <div class="field" style="min-width:140px">
+                <label>🏆 Top localidades</label>
+                <div class="select-wrap">
+                  <select id="filterTopN">
+                    <option value="5">Top 5</option>
+                    <option value="10" selected>Top 10</option>
+                    <option value="15">Top 15</option>
+                    <option value="20">Top 20</option>
+                  </select>
+                </div>
+              </div>
+              <div class="field" style="min-width:180px">
+                <label>📊 Métrica del ranking</label>
+                <div class="select-wrap">
+                  <select id="filterRankingMetric">
+                    <option value="aportes" selected>Aportes del período</option>
+                    <option value="cuotas">Cuotas enteras</option>
+                    <option value="neto">Flujo neto</option>
+                  </select>
+                </div>
+              </div>
+              <div class="field" style="min-width:155px">
+                <label>🔵 Mes comparativo A</label>
+                <div class="select-wrap">
+                  <select id="compareMonthA"></select>
+                </div>
+              </div>
+              <div class="field" style="min-width:155px">
+                <label>🟡 Mes comparativo B</label>
+                <div class="select-wrap">
+                  <select id="compareMonthB"></select>
+                </div>
+              </div>
+            </div>
+
+            <div class="toolbar">
+              <div class="actions">
+                <button class="btn-secondary" id="uploadButton">📂 Cargar Excel</button>
+                <input type="file" id="fileInput" class="hidden" accept=".xlsx,.xlsm,.xls" />
+                <button class="btn-light" id="reloadSource">🔄 Recargar fuente</button>
+                <button class="btn-light" id="resetFilters">✕ Restablecer</button>
+              </div>
+              <button class="btn-primary" onclick="window.print()">🖨 Exportar vista</button>
+            </div>
+          </section>
+
+          <section class="section summary-grid">
+            <div class="card panel">
+              <div class="section-head">
+                <div>
+                  <div class="section-title-line"><div class="section-accent"></div><h2>Comparativo mensual</h2></div>
+                  <p>Comparación exacta de los meses seleccionados, sin filas de totales del Excel.</p>
+                </div>
+              </div>
+              <div class="compare-cards">
+                <div class="compare-card">
+                  <h3>Aportes</h3>
+                  <div class="big" id="cmpAportesValue">$0</div>
+                  <div class="sub" id="cmpAportesSub">Comparativo</div>
+                </div>
+                <div class="compare-card">
+                  <h3>Gastos</h3>
+                  <div class="big" id="cmpGastosValue">$0</div>
+                  <div class="sub" id="cmpGastosSub">Comparativo</div>
+                </div>
+                <div class="compare-card">
+                  <h3>Flujo neto</h3>
+                  <div class="big" id="cmpNetoValue">$0</div>
+                  <div class="sub" id="cmpNetoSub">Comparativo</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="card panel">
+              <div class="section-head">
+                <div>
+                  <div class="section-title-line"><div class="section-accent"></div><h2>Indicadores complementarios</h2></div>
+                  <p>Lecturas rápidas para comité.</p>
+                </div>
+              </div>
+              <div class="cards-inline">
+                <div class="small-card">
+                  <div class="label">Localidades activas</div>
+                  <div class="value" id="miniLocalidades">0</div>
+                  <div class="sub">Con aportes visibles</div>
+                </div>
+                <div class="small-card">
+                  <div class="label">Cuotas enteras</div>
+                  <div class="value" id="miniCuotas">0</div>
+                  <div class="sub">Acumuladas en filtro</div>
+                </div>
+                <div class="small-card">
+                  <div class="label">Ticket promedio</div>
+                  <div class="value" id="miniTicket">$0</div>
+                  <div class="sub">Aportes / activos</div>
+                </div>
+                <div class="small-card">
+                  <div class="label">Promedio mensual</div>
+                  <div class="value" id="miniPromedioMensual">$0</div>
+                  <div class="sub">Promedio meses seleccionados</div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="section overview-grid">
+            <div class="card panel wide">
+              <div class="section-head">
+                <div>
+                  <div class="section-title-line"><div class="section-accent"></div><h2>Evolución mensual consolidada 2026</h2></div>
+                  <p>Aportes, gastos y flujo neto por mes.</p>
+                </div>
+              </div>
+              <canvas id="trendChart"></canvas>
+            </div>
+            <div class="summary-stack">
+              <div class="card panel">
+                <div class="section-head">
+                  <div>
+                    <div class="section-title-line"><div class="section-accent"></div><h2>Ranking de localidades</h2></div>
+                    <p id="rankingSubtitle">Según la métrica seleccionada.</p>
+                  </div>
+                </div>
+                <canvas id="rankingChart"></canvas>
+              </div>
+            </div>
+          </section>
+        </section>
+
+        <section id="view-alerts" class="view">
+          <div class="view-header">
             <div>
-              <canvas id="investorHistoryChart" style="height:260px !important;width:100%!important"></canvas>
-            </div>
-            <div class="table-wrap">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Mes</th><th>Total selección</th><th>Inversionistas con aporte</th>
-                  </tr>
-                </thead>
-                <tbody id="investorHistoryTable"></tbody>
-              </table>
+              <h2>Alertas y seguimiento</h2>
+              <p>Quién entró este mes, quién dejó de aportar y el valor involucrado para seguimiento.</p>
             </div>
           </div>
-        </div>
-      </div>
+          <section class="section layout-2">
+            <div class="card panel">
+              <div class="section-head">
+                <div>
+                  <div class="section-title-line"><div class="section-accent"></div><h2>Detalle de inversionistas nuevos</h2></div>
+                  <p id="newInvestorDetailSub">Sin cálculo disponible</p>
+                </div>
+              </div>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr><th>Nombre</th><th>Localidad</th><th>Mes actual</th><th>Nuevo aporte</th></tr>
+                  </thead>
+                  <tbody id="newInvestorsTable"></tbody>
+                </table>
+              </div>
+            </div>
 
-      <div class="section layout-2" style="margin-top:12px">
-        <div class="card panel">
-          <div class="section-head">
+            <div class="card panel">
+              <div class="section-head">
+                <div>
+                  <div class="section-title-line"><div class="section-accent"></div><h2>Detalle de inversionistas sin aporte</h2></div>
+                  <p id="inactiveInvestorDetailSub">Sin cálculo disponible</p>
+                </div>
+              </div>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr><th>Nombre</th><th>Localidad</th><th>Mes actual</th><th>Aporte faltante</th></tr>
+                  </thead>
+                  <tbody id="inactiveInvestorsTable"></tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+
+          <section class="section layout-2">
+            <div class="card panel">
+              <div class="section-head">
+                <div>
+                  <div class="section-title-line"><div class="section-accent"></div><h2>Comparativo por localidad</h2></div>
+                  <p id="compareSubtitle">Mes A vs. Mes B.</p>
+                </div>
+              </div>
+              <canvas id="compareChart"></canvas>
+            </div>
+            <div class="card panel">
+              <div class="section-head">
+                <div>
+                  <div class="section-title-line"><div class="section-accent"></div><h2>Composición de gastos</h2></div>
+                  <p>Participación por clasificación.</p>
+                </div>
+              </div>
+              <canvas id="gastosChart"></canvas>
+            </div>
+          </section>
+        </section>
+
+        <section id="view-territory" class="view">
+          <div class="view-header">
             <div>
-              <div class="section-title-line"><div class="section-accent"></div><h2>Top inversionistas de la ciudad</h2></div>
-              <p>Período filtrado.</p>
+              <h2>Territorio y ciudades</h2>
+              <p>Lectura territorial del negocio, con foco en el desempeño local y los rankings ejecutivos.</p>
             </div>
           </div>
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Nombre</th><th>Aportes</th><th>Cuotas</th><th>Forma</th>
-                </tr>
-              </thead>
-              <tbody id="cityInvestorsTable"></tbody>
-            </table>
-          </div>
-        </div>
 
-        <div class="card panel">
-          <div class="section-head">
+          <section class="section card city-detail">
+            <div class="section-head">
+              <div>
+                <div class="section-title-line">
+                  <div class="section-accent"></div>
+                  <h2>Detalle por ciudad: <span id="cityName" style="color:var(--gold)">--</span></h2>
+                </div>
+                <p id="citySub">Vista ejecutiva de la ciudad seleccionada</p>
+              </div>
+            </div>
+
+            <div class="city-top">
+              <div class="city-kpis">
+                <div class="mini">
+                  <div class="label">Aportes de la ciudad</div>
+                  <div class="value" id="cityAportes">$0</div>
+                  <div class="sub">Meses filtrados</div>
+                </div>
+                <div class="mini">
+                  <div class="label">Flujo neto ciudad</div>
+                  <div class="value" id="cityNeto">$0</div>
+                  <div class="sub">Resultado operativo</div>
+                </div>
+                <div class="mini">
+                  <div class="label">Cuotas enteras ciudad</div>
+                  <div class="value" id="cityCuotas">0</div>
+                  <div class="sub">Acumuladas en el período</div>
+                </div>
+              </div>
+              <div>
+                <canvas id="cityTrendChart" style="height:240px !important;width:100%!important"></canvas>
+              </div>
+            </div>
+
+            <div class="gold-divider"></div>
+
+            <div class="section layout-2" style="margin-top:12px">
+              <div class="card panel">
+                <div class="section-head">
+                  <div>
+                    <div class="section-title-line"><div class="section-accent"></div><h2>Top inversionistas de la ciudad</h2></div>
+                    <p>Período filtrado.</p>
+                  </div>
+                </div>
+                <div class="table-wrap">
+                  <table>
+                    <thead>
+                      <tr><th>Nombre</th><th>Aportes</th><th>Cuotas</th><th>Forma</th></tr>
+                    </thead>
+                    <tbody id="cityInvestorsTable"></tbody>
+                  </table>
+                </div>
+              </div>
+
+              <div class="card panel">
+                <div class="section-head">
+                  <div>
+                    <div class="section-title-line"><div class="section-accent"></div><h2>Ranking ejecutivo de localidades</h2></div>
+                    <p>Consolidado territorial del filtro actual.</p>
+                  </div>
+                </div>
+                <div class="table-wrap">
+                  <table>
+                    <thead>
+                      <tr><th>#</th><th>Localidad</th><th>Aportes</th><th>Neto</th><th>Cuotas</th><th>Activos</th></tr>
+                    </thead>
+                    <tbody id="rankingTable"></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </section>
+        </section>
+
+        <section id="view-investors" class="view">
+          <div class="view-header">
             <div>
-              <div class="section-title-line"><div class="section-accent"></div><h2>Ranking ejecutivo de localidades</h2></div>
-              <p>Consolidado territorial del filtro actual.</p>
+              <h2>Consulta de inversionistas</h2>
+              <p>Explora historial, búsqueda visual y selección múltiple con una interfaz enfocada en consulta.</p>
             </div>
           </div>
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>#</th><th>Localidad</th><th>Aportes</th><th>Neto</th><th>Cuotas</th><th>Activos</th>
-                </tr>
-              </thead>
-              <tbody id="rankingTable"></tbody>
-            </table>
+
+          <section class="section card panel">
+            <div class="section-head">
+              <div>
+                <div class="section-title-line"><div class="section-accent"></div><h2>Historial de aportes por inversionista</h2></div>
+                <p>Selecciona uno o varios inversionistas de la ciudad para ver su comportamiento mensual.</p>
+              </div>
+            </div>
+
+            <div class="field" style="margin-bottom:12px;">
+              <label>👤 Inversionistas de la ciudad seleccionada</label>
+              <div class="chip-selector">
+                <input id="cityInvestorSearch" class="chip-search" type="text" placeholder="Buscar inversionista..." />
+                <div class="chip-actions">
+                  <button type="button" id="investorSelectAllBtn">Seleccionar todos</button>
+                  <button type="button" id="investorClearBtn">Limpiar selección</button>
+                </div>
+                <div id="cityInvestorChips" class="chips-wrap"></div>
+                <div id="cityInvestorChipCount" class="chip-count">0 seleccionados</div>
+              </div>
+              <select id="cityInvestorSelect" multiple class="hidden"></select>
+            </div>
+
+            <div class="cards-inline" style="margin-bottom:12px;">
+              <div class="small-card">
+                <div class="label">Inversionistas seleccionados</div>
+                <div class="value" id="investorSelectionCount">0</div>
+                <div class="sub" id="investorSelectionSummary">Sin selección</div>
+              </div>
+              <div class="small-card">
+                <div class="label">Aportes de la selección</div>
+                <div class="value" id="investorSelectionTotal">$0</div>
+                <div class="sub" id="investorSelectionNote">Historial por meses de la selección</div>
+              </div>
+            </div>
+
+            <div class="layout-2">
+              <div>
+                <canvas id="investorHistoryChart" style="height:260px !important;width:100%!important"></canvas>
+              </div>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr><th>Mes</th><th>Total selección</th><th>Inversionistas con aporte</th></tr>
+                  </thead>
+                  <tbody id="investorHistoryTable"></tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+        </section>
+
+        <section id="view-trends" class="view">
+          <div class="view-header">
+            <div>
+              <h2>Tendencias financieras</h2>
+              <p>Vista analítica para discusión financiera: evolución, composición y comparativos.</p>
+            </div>
           </div>
-        </div>
-      </div>
-    </section>
 
-    <section class="section card footer-note">
-      💡 Para actualizar online, reemplaza <strong>data/dashboard.xlsx</strong>. Esta versión usa únicamente meses de 2026 y excluye filas de resumen del libro.
-    </section>
+          <section class="section layout-2">
+            <div class="card panel wide">
+              <div class="section-head">
+                <div>
+                  <div class="section-title-line"><div class="section-accent"></div><h2>Evolución mensual consolidada 2026</h2></div>
+                  <p>Aportes, gastos y flujo neto por mes.</p>
+                </div>
+              </div>
+              <canvas id="trendChartDuplicate"></canvas>
+            </div>
+            <div class="card panel">
+              <div class="section-head">
+                <div>
+                  <div class="section-title-line"><div class="section-accent"></div><h2>Ranking de localidades</h2></div>
+                  <p>Acceso rápido al top del período.</p>
+                </div>
+              </div>
+              <canvas id="rankingChartDuplicate"></canvas>
+            </div>
+          </section>
 
+          <section class="section layout-2">
+            <div class="card panel">
+              <div class="section-head">
+                <div>
+                  <div class="section-title-line"><div class="section-accent"></div><h2>Comparativo por localidad</h2></div>
+                  <p>Mes A vs. Mes B.</p>
+                </div>
+              </div>
+              <canvas id="compareChartDuplicate"></canvas>
+            </div>
+            <div class="card panel">
+              <div class="section-head">
+                <div>
+                  <div class="section-title-line"><div class="section-accent"></div><h2>Composición de gastos</h2></div>
+                  <p>Participación por clasificación.</p>
+                </div>
+              </div>
+              <canvas id="gastosChartDuplicate"></canvas>
+            </div>
+          </section>
+        </section>
+
+        <section class="section card footer-note">
+          💡 Para actualizar online, reemplaza <strong>data/dashboard.xlsx</strong>. Esta versión usa únicamente meses de 2026 y excluye filas de resumen del libro.
+        </section>
+      </main>
+    </div>
   </div>
 
 <script>
@@ -1198,6 +1371,34 @@
       }
     });
 
+    makeOrUpdateChart("compareChartDuplicate", {
+      type:"bar",
+      data:{
+        labels:summary.compareLocalities.map(x=>x.localidad),
+        datasets:[
+          {label:ctx.f.compareA,data:summary.compareLocalities.map(x=>x.a),backgroundColor:BLUE2,borderRadius:6},
+          {label:ctx.f.compareB,data:summary.compareLocalities.map(x=>x.b),backgroundColor:GOLD,borderRadius:6}
+        ]
+      },
+      options: chartOpts("COP", true)
+    });
+
+    makeOrUpdateChart("gastosChartDuplicate", {
+      type:"doughnut",
+      data:{
+        labels:summary.gastosByClasif.map(x=>x.clasif),
+        datasets:[{data:summary.gastosByClasif.map(x=>x.total),backgroundColor:[GOLD,BLUE,"#9b59b6",GREEN,"#e67e22",RED,"#1abc9c","#e74c3c","#3498db","#95a5a6"],borderWidth:2,borderColor:"#181818"}]
+      },
+      options:{
+        responsive:true, maintainAspectRatio:false,
+        plugins:{
+          legend:{position:"bottom",labels:{color:"#b8b0a0",font:{size:11},boxWidth:12,padding:10}},
+          tooltip:{backgroundColor:"#1f1f1f",borderColor:"rgba(200,161,63,.3)",borderWidth:1,titleColor:"#e0b84a",bodyColor:"#b8b0a0",
+            callbacks:{label:ctx=>` ${ctx.label}: ${formatCurrency(ctx.raw)}`}}
+        }
+      }
+    });
+
     makeOrUpdateChart("cityTrendChart", {
       type:"bar",
       data:{
@@ -1264,6 +1465,35 @@
       </tr>
     `).join("");
     $("investorHistoryTable").innerHTML = rows || `<tr><td colspan="3" style="text-align:center;padding:24px;color:var(--ink-3)">Sin datos para la selección.</td></tr>`;
+  }
+
+  function renderInvestorStatusDetails(summary){
+    $("newInvestorDetailSub").textContent = summary.previousMonth
+      ? `Aportaron en ${summary.currentMonth} y no lo hicieron en ${summary.previousMonth}`
+      : `No hay mes anterior para comparar con ${summary.currentMonth}`;
+    $("inactiveInvestorDetailSub").textContent = summary.previousMonth
+      ? `No aportaron en ${summary.currentMonth}, pero sí en ${summary.previousMonth}`
+      : `No hay mes anterior para comparar con ${summary.currentMonth}`;
+
+    const newRows = summary.newInvestors.map(r => `
+      <tr>
+        <td>${r.nombre}</td>
+        <td>${r.localidad}</td>
+        <td>${summary.currentMonth}</td>
+        <td>${formatCurrency(r.currentValue)}</td>
+      </tr>
+    `).join("");
+    $("newInvestorsTable").innerHTML = newRows || `<tr><td colspan="4" style="text-align:center;padding:24px;color:var(--ink-3)">Sin inversionistas nuevos para el período actual.</td></tr>`;
+
+    const inactiveRows = summary.inactiveInvestors.map(r => `
+      <tr>
+        <td>${r.nombre}</td>
+        <td>${r.localidad}</td>
+        <td>${summary.currentMonth}</td>
+        <td>${formatCurrency(r.previousValue)}</td>
+      </tr>
+    `).join("");
+    $("inactiveInvestorsTable").innerHTML = inactiveRows || `<tr><td colspan="4" style="text-align:center;padding:24px;color:var(--ink-3)">Sin inversionistas sin aporte para el período actual.</td></tr>`;
   }
 
   function renderCityDetail(summary){
@@ -1337,6 +1567,7 @@
     drawCharts(ctx,summary);
     renderCityDetail(summary);
     renderInvestorSelection(summary);
+    renderInvestorStatusDetails(summary);
     renderTables(summary);
   }
   let wired=false;
@@ -1380,6 +1611,19 @@
     $("uploadButton").addEventListener("click", ()=>$("fileInput").click());
     $("fileInput").addEventListener("change", async(e)=>{ const f=e.target.files?.[0]; if(!f) return; await boot(loadWorkbookFromFile(f)); });
   }
+  function setupNavigation(){
+    const navButtons = [...document.querySelectorAll(".nav-btn")];
+    const views = [...document.querySelectorAll(".view")];
+    navButtons.forEach(btn => {
+      btn.addEventListener("click", () => {
+        const target = btn.dataset.view;
+        navButtons.forEach(b => b.classList.toggle("active", b === btn));
+        views.forEach(v => v.classList.toggle("active", v.id === target));
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      });
+    });
+  }
+
   async function boot(promise){
     try{
       const wb = await promise;
@@ -1388,6 +1632,7 @@
       state.gastos = ds.gastos;
       initializeFilters();
       wireEventsOnce();
+      setupNavigation();
       renderInvestorChipList();
       refresh();
       setTimestamp();
