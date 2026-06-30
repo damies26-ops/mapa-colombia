@@ -353,13 +353,153 @@
       .hero h1 { font-size: 20px; }
       .hero-kpis, .compare-cards, .signal-wrap, .city-kpis, .cards-inline { grid-template-columns: 1fr; }
     }
+  
+    :root {
+      --sidebar-w: 294px;
+      --sidebar-collapsed: 92px;
+    }
+    .app-shell { transition: grid-template-columns .24s ease; }
+    .app-shell.sidebar-collapsed { grid-template-columns: var(--sidebar-collapsed) 1fr; }
+    .sidebar {
+      transition: width .24s ease, transform .24s ease, padding .24s ease;
+      width: var(--sidebar-w);
+      overflow: hidden;
+      backdrop-filter: blur(14px);
+    }
+    .app-shell.sidebar-collapsed .sidebar { width: var(--sidebar-collapsed); padding-left: 14px; padding-right: 14px; }
+    .app-shell.sidebar-collapsed .sidebar-brand h2,
+    .app-shell.sidebar-collapsed .sidebar-brand p,
+    .app-shell.sidebar-collapsed .nav-group-title,
+    .app-shell.sidebar-collapsed .nav-copy { display:none; }
+    .app-shell.sidebar-collapsed .sidebar-brand { justify-content:center; }
+    .app-shell.sidebar-collapsed .nav-btn { justify-content:center; padding:14px 10px; }
+    .app-shell.sidebar-collapsed .nav-icon { width:auto; flex:0 0 auto; font-size:18px; }
+
+    .mobile-topbar {
+      display:none;
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      backdrop-filter: blur(12px);
+      background: rgba(13,13,13,.82);
+      border:1px solid var(--border);
+      border-radius: 18px;
+      padding: 12px 14px;
+      margin-bottom: 14px;
+      align-items:center;
+      justify-content:space-between;
+      gap: 12px;
+    }
+    .mobile-brand { display:flex; align-items:center; gap:10px; }
+    .mobile-brand .hero-icon { width:38px; height:38px; font-size:18px; }
+    .mobile-brand h2 { font-size:16px; margin:0; color:var(--gold-light); }
+    .mobile-brand p { font-size:11px; color:var(--ink-3); margin-top:2px; }
+
+    .sidebar-toggle {
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      width:42px; height:42px;
+      border-radius:12px;
+      background: rgba(255,255,255,.04);
+      border:1px solid var(--border);
+      color: var(--ink);
+      box-shadow: none;
+      flex: 0 0 auto;
+    }
+    .sidebar-toggle:hover { border-color: var(--border-bright); background: rgba(200,161,63,.08); }
+    .sidebar-backdrop {
+      display:none;
+      position:fixed;
+      inset:0;
+      background: rgba(0,0,0,.55);
+      z-index: 35;
+    }
+    .sidebar-header-actions {
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 10px;
+      margin-top: 8px;
+      margin-bottom: 4px;
+    }
+    .section-kicker {
+      font-size: 11px;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--gold-light);
+      margin-bottom: 6px;
+      font-weight: 700;
+    }
+    .view-header h2 { font-size: 24px; letter-spacing: -.02em; }
+    .view-header p { line-height: 1.55; }
+    .hero-card .value { font-size: 30px; }
+    .signal .metric { font-size: 24px; }
+    .compare-card .big { font-size: 26px; }
+    .quick-pill { background: linear-gradient(135deg, rgba(255,255,255,.05), rgba(255,255,255,.02)); }
+    .data-status {
+      margin-top: 12px;
+      display:flex;
+      align-items:flex-start;
+      gap:10px;
+      border:1px solid rgba(200,161,63,.18);
+      background: rgba(200,161,63,.06);
+      border-radius: 14px;
+      padding: 12px 14px;
+      color: var(--ink-2);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+    .data-status.hidden { display:none !important; }
+    .workspace-title h1 { font-size: 30px; letter-spacing:-.03em; }
+    .workspace-title p { line-height:1.55; }
+
+    @media (max-width: 1200px) {
+      .mobile-topbar { display:flex; }
+      .app-shell { grid-template-columns: 1fr !important; }
+      .sidebar {
+        position: fixed;
+        top: 12px;
+        left: 12px;
+        bottom: 12px;
+        z-index: 50;
+        min-height: auto;
+        transform: translateX(-120%);
+        width: min(86vw, 320px);
+      }
+      .app-shell.sidebar-mobile-open .sidebar {
+        transform: translateX(0);
+      }
+      .sidebar-backdrop.show { display:block; }
+      .app-shell.sidebar-collapsed .sidebar { width: min(86vw, 320px); padding-left: 18px; padding-right: 18px; }
+      .app-shell.sidebar-collapsed .sidebar-brand h2,
+      .app-shell.sidebar-collapsed .sidebar-brand p,
+      .app-shell.sidebar-collapsed .nav-group-title,
+      .app-shell.sidebar-collapsed .nav-copy { display:block; }
+      .app-shell.sidebar-collapsed .nav-btn { justify-content:flex-start; padding:12px; }
+      .app-shell.sidebar-collapsed .nav-icon { width:18px; }
+      .workspace-title h1 { font-size:24px; }
+    }
+
   </style>
 </head>
 
 <body>
   <div class="page">
-    <div class="app-shell">
+    <div id="sidebarBackdrop" class="sidebar-backdrop"></div>
+    <div class="mobile-topbar">
+      <div class="mobile-brand">
+        <div class="hero-icon">👑</div>
+        <div>
+          <h2>Inversionistas del Reino</h2>
+          <p>Panel ejecutivo responsive</p>
+        </div>
+      </div>
+      <button id="mobileSidebarToggle" class="sidebar-toggle" type="button" aria-label="Abrir menú">☰</button>
+    </div>
+    <div id="appShell" class="app-shell">
       <aside class="sidebar">
+        <div class="sidebar-header-actions"><button id="desktopSidebarToggle" class="sidebar-toggle" type="button" aria-label="Colapsar menú">☰</button></div>
         <div class="sidebar-brand">
           <div class="sidebar-logo">👑</div>
           <div>
@@ -414,10 +554,12 @@
           </div>
         </div>
 
+        <div id="dataStatusBanner" class="data-status hidden"><strong>Fuente de datos:</strong><span id="dataStatusText">Buscando archivo de Excel…</span></div>
+
         <section id="view-overview" class="view active">
           <div class="view-header">
             <div>
-              <h2>Dashboard principal</h2>
+              <div class="section-kicker">Vista principal</div><h2>Dashboard principal</h2>
               <p>Vista de lectura rápida para junta o comité, con KPIs, filtros globales y los gráficos más relevantes.</p>
             </div>
           </div>
@@ -675,7 +817,7 @@
         <section id="view-alerts" class="view">
           <div class="view-header">
             <div>
-              <h2>Alertas y seguimiento</h2>
+              <div class="section-kicker">Seguimiento</div><h2>Alertas y seguimiento</h2>
               <p>Quién entró este mes, quién dejó de aportar y el valor involucrado para seguimiento.</p>
             </div>
           </div>
@@ -740,7 +882,7 @@
         <section id="view-territory" class="view">
           <div class="view-header">
             <div>
-              <h2>Territorio y ciudades</h2>
+              <div class="section-kicker">Consulta territorial</div><h2>Territorio y ciudades</h2>
               <p>Lectura territorial del negocio, con foco en el desempeño local y los rankings ejecutivos.</p>
             </div>
           </div>
@@ -822,7 +964,7 @@
         <section id="view-investors" class="view">
           <div class="view-header">
             <div>
-              <h2>Consulta de inversionistas</h2>
+              <div class="section-kicker">Exploración detallada</div><h2>Consulta de inversionistas</h2>
               <p>Explora historial, búsqueda visual y selección múltiple con una interfaz enfocada en consulta.</p>
             </div>
           </div>
@@ -881,7 +1023,7 @@
         <section id="view-trends" class="view">
           <div class="view-header">
             <div>
-              <h2>Tendencias financieras</h2>
+              <div class="section-kicker">Análisis</div><h2>Tendencias financieras</h2>
               <p>Vista analítica para discusión financiera: evolución, composición y comparativos.</p>
             </div>
           </div>
@@ -938,11 +1080,11 @@
 
 <script>
 (() => {
-  const CONFIG = { title:"Inversionistas del Reino - Colombia", workbookPath:"./data/dashboard.xlsx" };
+  const CONFIG = { title:"Inversionistas del Reino - Colombia", workbookCandidates:["./data/dashboard.xlsx","./DATA/dashboard.xlsx","./dashboard.xlsx","data/dashboard.xlsx","DATA/dashboard.xlsx"] };
   const SHEET_INV = "Base Inversionistas 26";
   const SHEET_GASTOS = "Gastos 26";
   const MONTHS = ["ENERO","FEBRERO","MARZO","ABRIL","MAYO","JUNIO","JULIO","AGOSTO","SEPTIEMBRE","OCTUBRE","NOVIEMBRE","DICIEMBRE"];
-  const state = { investors:[], gastos:[], charts:{}, fileName:"dashboard.xlsx" };
+  const state = { investors:[], gastos:[], charts:{}, fileName:"dashboard.xlsx", sidebarCollapsed:false, sidebarMobileOpen:false };
   const $ = (id) => document.getElementById(id);
   const filters = {
     localidad:$("filterLocalidad"), clasif:$("filterClasif"),
@@ -1554,9 +1696,39 @@
     if(!res.ok) throw new Error(`No fue posible cargar ${path}`);
     return XLSX.read(await res.arrayBuffer(), {type:"array"});
   }
+  async function tryLoadWorkbook(){
+    let lastError = null;
+    for (const candidate of CONFIG.workbookCandidates) {
+      try {
+        const wb = await loadWorkbookFromPath(candidate);
+        state.fileName = candidate.replace(/^\.\//, "");
+        setDataStatus(`Archivo cargado correctamente desde <strong>${state.fileName}</strong>.`, false);
+        return wb;
+      } catch (err) {
+        lastError = err;
+      }
+    }
+    const isFileProtocol = typeof window !== "undefined" && window.location && window.location.protocol === "file:";
+    if (isFileProtocol) {
+      setDataStatus("No se pudo leer el Excel desde la carpeta <strong>data/DATA</strong> porque al abrir el HTML directamente con doble clic el navegador suele bloquear la lectura local. Usa un servidor estático o GitHub Pages, o carga el archivo con el botón <strong>Cargar Excel</strong>.", true);
+    } else {
+      setDataStatus("No se encontró un archivo de Excel válido en <strong>data/dashboard.xlsx</strong>, <strong>DATA/dashboard.xlsx</strong> o la raíz. Verifica la ruta exacta y mayúsculas/minúsculas.", true);
+    }
+    throw lastError || new Error("No fue posible encontrar el archivo de Excel.");
+  }
   async function loadWorkbookFromFile(file){
     state.fileName = file.name;
+    setDataStatus(`Archivo cargado manualmente: <strong>${state.fileName}</strong>.`, false);
     return XLSX.read(await file.arrayBuffer(), {type:"array"});
+  }
+  function setDataStatus(message, isWarning=false){
+    const banner = $("dataStatusBanner");
+    const textEl = $("dataStatusText");
+    if (!banner || !textEl) return;
+    textEl.innerHTML = message;
+    banner.classList.remove("hidden");
+    banner.style.borderColor = isWarning ? "rgba(224,82,82,.25)" : "rgba(200,161,63,.18)";
+    banner.style.background = isWarning ? "rgba(224,82,82,.08)" : "rgba(200,161,63,.06)";
   }
   function setTimestamp(){ $("lastUpdated").textContent = new Date().toLocaleString("es-CO",{dateStyle:"medium",timeStyle:"short"}); }
   function refresh(){
@@ -1607,10 +1779,19 @@
       renderInvestorChipList();
       refresh();
     });
-    $("reloadSource").addEventListener("click", async()=>{ state.fileName="dashboard.xlsx"; await boot(loadWorkbookFromPath(CONFIG.workbookPath)); });
+    $("reloadSource").addEventListener("click", async()=>{ await boot(tryLoadWorkbook()); });
     $("uploadButton").addEventListener("click", ()=>$("fileInput").click());
     $("fileInput").addEventListener("change", async(e)=>{ const f=e.target.files?.[0]; if(!f) return; await boot(loadWorkbookFromFile(f)); });
   }
+  function applySidebarState(){
+    const shell = $("appShell");
+    const backdrop = $("sidebarBackdrop");
+    if (!shell) return;
+    shell.classList.toggle("sidebar-collapsed", !!state.sidebarCollapsed);
+    shell.classList.toggle("sidebar-mobile-open", !!state.sidebarMobileOpen);
+    if (backdrop) backdrop.classList.toggle("show", !!state.sidebarMobileOpen);
+  }
+
   function setupNavigation(){
     const navButtons = [...document.querySelectorAll(".nav-btn")];
     const views = [...document.querySelectorAll(".view")];
@@ -1619,9 +1800,39 @@
         const target = btn.dataset.view;
         navButtons.forEach(b => b.classList.toggle("active", b === btn));
         views.forEach(v => v.classList.toggle("active", v.id === target));
+        state.sidebarMobileOpen = false;
+        applySidebarState();
         window.scrollTo({ top: 0, behavior: "smooth" });
       });
     });
+
+    $("desktopSidebarToggle")?.addEventListener("click", () => {
+      if (window.innerWidth <= 1200) {
+        state.sidebarMobileOpen = !state.sidebarMobileOpen;
+      } else {
+        state.sidebarCollapsed = !state.sidebarCollapsed;
+      }
+      applySidebarState();
+    });
+
+    $("mobileSidebarToggle")?.addEventListener("click", () => {
+      state.sidebarMobileOpen = !state.sidebarMobileOpen;
+      applySidebarState();
+    });
+
+    $("sidebarBackdrop")?.addEventListener("click", () => {
+      state.sidebarMobileOpen = false;
+      applySidebarState();
+    });
+
+    window.addEventListener("resize", () => {
+      if (window.innerWidth > 1200) {
+        state.sidebarMobileOpen = false;
+      }
+      applySidebarState();
+    });
+
+    applySidebarState();
   }
 
   async function boot(promise){
@@ -1642,7 +1853,7 @@
       alert(`No fue posible cargar el dashboard: ${err.message || err}`);
     }
   }
-  boot(loadWorkbookFromPath(CONFIG.workbookPath));
+  boot(tryLoadWorkbook());
 })();
 </script>
 </body>
