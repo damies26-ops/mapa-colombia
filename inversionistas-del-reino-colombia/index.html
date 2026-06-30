@@ -555,6 +555,7 @@
         </div>
 
         <div id="dataStatusBanner" class="data-status hidden"><strong>Fuente de datos:</strong><span id="dataStatusText">Buscando archivo de Excel…</span></div>
+<div id="debugPanel" class="data-status hidden" style="border-color:rgba(91,141,238,.25);background:rgba(91,141,238,.08)"><strong>Debug:</strong><span id="debugText">Inicializando…</span></div>
 
         <section id="view-overview" class="view active">
           <div class="view-header">
@@ -1261,13 +1262,13 @@
         chip.addEventListener("click", () => {
           o.selected = !o.selected;
           renderInvestorChipList();
-          refresh();
+          refresh(); setDebug(`Dashboard cargado correctamente. Filas inversionistas: ${state.investors.length}, filas gastos: ${state.gastos.length}.`);
         });
         filters.investorChips.appendChild(chip);
       });
 
     const count = selected.size;
-    filters.investorChipCount.textContent = `${count} seleccionado(s)`;
+    if (filters.investorChipCount) filters.investorChipCount.textContent = `${count} seleccionado(s)`;
   }
 
   function getFilterState(){
@@ -1332,6 +1333,22 @@
     const rankingSortedAportes = [...ranking].sort((a,b)=>b.aportes-a.aportes);
     const topLocalityShare = aportesPeriodo ? (rankingSortedAportes[0]?.aportes || 0) / aportesPeriodo : 0;
     const gastoRatio = aportesPeriodo ? gastosPeriodo / aportesPeriodo : 0;
+
+    const selectedMonthIndexes = months.map(m => MONTHS.indexOf(m)).filter(i => i >= 0).sort((a,b) => a - b);
+    const currentMonthIndex = selectedMonthIndexes.length ? selectedMonthIndexes[selectedMonthIndexes.length - 1] : MONTHS.length - 1;
+    const previousMonthIndex = currentMonthIndex > 0 ? currentMonthIndex - 1 : -1;
+    const currentMonth = MONTHS[currentMonthIndex];
+    const previousMonth = previousMonthIndex >= 0 ? MONTHS[previousMonthIndex] : null;
+
+    const investorBase = investors.map(r => {
+      const nombre = (r["NOMBRES"] || "Sin nombre").trim() || "Sin nombre";
+      const currentValue = Number(r[currentMonth] || 0);
+      const previousValue = previousMonth ? Number(r[previousMonth] || 0) : 0;
+      return { nombre, localidad: r.LOCALIDAD_NORM, currentValue, previousValue };
+    });
+
+    const newInvestors = investorBase.filter(r => r.currentValue > 0 && r.previousValue <= 0).sort((a,b) => b.currentValue - a.currentValue);
+    const inactiveInvestors = investorBase.filter(r => r.currentValue <= 0 && r.previousValue > 0).sort((a,b) => b.previousValue - a.previousValue);
 
     const compareA = monthly.find(m=>m.month===ctx.f.compareA) || {aportes:0,gastos:0,neto:0};
     const compareB = monthly.find(m=>m.month===ctx.f.compareB) || {aportes:0,gastos:0,neto:0};
@@ -1413,7 +1430,8 @@
       aportesPeriodo,gastosPeriodo,neto,activos,localidadesActivas,cuotasEnteras,ticketPromedio,promedioMensual,
       monthly,ranking,rankingSortedAportes,topLocalityShare,gastoRatio,compareA,compareB,
       compareLocalities,gastosByClasif,city,cityAportes,cityGastosTotal,cityNeto,cityCuotas,cityMonthly,cityTopInvestors,
-      availableInvestorNames, selectedInvestorNames, selectedInvestorTotal, investorHistoryRows, investorChartSeries
+      availableInvestorNames, selectedInvestorNames, selectedInvestorTotal, investorHistoryRows, investorChartSeries,
+      currentMonth, previousMonth, newInvestors, inactiveInvestors
     };
   }
   function metricLabel(m){ return ({aportes:"Aportes del período",cuotas:"Cuotas enteras",neto:"Flujo neto"})[m] || m; }
@@ -1644,8 +1662,8 @@
   }
   function signalStatus(type,value){
     if(type==="liquidity"){ if(value>0)return{cls:"ok",text:"saludable"}; if(value===0)return{cls:"warn",text:"estable"}; return{cls:"alert",text:"alerta"}; }
-    if(type==="efficiency"){ if(value<=.35)return{cls:"ok",text:"eficiente"}; if(value<=.55)return{cls:"warn",text:"vigilar"}; return{cls:"alert",text:"alto gasto"}; }
-    if(type==="concentration"){ if(value<=.25)return{cls:"ok",text:"diversificado"}; if(value<=.4)return{cls:"warn",text:"medio"}; return{cls:"alert",text:"concentrado"}; }
+    if(type==="newInvestors"){ if(value>=10)return{cls:"ok",text:"alto"}; if(value>=1)return{cls:"warn",text:"moderado"}; return{cls:"alert",text:"sin nuevos"}; }
+    if(type==="inactiveInvestors"){ if(value===0)return{cls:"ok",text:"estable"}; if(value<=5)return{cls:"warn",text:"vigilar"}; return{cls:"alert",text:"alerta"}; }
     return{cls:"warn",text:"revisar"};
   }
   function setBadge(id,s){ const el=$(id); if(!el) return; el.className=`badge ${s.cls}`; el.textContent=s.text; }
@@ -1661,11 +1679,13 @@
     setText("heroNetoSub", "Neto = aportes − gastos");
     setText("heroActivosSub", `${formatNumber(summary.localidadesActivas)} localidades activas`);
     setBadge("signalLiquidityBadge", signalStatus("liquidity", summary.neto));
-    setBadge("signalEfficiencyBadge", signalStatus("efficiency", summary.gastoRatio));
-    setBadge("signalConcentrationBadge", signalStatus("concentration", summary.topLocalityShare));
+    setBadge("signalNewBadge", signalStatus("newInvestors", summary.newInvestors ? summary.newInvestors.length : 0));
+    setBadge("signalInactiveBadge", signalStatus("inactiveInvestors", summary.inactiveInvestors ? summary.inactiveInvestors.length : 0));
     setText("signalLiquidityValue", formatCurrency(summary.neto));
-    $("signalEfficiencyValue").textContent = formatPct(summary.gastoRatio);
-    $("signalConcentrationValue").textContent = formatPct(summary.topLocalityShare);
+    setText("signalNewValue", formatNumber(summary.newInvestors ? summary.newInvestors.length : 0));
+    setText("signalInactiveValue", formatNumber(summary.inactiveInvestors ? summary.inactiveInvestors.length : 0));
+    setText("signalNewSub", summary.previousMonth ? `${summary.currentMonth} vs ${summary.previousMonth}` : `${summary.currentMonth || "Mes actual"} sin mes previo`);
+    setText("signalInactiveSub", summary.previousMonth ? `No aportaron en ${summary.currentMonth}` : `Sin mes previo para comparar`);
   }
   function setCompareCards(ctx,summary){
     const delta=(b,a)=>a===0?(b===0?0:1):(b-a)/Math.abs(a);
@@ -1675,17 +1695,17 @@
     const sp=v=>{const p=`${(Math.abs(v)*100).toFixed(1)}%`;return Math.abs(v)<.001?"0.0%":`${v>0?"+":"-"}${p}`;};
     const tc=v=>{if(Math.abs(v)<.001)return"flat";return v>=0?"up":"down";};
 
-    $("cmpAportesValue").textContent = formatCurrency(summary.compareB.aportes);
-    $("cmpAportesSub").innerHTML = `${ctx.f.compareA} → ${ctx.f.compareB}: <strong class="delta ${tc(dA)}">${sp(dA)}</strong>`;
-    $("cmpGastosValue").textContent = formatCurrency(summary.compareB.gastos);
-    $("cmpGastosSub").innerHTML = `${ctx.f.compareA} → ${ctx.f.compareB}: <strong class="delta ${tc(-dG)}">${sp(dG)}</strong>`;
-    $("cmpNetoValue").textContent = formatCurrency(summary.compareB.neto);
-    $("cmpNetoSub").innerHTML = `${ctx.f.compareA} → ${ctx.f.compareB}: <strong class="delta ${tc(dN)}">${sp(dN)}</strong>`;
+    setText("cmpAportesValue", formatCurrency(summary.compareB.aportes));
+    setHTML("cmpAportesSub", `${ctx.f.compareA} → ${ctx.f.compareB}: <strong class="delta ${tc(dA)}">${sp(dA)}</strong>`);
+    setText("cmpGastosValue", formatCurrency(summary.compareB.gastos));
+    setHTML("cmpGastosSub", `${ctx.f.compareA} → ${ctx.f.compareB}: <strong class="delta ${tc(-dG)}">${sp(dG)}</strong>`);
+    setText("cmpNetoValue", formatCurrency(summary.compareB.neto));
+    setHTML("cmpNetoSub", `${ctx.f.compareA} → ${ctx.f.compareB}: <strong class="delta ${tc(dN)}">${sp(dN)}</strong>`);
 
-    $("miniLocalidades").textContent = formatNumber(summary.localidadesActivas);
-    $("miniCuotas").textContent = formatNumber(summary.cuotasEnteras);
-    $("miniTicket").textContent = formatCurrency(summary.ticketPromedio);
-    $("miniPromedioMensual").textContent = formatCurrency(summary.promedioMensual);
+    setText("miniLocalidades", formatNumber(summary.localidadesActivas));
+    setText("miniCuotas", formatNumber(summary.cuotasEnteras));
+    setText("miniTicket", formatCurrency(summary.ticketPromedio));
+    setText("miniPromedioMensual", formatCurrency(summary.promedioMensual));
   }
   async function loadWorkbookFromPath(path){
     const res = await fetch(path,{cache:"no-cache"});
@@ -1717,16 +1737,18 @@
     setDataStatus(`Archivo cargado manualmente: <strong>${state.fileName}</strong>.`, false);
     return XLSX.read(await file.arrayBuffer(), {type:"array"});
   }
+  function setDebug(message){ const panel = $("debugPanel"); const t = $("debugText"); if(panel) panel.classList.remove("hidden"); if(t) t.textContent = message; }
+
   function setDataStatus(message, isWarning=false){
     const banner = $("dataStatusBanner");
     const textEl = $("dataStatusText");
     if (!banner || !textEl) return;
-    textEl.innerHTML = message;
+    if (textEl) textEl.innerHTML = message;
     banner.classList.remove("hidden");
     banner.style.borderColor = isWarning ? "rgba(224,82,82,.25)" : "rgba(200,161,63,.18)";
     banner.style.background = isWarning ? "rgba(224,82,82,.08)" : "rgba(200,161,63,.06)";
   }
-  function setTimestamp(){ $("lastUpdated").textContent = new Date().toLocaleString("es-CO",{dateStyle:"medium",timeStyle:"short"}); }
+  function setTimestamp(){ setText("lastUpdated", new Date().toLocaleString("es-CO",{dateStyle:"medium",timeStyle:"short"})); }
   function refresh(){
     const ctx = applyFilters();
     const summary = summarize(ctx);
@@ -1745,7 +1767,7 @@
 
     const refreshWithInvestors = () => {
       populateInvestorOptions(true);
-      refresh();
+      refresh(); setDebug(`Dashboard cargado correctamente. Filas inversionistas: ${state.investors.length}, filas gastos: ${state.gastos.length}.`);
     };
 
     [filters.localidad,filters.cuotasMin,filters.city].forEach(el=>el.addEventListener("change", refreshWithInvestors));
@@ -1760,20 +1782,20 @@
         if (!q || o.value.toLowerCase().includes(q)) o.selected = true;
       });
       renderInvestorChipList();
-      refresh();
+      refresh(); setDebug(`Dashboard cargado correctamente. Filas inversionistas: ${state.investors.length}, filas gastos: ${state.gastos.length}.`);
     });
 
     filters.investorClearBtn.addEventListener("click", () => {
       [...filters.investor.options].forEach(o => o.selected = false);
       renderInvestorChipList();
-      refresh();
+      refresh(); setDebug(`Dashboard cargado correctamente. Filas inversionistas: ${state.investors.length}, filas gastos: ${state.gastos.length}.`);
     });
 
     $("resetFilters").addEventListener("click", ()=>{
       initializeFilters();
       filters.investorSearch.value = "";
       renderInvestorChipList();
-      refresh();
+      refresh(); setDebug(`Dashboard cargado correctamente. Filas inversionistas: ${state.investors.length}, filas gastos: ${state.gastos.length}.`);
     });
     $("reloadSource").addEventListener("click", async()=>{ await boot(tryLoadWorkbook()); });
     $("uploadButton").addEventListener("click", ()=>$("fileInput").click());
@@ -1831,9 +1853,9 @@
     applySidebarState();
   }
 
-  async function boot(promise){
+  async function boot(promise){ setDebug("Iniciando carga del dashboard…");
     try{
-      const wb = await promise;
+      const wb = await promise; setDebug(`Workbook cargado desde ${state.fileName}. Construyendo datasets…`);
       const ds = buildDatasets(wb);
       state.investors = ds.investors;
       state.gastos = ds.gastos;
@@ -1841,12 +1863,11 @@
       wireEventsOnce();
       setupNavigation();
       renderInvestorChipList();
-      refresh();
+      refresh(); setDebug(`Dashboard cargado correctamente. Filas inversionistas: ${state.investors.length}, filas gastos: ${state.gastos.length}.`);
       setTimestamp();
       setText("sourceLabel", state.fileName);
     }catch(err){
-      console.error(err);
-      alert(`No fue posible cargar el dashboard: ${err.message || err}`);
+      console.error(err); setDebug(`Error: ${err.message || err}`); alert(`No fue posible cargar el dashboard: ${err.message || err}`);
     }
   }
   boot(tryLoadWorkbook());
