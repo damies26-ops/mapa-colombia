@@ -510,11 +510,11 @@
 
         <div class="nav-group-title">Resumen</div>
         <div class="nav-list">
-          <button class="nav-btn active" data-view="view-overview">
+          <button class="nav-btn active" type="button" data-view="view-overview">
             <span class="nav-icon">🏠</span>
             <span class="nav-copy"><strong>Dashboard</strong><span>KPIs, comparativos y tendencia general.</span></span>
           </button>
-          <button class="nav-btn" data-view="view-alerts">
+          <button class="nav-btn" type="button" data-view="view-alerts">
             <span class="nav-icon">🚨</span>
             <span class="nav-copy"><strong>Alertas</strong><span>Nuevos inversionistas y seguimiento de no aporte.</span></span>
           </button>
@@ -522,11 +522,11 @@
 
         <div class="nav-group-title">Consulta</div>
         <div class="nav-list">
-          <button class="nav-btn" data-view="view-territory">
+          <button class="nav-btn" type="button" data-view="view-territory">
             <span class="nav-icon">🗺️</span>
             <span class="nav-copy"><strong>Territorio</strong><span>Detalle por ciudad y ranking territorial.</span></span>
           </button>
-          <button class="nav-btn" data-view="view-investors">
+          <button class="nav-btn" type="button" data-view="view-investors">
             <span class="nav-icon">👥</span>
             <span class="nav-copy"><strong>Inversionistas</strong><span>Historial y exploración individual o múltiple.</span></span>
           </button>
@@ -534,7 +534,7 @@
 
         <div class="nav-group-title">Análisis</div>
         <div class="nav-list">
-          <button class="nav-btn" data-view="view-trends">
+          <button class="nav-btn" type="button" data-view="view-trends">
             <span class="nav-icon">📈</span>
             <span class="nav-copy"><strong>Tendencias</strong><span>Comportamiento financiero y comparativos.</span></span>
           </button>
@@ -1506,6 +1506,25 @@
       options: chartOpts("COP", true)
     });
 
+    makeOrUpdateChart("trendChartDuplicate", {
+      type:"bar",
+      data:{
+        labels: MONTHS.map(m=>m.slice(0,3)),
+        datasets:[
+          {label:"Aportes",data:summary.monthly.map(x=>x.aportes),backgroundColor:GOLD,borderRadius:6},
+          {label:"Gastos",data:summary.monthly.map(x=>x.gastos),backgroundColor:RED,borderRadius:6},
+          {label:"Flujo neto",data:summary.monthly.map(x=>x.neto),type:"line",borderColor:GREEN,backgroundColor:"transparent",tension:.35,pointRadius:3,pointBackgroundColor:GREEN}
+        ]
+      },
+      options: chartOpts("COP")
+    });
+
+    makeOrUpdateChart("rankingChartDuplicate", {
+      type:"bar",
+      data:{ labels:rdata.map(x=>x.localidad), datasets:[{label:metricLabel(ctx.f.rankingMetric),data:rdata.map(x=>x[metricKey(ctx.f.rankingMetric)]||0),backgroundColor:GOLD,borderRadius:6}]},
+      options: chartOpts("COP", true)
+    });
+
     setText("compareSubtitle", `${ctx.f.compareA} vs ${ctx.f.compareB} — top ${ctx.f.topN} localidades.`);
     makeOrUpdateChart("compareChart", {
       type:"bar",
@@ -1752,6 +1771,7 @@
   function refresh(){
     const ctx = applyFilters();
     const summary = summarize(ctx);
+    setDebug(`Refresh OK · Inversionistas filtrados: ${ctx.investors.length} · Gastos filtrados: ${ctx.gastos.length} · Vista activa: ${document.querySelector(".view.active")?.id || "ninguna"}`);
     setExecutiveHeader(ctx,summary);
     setCompareCards(ctx,summary);
     drawCharts(ctx,summary);
@@ -1810,21 +1830,52 @@
     if (backdrop) backdrop.classList.toggle("show", !!state.sidebarMobileOpen);
   }
 
-  function setupNavigation(){
+
+  function resizeAllCharts(){
+    try{
+      Object.values(state.charts).forEach(ch => {
+        if(ch && typeof ch.resize === "function") ch.resize();
+        if(ch && typeof ch.update === "function") ch.update("none");
+      });
+    }catch(err){
+      console.warn("No fue posible redimensionar gráficos", err);
+    }
+  }
+
+  function activateView(target){
     const navButtons = [...document.querySelectorAll(".nav-btn")];
     const views = [...document.querySelectorAll(".view")];
+    navButtons.forEach(b => b.classList.toggle("active", b.dataset.view === target));
+    views.forEach(v => v.classList.toggle("active", v.id === target));
+    state.sidebarMobileOpen = false;
+    applySidebarState();
+    setDebug(`Navegando a ${target}…`);
+    requestAnimationFrame(() => {
+      refresh();
+      setTimeout(() => {
+        resizeAllCharts();
+        setDebug(`Vista activa: ${target}. Datos refrescados correctamente.`);
+      }, 80);
+    });
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function setupNavigation(){
+    const navButtons = [...document.querySelectorAll(".nav-btn")];
+    setDebug(`Menús detectados: ${navButtons.length}. Preparando navegación…`);
+
     navButtons.forEach(btn => {
-      btn.addEventListener("click", () => {
+      btn.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
         const target = btn.dataset.view;
-        navButtons.forEach(b => b.classList.toggle("active", b === btn));
-        views.forEach(v => v.classList.toggle("active", v.id === target));
-        state.sidebarMobileOpen = false;
-        applySidebarState();
-        window.scrollTo({ top: 0, behavior: "smooth" });
+        if(!target) return;
+        activateView(target);
       });
     });
 
-    $("desktopSidebarToggle")?.addEventListener("click", () => {
+    $("desktopSidebarToggle")?.addEventListener("click", (e) => {
+      e.preventDefault();
       if (window.innerWidth <= 1200) {
         state.sidebarMobileOpen = !state.sidebarMobileOpen;
       } else {
@@ -1833,7 +1884,8 @@
       applySidebarState();
     });
 
-    $("mobileSidebarToggle")?.addEventListener("click", () => {
+    $("mobileSidebarToggle")?.addEventListener("click", (e) => {
+      e.preventDefault();
       state.sidebarMobileOpen = !state.sidebarMobileOpen;
       applySidebarState();
     });
@@ -1848,6 +1900,7 @@
         state.sidebarMobileOpen = false;
       }
       applySidebarState();
+      resizeAllCharts();
     });
 
     applySidebarState();
@@ -1863,7 +1916,8 @@
       wireEventsOnce();
       setupNavigation();
       renderInvestorChipList();
-      refresh(); setDebug(`Dashboard cargado correctamente. Filas inversionistas: ${state.investors.length}, filas gastos: ${state.gastos.length}.`);
+      activateView("view-overview");
+      setDebug(`Dashboard cargado correctamente. Filas inversionistas: ${state.investors.length}, filas gastos: ${state.gastos.length}.`);
       setTimestamp();
       setText("sourceLabel", state.fileName);
     }catch(err){
