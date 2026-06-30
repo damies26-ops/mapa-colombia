@@ -1086,6 +1086,8 @@
   const MONTHS = ["ENERO","FEBRERO","MARZO","ABRIL","MAYO","JUNIO","JULIO","AGOSTO","SEPTIEMBRE","OCTUBRE","NOVIEMBRE","DICIEMBRE"];
   const state = { investors:[], gastos:[], charts:{}, fileName:"dashboard.xlsx", sidebarCollapsed:false, sidebarMobileOpen:false };
   const $ = (id) => document.getElementById(id);
+  const setText = (id, value) => { const el = $(id); if (el) el.textContent = value; };
+  const setHTML = (id, value) => { const el = $(id); if (el) el.innerHTML = value; };
   const filters = {
     localidad:$("filterLocalidad"), clasif:$("filterClasif"),
     meses:$("filterMeses"), cuotasMin:$("filterCuotasMin"), topN:$("filterTopN"),
@@ -1417,13 +1419,15 @@
   function metricLabel(m){ return ({aportes:"Aportes del período",cuotas:"Cuotas enteras",neto:"Flujo neto"})[m] || m; }
   function metricKey(m){ return ({aportes:"aportes",cuotas:"cuotas",neto:"neto"})[m] || "aportes"; }
   function makeOrUpdateChart(id,cfg){
+    const canvas = document.getElementById(id);
+    if(!canvas) return;
     if(state.charts[id]){
       state.charts[id].data = cfg.data;
       state.charts[id].options = cfg.options;
       state.charts[id].update();
       return;
     }
-    state.charts[id] = new Chart(document.getElementById(id).getContext("2d"), cfg);
+    state.charts[id] = new Chart(canvas.getContext("2d"), cfg);
   }
   const GOLD="#c8a13f", RED="#e05252", GREEN="#22c993", BLUE="#5b8dee", BLUE2="#3a6bd4";
   const GRID="rgba(255,255,255,.06)", TICK="#6b6560";
@@ -1477,14 +1481,14 @@
     });
 
     const rdata = [...summary.ranking].sort((a,b)=>(b[metricKey(ctx.f.rankingMetric)]||0)-(a[metricKey(ctx.f.rankingMetric)]||0)).slice(0,ctx.f.topN);
-    $("rankingSubtitle").textContent = `Top ${ctx.f.topN} por ${metricLabel(ctx.f.rankingMetric)}.`;
+    setText("rankingSubtitle", `Top ${ctx.f.topN} por ${metricLabel(ctx.f.rankingMetric)}.`);
     makeOrUpdateChart("rankingChart", {
       type:"bar",
       data:{ labels:rdata.map(x=>x.localidad), datasets:[{label:metricLabel(ctx.f.rankingMetric),data:rdata.map(x=>x[metricKey(ctx.f.rankingMetric)]||0),backgroundColor:GOLD,borderRadius:6}]},
       options: chartOpts("COP", true)
     });
 
-    $("compareSubtitle").textContent = `${ctx.f.compareA} vs ${ctx.f.compareB} — top ${ctx.f.topN} localidades.`;
+    setText("compareSubtitle", `${ctx.f.compareA} vs ${ctx.f.compareB} — top ${ctx.f.topN} localidades.`);
     makeOrUpdateChart("compareChart", {
       type:"bar",
       data:{
@@ -1579,7 +1583,7 @@
         <td>${formatNumber(r.cuotas)}</td>
         <td>${formatNumber(r.activos)}</td>
       </tr>`).join("");
-    $("rankingTable").innerHTML = rankingRows || `<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--ink-3)">Sin datos para el filtro actual.</td></tr>`;
+    setHTML("rankingTable", rankingRows || `<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--ink-3)">Sin datos para el filtro actual.</td></tr>`);
 
     const cityRows = summary.cityTopInvestors.map(r=>`<tr>
       <td>${r.nombre}</td>
@@ -1587,17 +1591,13 @@
       <td>${formatNumber(r.cuotas)}</td>
       <td><span style="background:var(--gold-dim);color:var(--gold-light);padding:2px 8px;border-radius:999px;font-size:11px;font-weight:700">${r.forma}</span></td>
     </tr>`).join("");
-    $("cityInvestorsTable").innerHTML = cityRows || `<tr><td colspan="4" style="text-align:center;padding:24px;color:var(--ink-3)">Sin inversionistas para esta ciudad.</td></tr>`;
+    setHTML("cityInvestorsTable", cityRows || `<tr><td colspan="4" style="text-align:center;padding:24px;color:var(--ink-3)">Sin inversionistas para esta ciudad.</td></tr>`);
   }
   function renderInvestorSelection(summary){
-    $("investorSelectionCount").textContent = formatNumber(summary.selectedInvestorNames.length);
-    $("investorSelectionSummary").textContent = summary.selectedInvestorNames.length
-      ? `${summary.selectedInvestorNames.length} inversionista(s) seleccionados`
-      : "Sin selección";
-    $("investorSelectionTotal").textContent = formatCurrency(summary.selectedInvestorTotal);
-    $("investorSelectionNote").textContent = summary.selectedInvestorNames.length > 10
-      ? "El gráfico muestra los primeros 10 seleccionados"
-      : "Historial por meses de la selección";
+    setText("investorSelectionCount", formatNumber(summary.selectedInvestorNames.length));
+    setText("investorSelectionSummary", summary.selectedInvestorNames.length ? `${summary.selectedInvestorNames.length} inversionista(s) seleccionados` : "Sin selección");
+    setText("investorSelectionTotal", formatCurrency(summary.selectedInvestorTotal));
+    setText("investorSelectionNote", summary.selectedInvestorNames.length > 10 ? "El gráfico muestra los primeros 10 seleccionados" : "Historial por meses de la selección");
 
     const rows = summary.investorHistoryRows.map(r => `
       <tr>
@@ -1606,16 +1606,12 @@
         <td>${formatNumber(r.active)}</td>
       </tr>
     `).join("");
-    $("investorHistoryTable").innerHTML = rows || `<tr><td colspan="3" style="text-align:center;padding:24px;color:var(--ink-3)">Sin datos para la selección.</td></tr>`;
+    setHTML("investorHistoryTable", rows || `<tr><td colspan="3" style="text-align:center;padding:24px;color:var(--ink-3)">Sin datos para la selección.</td></tr>`);
   }
 
   function renderInvestorStatusDetails(summary){
-    $("newInvestorDetailSub").textContent = summary.previousMonth
-      ? `Aportaron en ${summary.currentMonth} y no lo hicieron en ${summary.previousMonth}`
-      : `No hay mes anterior para comparar con ${summary.currentMonth}`;
-    $("inactiveInvestorDetailSub").textContent = summary.previousMonth
-      ? `No aportaron en ${summary.currentMonth}, pero sí en ${summary.previousMonth}`
-      : `No hay mes anterior para comparar con ${summary.currentMonth}`;
+    setText("newInvestorDetailSub", summary.previousMonth ? `Aportaron en ${summary.currentMonth} y no lo hicieron en ${summary.previousMonth}` : `No hay mes anterior para comparar con ${summary.currentMonth}`);
+    setText("inactiveInvestorDetailSub", summary.previousMonth ? `No aportaron en ${summary.currentMonth}, pero sí en ${summary.previousMonth}` : `No hay mes anterior para comparar con ${summary.currentMonth}`);
 
     const newRows = summary.newInvestors.map(r => `
       <tr>
@@ -1625,7 +1621,7 @@
         <td>${formatCurrency(r.currentValue)}</td>
       </tr>
     `).join("");
-    $("newInvestorsTable").innerHTML = newRows || `<tr><td colspan="4" style="text-align:center;padding:24px;color:var(--ink-3)">Sin inversionistas nuevos para el período actual.</td></tr>`;
+    setHTML("newInvestorsTable", newRows || `<tr><td colspan="4" style="text-align:center;padding:24px;color:var(--ink-3)">Sin inversionistas nuevos para el período actual.</td></tr>`);
 
     const inactiveRows = summary.inactiveInvestors.map(r => `
       <tr>
@@ -1635,16 +1631,16 @@
         <td>${formatCurrency(r.previousValue)}</td>
       </tr>
     `).join("");
-    $("inactiveInvestorsTable").innerHTML = inactiveRows || `<tr><td colspan="4" style="text-align:center;padding:24px;color:var(--ink-3)">Sin inversionistas sin aporte para el período actual.</td></tr>`;
+    setHTML("inactiveInvestorsTable", inactiveRows || `<tr><td colspan="4" style="text-align:center;padding:24px;color:var(--ink-3)">Sin inversionistas sin aporte para el período actual.</td></tr>`);
   }
 
   function renderCityDetail(summary){
-    $("cityName").textContent = summary.city || "--";
-    $("citySub").textContent = "Vista ejecutiva de la ciudad seleccionada";
-    $("cityAportes").textContent = formatCurrency(summary.cityAportes);
-    $("cityNeto").textContent = formatCurrency(summary.cityNeto);
-    $("cityNeto").style.color = summary.cityNeto >= 0 ? "var(--green)" : "var(--red)";
-    $("cityCuotas").textContent = formatNumber(summary.cityCuotas);
+    setText("cityName", summary.city || "--");
+    setText("citySub", "Vista ejecutiva de la ciudad seleccionada");
+    setText("cityAportes", formatCurrency(summary.cityAportes));
+    setText("cityNeto", formatCurrency(summary.cityNeto));
+    if ($("cityNeto")) $("cityNeto").style.color = summary.cityNeto >= 0 ? "var(--green)" : "var(--red)";
+    setText("cityCuotas", formatNumber(summary.cityCuotas));
   }
   function signalStatus(type,value){
     if(type==="liquidity"){ if(value>0)return{cls:"ok",text:"saludable"}; if(value===0)return{cls:"warn",text:"estable"}; return{cls:"alert",text:"alerta"}; }
@@ -1652,22 +1648,22 @@
     if(type==="concentration"){ if(value<=.25)return{cls:"ok",text:"diversificado"}; if(value<=.4)return{cls:"warn",text:"medio"}; return{cls:"alert",text:"concentrado"}; }
     return{cls:"warn",text:"revisar"};
   }
-  function setBadge(id,s){ const el=$(id); el.className=`badge ${s.cls}`; el.textContent=s.text; }
+  function setBadge(id,s){ const el=$(id); if(!el) return; el.className=`badge ${s.cls}`; el.textContent=s.text; }
   function setExecutiveHeader(ctx,summary){
-    $("sourceLabel").textContent = state.fileName || "dashboard.xlsx";
-    $("heroAportes").textContent = formatCurrency(summary.aportesPeriodo);
-    $("heroGastos").textContent = formatCurrency(summary.gastosPeriodo);
-    $("heroNeto").textContent = formatCurrency(summary.neto);
-    $("heroNeto").style.color = summary.neto >= 0 ? "var(--green)" : "var(--red)";
-    $("heroActivos").textContent = formatNumber(summary.activos);
-    $("heroAportesSub").textContent = `Meses: ${ctx.months.join(", ")}`;
-    $("heroGastosSub").textContent = `Clasificaciones: ${selMulti(filters.clasif).length}`;
-    $("heroNetoSub").textContent = "Neto = aportes − gastos";
-    $("heroActivosSub").textContent = `${formatNumber(summary.localidadesActivas)} localidades activas`;
+    setText("sourceLabel", state.fileName || "dashboard.xlsx");
+    setText("heroAportes", formatCurrency(summary.aportesPeriodo));
+    setText("heroGastos", formatCurrency(summary.gastosPeriodo));
+    setText("heroNeto", formatCurrency(summary.neto));
+    if ($("heroNeto")) $("heroNeto").style.color = summary.neto >= 0 ? "var(--green)" : "var(--red)";
+    setText("heroActivos", formatNumber(summary.activos));
+    setText("heroAportesSub", `Meses: ${ctx.months.join(", ")}`);
+    setText("heroGastosSub", `Clasificaciones: ${selMulti(filters.clasif).length}`);
+    setText("heroNetoSub", "Neto = aportes − gastos");
+    setText("heroActivosSub", `${formatNumber(summary.localidadesActivas)} localidades activas`);
     setBadge("signalLiquidityBadge", signalStatus("liquidity", summary.neto));
     setBadge("signalEfficiencyBadge", signalStatus("efficiency", summary.gastoRatio));
     setBadge("signalConcentrationBadge", signalStatus("concentration", summary.topLocalityShare));
-    $("signalLiquidityValue").textContent = formatCurrency(summary.neto);
+    setText("signalLiquidityValue", formatCurrency(summary.neto));
     $("signalEfficiencyValue").textContent = formatPct(summary.gastoRatio);
     $("signalConcentrationValue").textContent = formatPct(summary.topLocalityShare);
   }
@@ -1847,7 +1843,7 @@
       renderInvestorChipList();
       refresh();
       setTimestamp();
-      $("sourceLabel").textContent = state.fileName;
+      setText("sourceLabel", state.fileName);
     }catch(err){
       console.error(err);
       alert(`No fue posible cargar el dashboard: ${err.message || err}`);
