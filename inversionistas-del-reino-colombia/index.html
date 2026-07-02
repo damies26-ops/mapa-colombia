@@ -1016,7 +1016,7 @@
               <div class="table-wrap">
                 <table>
                   <thead>
-                    <tr><th>Nombre</th><th>Localidad</th><th>Mes actual</th><th>Aporte faltante</th></tr>
+                    <tr><th>Nombre</th><th>Localidad</th><th>Último aporte</th><th>Valor</th></tr>
                   </thead>
                   <tbody id="inactiveInvestorsTable"></tbody>
                 </table>
@@ -1152,6 +1152,7 @@
                   <button type="button" id="investorSelectAllBtn">Seleccionar todos</button>
                   <button type="button" id="investorClearBtn">Limpiar selección</button>
                 </div>
+                <div class="filter-hint" style="margin-top:0;margin-bottom:10px">💡 Clic en un nombre para ver <strong style="color:var(--gold)">solo su historial</strong>. Clic de nuevo para volver a ver a todos.</div>
                 <div id="cityInvestorChips" class="chips-wrap"></div>
                 <div id="cityInvestorChipCount" class="chip-count">0 seleccionados</div>
               </div>
@@ -1249,7 +1250,7 @@
   const SHEET_INV = "Base Inversionistas 26";
   const SHEET_GASTOS = "Gastos 26";
   const MONTHS = ["ENERO","FEBRERO","MARZO","ABRIL","MAYO","JUNIO","JULIO","AGOSTO","SEPTIEMBRE","OCTUBRE","NOVIEMBRE","DICIEMBRE"];
-  const state = { investors:[], gastos:[], charts:{}, fileName:"dashboard.xlsx", sidebarCollapsed:false, sidebarMobileOpen:false };
+  const state = { investors:[], gastos:[], dataMonths:[], charts:{}, fileName:"dashboard.xlsx", sidebarCollapsed:false, sidebarMobileOpen:false };
   const $ = (id) => document.getElementById(id);
   const setText = (id, value) => { const el = $(id); if (el) el.textContent = value; };
   const setHTML = (id, value) => { const el = $(id); if (el) el.innerHTML = value; };
@@ -1319,9 +1320,17 @@
   }
   function monthTotal(row,months){ return months.reduce((s,m)=>s + toNumber(row[m]),0); }
   function buildDatasets(wb){
+    const populatedMonths = new Set();
+    const trackMonths = (row) => {
+      MONTHS.forEach(m => {
+        const v = row[m];
+        if (v !== null && v !== undefined && v !== "") populatedMonths.add(m);
+      });
+    };
     const investors = sheetToObjects(wb,SHEET_INV)
       .filter(row => normalizeText(row["TIPO DE MOVIMIENTO"]) === "CREDITO")
       .map((row,idx)=>{
+        trackMonths(row);
         const o = {...row, _id:idx+1};
         o.LOCALIDAD_NORM = canonicalLocalidad(row["LOCALIDAD"]);
         o.FORMA_NORM = normalizeText(row["FORMA"] || "SIN FORMA") || "SIN FORMA";
@@ -1337,6 +1346,7 @@
     const gastos = sheetToObjects(wb,SHEET_GASTOS)
       .filter(row => normalizeText(row["TIPO DE MOVIMIENTO"]) === "DEBITO")
       .map((row,idx)=>{
+        trackMonths(row);
         const o = {...row, _id:idx+1};
         o.LOCALIDAD_NORM = canonicalLocalidad(row["LOCALIDAD"]);
         o.CLASIF_NORM = normalizeText(row["CLASIF"] || "SIN CLASIFICACIÓN") || "SIN CLASIFICACIÓN";
@@ -1346,7 +1356,8 @@
         return o;
       });
 
-    return { investors, gastos };
+    const dataMonths = MONTHS.filter(m => populatedMonths.has(m));
+    return { investors, gastos, dataMonths };
   }
   function uniqueSorted(vals){ return [...new Set(vals.filter(Boolean))].sort((a,b)=>a.localeCompare(b,"es")); }
   function setMultiOptions(sel,vals){
@@ -1424,7 +1435,16 @@
         chip.className = "chip-item" + (o.selected ? " active" : "");
         chip.textContent = o.value;
         chip.addEventListener("click", () => {
-          o.selected = !o.selected;
+          const allOptions = [...filters.investor.options];
+          const currentlySelected = allOptions.filter(opt => opt.selected);
+          const isolatedOnThis = o.selected && currentlySelected.length === 1;
+          if (isolatedOnThis) {
+            // Ya estaba aislado en esta persona: un segundo clic vuelve a la vista de todos
+            allOptions.forEach(opt => { opt.selected = true; });
+          } else {
+            // Aísla la selección en la persona clicada, para mostrar sus datos correctos
+            allOptions.forEach(opt => { opt.selected = (opt === o); });
+          }
           renderInvestorChipList();
           refresh(); setDebug(`Dashboard cargado correctamente. Filas inversionistas: ${state.investors.length}, filas gastos: ${state.gastos.length}.`);
         });
@@ -1499,7 +1519,11 @@
     const gastoRatio = aportesPeriodo ? gastosPeriodo / aportesPeriodo : 0;
 
     const selectedMonthIndexes = months.map(m => MONTHS.indexOf(m)).filter(i => i >= 0).sort((a,b) => a - b);
-    const currentMonthIndex = selectedMonthIndexes.length ? selectedMonthIndexes[selectedMonthIndexes.length - 1] : MONTHS.length - 1;
+    const dataMonths = state.dataMonths && state.dataMonths.length ? state.dataMonths : MONTHS;
+    const dataMonthIndexes = dataMonths.map(m => MONTHS.indexOf(m));
+    const eligibleIndexes = selectedMonthIndexes.filter(i => dataMonthIndexes.includes(i));
+    const currentIndexPool = eligibleIndexes.length ? eligibleIndexes : (dataMonthIndexes.length ? dataMonthIndexes : selectedMonthIndexes);
+    const currentMonthIndex = currentIndexPool.length ? currentIndexPool[currentIndexPool.length - 1] : MONTHS.length - 1;
     const previousMonthIndex = currentMonthIndex > 0 ? currentMonthIndex - 1 : -1;
     const currentMonth = MONTHS[currentMonthIndex];
     const previousMonth = previousMonthIndex >= 0 ? MONTHS[previousMonthIndex] : null;
@@ -1507,12 +1531,27 @@
     const investorBase = investors.map(r => {
       const nombre = (r["NOMBRES"] || "Sin nombre").trim() || "Sin nombre";
       const currentValue = Number(r[currentMonth] || 0);
-      const previousValue = previousMonth ? Number(r[previousMonth] || 0) : 0;
-      return { nombre, localidad: r.LOCALIDAD_NORM, currentValue, previousValue };
+      const prevIdx1 = currentMonthIndex - 1;
+      const prevIdx2 = currentMonthIndex - 2;
+      const prevValue1 = prevIdx1 >= 0 ? Number(r[MONTHS[prevIdx1]] || 0) : 0;
+      const prevValue2 = prevIdx2 >= 0 ? Number(r[MONTHS[prevIdx2]] || 0) : 0;
+      // Regla 1: "nuevo" exige que en los hasta dos meses inmediatamente anteriores no haya aporte
+      const sinAporteUltimosDosMeses = (prevIdx1 < 0 || prevValue1 <= 0) && (prevIdx2 < 0 || prevValue2 <= 0);
+      // Regla 2: "sin aporte" exige que haya existido aporte en CUALQUIER mes anterior al actual
+      let lastAporteMonth = null, lastAporteValue = 0;
+      for (let i = currentMonthIndex - 1; i >= 0; i--) {
+        const v = Number(r[MONTHS[i]] || 0);
+        if (v > 0) { lastAporteMonth = MONTHS[i]; lastAporteValue = v; break; }
+      }
+      return { nombre, localidad: r.LOCALIDAD_NORM, currentValue, previousValue: prevValue1, sinAporteUltimosDosMeses, lastAporteMonth, lastAporteValue };
     });
 
-    const newInvestors = investorBase.filter(r => r.currentValue > 0 && r.previousValue <= 0).sort((a,b) => b.currentValue - a.currentValue);
-    const inactiveInvestors = investorBase.filter(r => r.currentValue <= 0 && r.previousValue > 0).sort((a,b) => b.previousValue - a.previousValue);
+    const newInvestors = investorBase
+      .filter(r => r.currentValue > 0 && r.sinAporteUltimosDosMeses)
+      .sort((a,b) => b.currentValue - a.currentValue);
+    const inactiveInvestors = investorBase
+      .filter(r => r.currentValue <= 0 && r.lastAporteMonth)
+      .sort((a,b) => b.lastAporteValue - a.lastAporteValue);
 
     const compareA = monthly.find(m=>m.month===ctx.f.compareA) || {aportes:0,gastos:0,neto:0};
     const compareB = monthly.find(m=>m.month===ctx.f.compareB) || {aportes:0,gastos:0,neto:0};
@@ -1824,8 +1863,14 @@
   }
 
   function renderInvestorStatusDetails(summary){
-    setText("newInvestorDetailSub", summary.previousMonth ? `Aportaron en ${summary.currentMonth} y no lo hicieron en ${summary.previousMonth}` : `No hay mes anterior para comparar con ${summary.currentMonth}`);
-    setText("inactiveInvestorDetailSub", summary.previousMonth ? `No aportaron en ${summary.currentMonth}, pero sí en ${summary.previousMonth}` : `No hay mes anterior para comparar con ${summary.currentMonth}`);
+    const isExample = !state.investors.length || !summary.currentMonth;
+    const cur = summary.currentMonth || "Diciembre";
+    const prev = summary.previousMonth || "Noviembre";
+    const prev2Idx = MONTHS.indexOf(prev) - 1;
+    const prev2 = prev2Idx >= 0 ? MONTHS[prev2Idx] : "Octubre";
+    const prefix = isExample ? "Ej: " : "";
+    setText("newInvestorDetailSub", `${prefix}Sin aporte en ${prev} y ${prev2}, con aporte nuevo registrado en ${cur}`);
+    setText("inactiveInvestorDetailSub", `${prefix}Tuvieron aportes en meses previos, sin aporte registrado en ${cur}`);
 
     const newRows = summary.newInvestors.map(r => `
       <tr>
@@ -1841,8 +1886,8 @@
       <tr>
         <td>${r.nombre}</td>
         <td>${r.localidad}</td>
-        <td>${summary.currentMonth}</td>
-        <td>${formatCurrency(r.previousValue)}</td>
+        <td>${r.lastAporteMonth || "--"}</td>
+        <td>${formatCurrency(r.lastAporteValue)}</td>
       </tr>
     `).join("");
     setHTML("inactiveInvestorsTable", inactiveRows || `<tr><td colspan="4" style="text-align:center;padding:24px;color:var(--ink-3)">Sin inversionistas sin aporte para el período actual.</td></tr>`);
@@ -2152,6 +2197,7 @@
       const ds = buildDatasets(wb);
       state.investors = ds.investors;
       state.gastos = ds.gastos;
+      state.dataMonths = ds.dataMonths && ds.dataMonths.length ? ds.dataMonths : MONTHS;
       initializeFilters();
       wireEventsOnce();
       setupNavigation();
