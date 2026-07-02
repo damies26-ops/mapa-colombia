@@ -343,7 +343,7 @@
 
 
     @media (max-width:1320px) {
-      .hero-grid, .summary-grid, .layout-2, .city-top, .filter-row { grid-template-columns: 1fr; }
+      .hero-grid, .summary-grid, .layout-2, .city-top, .filter-row, .overview-grid { grid-template-columns: 1fr; }
       .hero-kpis { grid-template-columns: repeat(2,1fr); }
       .compare-cards, .signal-wrap { grid-template-columns: repeat(2,1fr); }
       .cards-inline { grid-template-columns: repeat(2,1fr); }
@@ -355,25 +355,157 @@
     }
   
     :root {
-      --sidebar-w: 294px;
-      --sidebar-collapsed: 92px;
+      --sidebar-w: 280px;
+      --sidebar-collapsed: 88px;
     }
-    .app-shell { transition: grid-template-columns .24s ease; }
+
+    /* ===== App shell layout (sidebar + workspace) ===== */
+    .app-shell {
+      display: grid;
+      grid-template-columns: var(--sidebar-w) 1fr;
+      gap: 20px;
+      align-items: start;
+      transition: grid-template-columns .24s ease;
+    }
     .app-shell.sidebar-collapsed { grid-template-columns: var(--sidebar-collapsed) 1fr; }
+
     .sidebar {
       transition: width .24s ease, transform .24s ease, padding .24s ease;
       width: var(--sidebar-w);
-      overflow: hidden;
-      backdrop-filter: blur(14px);
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 18px 16px 20px;
+      position: sticky;
+      top: 20px;
+      max-height: calc(100vh - 40px);
+      overflow-y: auto;
+      overflow-x: hidden;
+      box-shadow: var(--shadow);
+      scrollbar-width: thin;
+      scrollbar-color: rgba(200,161,63,.3) transparent;
     }
-    .app-shell.sidebar-collapsed .sidebar { width: var(--sidebar-collapsed); padding-left: 14px; padding-right: 14px; }
+    .sidebar::-webkit-scrollbar { width: 6px; }
+    .sidebar::-webkit-scrollbar-thumb { background: rgba(200,161,63,.25); border-radius: 6px; }
+
+    .sidebar-brand { display: flex; align-items: center; gap: 12px; padding: 4px 6px 16px; }
+    .sidebar-logo {
+      width: 44px; height: 44px; border-radius: 12px; flex-shrink: 0;
+      background: var(--gold-dim); border: 1px solid var(--border-bright);
+      display: flex; align-items: center; justify-content: center; font-size: 22px;
+    }
+    .sidebar-brand h2 { font-size: 14.5px; font-weight: 800; color: var(--gold-light); letter-spacing: -.2px; white-space: nowrap; }
+    .sidebar-brand p { font-size: 10.5px; color: var(--ink-3); margin-top: 2px; white-space: nowrap; }
+
+    .sidebar-search {
+      display: flex; align-items: center; gap: 8px;
+      background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px;
+      padding: 8px 10px; margin: 2px 0 14px;
+    }
+    .sidebar-search input { border: none; background: transparent; padding: 0; font-size: 12px; width: 100%; }
+    .sidebar-search input:focus { box-shadow: none; }
+    .sidebar-search .ic { font-size: 13px; color: var(--ink-3); flex-shrink: 0; }
+
+    .nav-group { margin-bottom: 4px; }
+    .nav-group-title {
+      display: flex; align-items: center; justify-content: space-between;
+      font-size: 10px; text-transform: uppercase; letter-spacing: .1em;
+      color: var(--ink-3); font-weight: 800;
+      margin: 14px 8px 6px; cursor: pointer; user-select: none;
+    }
+    .nav-group-title .chev { font-size: 9px; transition: transform .18s ease; color: var(--ink-3); }
+    .nav-group.collapsed .nav-list { display: none; }
+    .nav-group.collapsed .chev { transform: rotate(-90deg); }
+
+    .nav-list { display: flex; flex-direction: column; gap: 3px; }
+    .nav-btn {
+      display: flex; align-items: center; gap: 12px; width: 100%; text-align: left;
+      background: transparent; color: var(--ink-2);
+      border: 1px solid transparent; border-radius: 12px;
+      padding: 10px 12px; cursor: pointer; box-shadow: none;
+    }
+    .nav-btn:hover { background: rgba(255,255,255,.045); border-color: var(--border); transform: none; }
+    .nav-btn.active {
+      background: var(--gold-dim); border-color: var(--border-bright); color: var(--gold-light);
+      box-shadow: inset 2px 0 0 var(--gold);
+    }
+    .nav-icon { width: 22px; flex: 0 0 22px; text-align: center; font-size: 16px; }
+    .nav-copy { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+    .nav-copy strong { font-size: 12.5px; font-weight: 700; line-height: 1.3; }
+    .nav-copy span { font-size: 10.5px; color: var(--ink-3); font-weight: 500; line-height: 1.3; white-space: normal; }
+    .nav-btn.active .nav-copy span { color: rgba(224,184,74,.75); }
+    .nav-btn.hidden-by-search { display: none; }
+
+    .app-shell.sidebar-collapsed .sidebar { width: var(--sidebar-collapsed); padding-left: 12px; padding-right: 12px; }
     .app-shell.sidebar-collapsed .sidebar-brand h2,
     .app-shell.sidebar-collapsed .sidebar-brand p,
+    .app-shell.sidebar-collapsed .sidebar-search,
     .app-shell.sidebar-collapsed .nav-group-title,
     .app-shell.sidebar-collapsed .nav-copy { display:none; }
     .app-shell.sidebar-collapsed .sidebar-brand { justify-content:center; }
     .app-shell.sidebar-collapsed .nav-btn { justify-content:center; padding:14px 10px; }
-    .app-shell.sidebar-collapsed .nav-icon { width:auto; flex:0 0 auto; font-size:18px; }
+    .app-shell.sidebar-collapsed .nav-btn.active { box-shadow: none; border-color: var(--border-bright); }
+    .app-shell.sidebar-collapsed .nav-icon { width:auto; flex:0 0 auto; font-size:19px; }
+
+    /* ===== Workspace (right pane) ===== */
+    .workspace { min-width: 0; display: flex; flex-direction: column; gap: 14px; }
+
+    /* Top icon rail — quick access shortcuts, mirrors the sidebar in the header */
+    .icon-rail {
+      display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+      background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
+      padding: 8px; position: sticky; top: 0; z-index: 20;
+      backdrop-filter: blur(14px); box-shadow: var(--shadow);
+    }
+    .icon-rail-btn {
+      display: flex; align-items: center; gap: 7px;
+      background: transparent; border: 1px solid transparent; color: var(--ink-2);
+      border-radius: 11px; padding: 8px 12px; font-size: 12px; font-weight: 700;
+    }
+    .icon-rail-btn .ic { font-size: 15px; }
+    .icon-rail-btn:hover { background: rgba(255,255,255,.05); }
+    .icon-rail-btn.active { background: var(--gold-dim); color: var(--gold-light); border-color: var(--border-bright); }
+    .icon-rail-sep { width: 1px; align-self: stretch; background: var(--border); margin: 0 2px; }
+    .icon-rail-crumb { margin-left: auto; font-size: 11px; color: var(--ink-3); padding-right: 6px; white-space: nowrap; }
+    .icon-rail-crumb strong { color: var(--gold-light); }
+    @media (max-width: 720px) { .icon-rail-btn span.lbl { display: none; } .icon-rail-crumb { display:none; } }
+
+    .workspace-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+    .workspace-title h1 { font-size: 26px; letter-spacing: -.03em; }
+    .workspace-title p { line-height: 1.55; font-size: 13px; color: var(--ink-2); max-width: 640px; margin-top: 4px; }
+    .quick-pills { display: flex; gap: 8px; flex-wrap: wrap; }
+    .quick-pill {
+      padding: 6px 12px; border-radius: 999px; border: 1px solid var(--border);
+      font-size: 11px; color: var(--ink-2);
+      background: linear-gradient(135deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+    }
+
+    /* ===== View switching (this is what makes the navigation actually work) ===== */
+    .view { display: none; }
+    .view.active { display: block; animation: viewIn .22s ease; }
+    .view.active > * + * { margin-top: 14px; }
+    @keyframes viewIn { from { opacity:0; transform: translateY(6px);} to {opacity:1; transform:translateY(0);} }
+
+    .view-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+    .hero--compact { padding: 22px 24px 20px; }
+    .overview-grid { display: grid; grid-template-columns: 1.6fr 1fr; gap: 12px; align-items: stretch; }
+    .summary-stack { display: flex; flex-direction: column; gap: 12px; }
+    .card.panel.wide canvas { height: 300px !important; }
+
+    /* KPI trend badges */
+    .kpi-trend { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 800; margin-top: 6px; padding: 2px 8px; border-radius: 999px; }
+    .kpi-trend.up { color: var(--green); background: var(--green-soft); }
+    .kpi-trend.down { color: var(--red); background: var(--red-soft); }
+    .kpi-trend.flat { color: var(--amber); background: var(--amber-soft); }
+
+    .variations-wrap { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .var-row { display: flex; align-items: center; justify-content: space-between; padding: 9px 12px; border-radius: 10px; background: var(--surface-2); border: 1px solid var(--border); margin-bottom: 6px; }
+    .var-row .name { font-size: 12.5px; color: var(--ink); font-weight: 600; }
+    .var-row .delta-val { font-size: 12.5px; font-weight: 800; }
+    @media (max-width: 900px) { .variations-wrap { grid-template-columns: 1fr; } }
 
     .mobile-topbar {
       display:none;
@@ -464,6 +596,7 @@
         bottom: 12px;
         z-index: 50;
         min-height: auto;
+        max-height: none;
         transform: translateX(-120%);
         width: min(86vw, 320px);
       }
@@ -474,11 +607,18 @@
       .app-shell.sidebar-collapsed .sidebar { width: min(86vw, 320px); padding-left: 18px; padding-right: 18px; }
       .app-shell.sidebar-collapsed .sidebar-brand h2,
       .app-shell.sidebar-collapsed .sidebar-brand p,
+      .app-shell.sidebar-collapsed .sidebar-search,
       .app-shell.sidebar-collapsed .nav-group-title,
       .app-shell.sidebar-collapsed .nav-copy { display:block; }
       .app-shell.sidebar-collapsed .nav-btn { justify-content:flex-start; padding:12px; }
       .app-shell.sidebar-collapsed .nav-icon { width:18px; }
       .workspace-title h1 { font-size:24px; }
+      .icon-rail { top: 0; border-radius: 14px; }
+      .overview-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 640px) {
+      .icon-rail-btn span.lbl { display:none; }
+      .icon-rail-btn { padding: 9px 10px; }
     }
 
   </style>
@@ -508,40 +648,62 @@
           </div>
         </div>
 
-        <div class="nav-group-title">Resumen</div>
-        <div class="nav-list">
-          <button class="nav-btn active" type="button" data-view="view-overview">
-            <span class="nav-icon">🏠</span>
-            <span class="nav-copy"><strong>Dashboard</strong><span>KPIs, comparativos y tendencia general.</span></span>
-          </button>
-          <button class="nav-btn" type="button" data-view="view-alerts">
-            <span class="nav-icon">🚨</span>
-            <span class="nav-copy"><strong>Alertas</strong><span>Nuevos inversionistas y seguimiento de no aporte.</span></span>
-          </button>
+        <div class="sidebar-search">
+          <span class="ic">🔎</span>
+          <input id="navSearch" type="text" placeholder="Buscar sección..." autocomplete="off" />
         </div>
 
-        <div class="nav-group-title">Consulta</div>
-        <div class="nav-list">
-          <button class="nav-btn" type="button" data-view="view-territory">
-            <span class="nav-icon">🗺️</span>
-            <span class="nav-copy"><strong>Territorio</strong><span>Detalle por ciudad y ranking territorial.</span></span>
-          </button>
-          <button class="nav-btn" type="button" data-view="view-investors">
-            <span class="nav-icon">👥</span>
-            <span class="nav-copy"><strong>Inversionistas</strong><span>Historial y exploración individual o múltiple.</span></span>
-          </button>
+        <div class="nav-group" data-group="resumen">
+          <div class="nav-group-title"><span>Resumen</span><span class="chev">▾</span></div>
+          <div class="nav-list">
+            <button class="nav-btn active" type="button" data-view="view-overview">
+              <span class="nav-icon">🏠</span>
+              <span class="nav-copy"><strong>Dashboard</strong><span>KPIs, comparativos y tendencia general.</span></span>
+            </button>
+            <button class="nav-btn" type="button" data-view="view-alerts">
+              <span class="nav-icon">🚨</span>
+              <span class="nav-copy"><strong>Alertas</strong><span>Nuevos inversionistas y seguimiento de no aporte.</span></span>
+            </button>
+          </div>
         </div>
 
-        <div class="nav-group-title">Análisis</div>
-        <div class="nav-list">
-          <button class="nav-btn" type="button" data-view="view-trends">
-            <span class="nav-icon">📈</span>
-            <span class="nav-copy"><strong>Tendencias</strong><span>Comportamiento financiero y comparativos.</span></span>
-          </button>
+        <div class="nav-group" data-group="consulta">
+          <div class="nav-group-title"><span>Consulta</span><span class="chev">▾</span></div>
+          <div class="nav-list">
+            <button class="nav-btn" type="button" data-view="view-territory">
+              <span class="nav-icon">🗺️</span>
+              <span class="nav-copy"><strong>Territorio</strong><span>Detalle por ciudad y ranking territorial.</span></span>
+            </button>
+            <button class="nav-btn" type="button" data-view="view-investors">
+              <span class="nav-icon">👥</span>
+              <span class="nav-copy"><strong>Inversionistas</strong><span>Historial y exploración individual o múltiple.</span></span>
+            </button>
+          </div>
+        </div>
+
+        <div class="nav-group" data-group="analisis">
+          <div class="nav-group-title"><span>Análisis</span><span class="chev">▾</span></div>
+          <div class="nav-list">
+            <button class="nav-btn" type="button" data-view="view-trends">
+              <span class="nav-icon">📈</span>
+              <span class="nav-copy"><strong>Tendencias</strong><span>Crecimiento, acumulado y mayores variaciones.</span></span>
+            </button>
+          </div>
         </div>
       </aside>
 
       <main class="workspace">
+        <nav id="iconRail" class="icon-rail" aria-label="Acceso rápido">
+          <button class="icon-rail-btn active" type="button" data-view="view-overview"><span class="ic">🏠</span><span class="lbl">Dashboard</span></button>
+          <button class="icon-rail-btn" type="button" data-view="view-alerts"><span class="ic">🚨</span><span class="lbl">Alertas</span></button>
+          <span class="icon-rail-sep"></span>
+          <button class="icon-rail-btn" type="button" data-view="view-territory"><span class="ic">🗺️</span><span class="lbl">Territorio</span></button>
+          <button class="icon-rail-btn" type="button" data-view="view-investors"><span class="ic">👥</span><span class="lbl">Inversionistas</span></button>
+          <span class="icon-rail-sep"></span>
+          <button class="icon-rail-btn" type="button" data-view="view-trends"><span class="ic">📈</span><span class="lbl">Tendencias</span></button>
+          <span class="icon-rail-crumb">Estás en: <strong id="iconRailCrumb">Dashboard</strong></span>
+        </nav>
+
         <div class="workspace-top">
           <div class="workspace-title">
             <h1>Panel ejecutivo</h1>
@@ -549,7 +711,7 @@
           </div>
           <div class="quick-pills">
             <span class="quick-pill">UX modular</span>
-            <span class="quick-pill">Navegación lateral</span>
+            <span class="quick-pill">Navegación lateral + iconos</span>
             <span class="quick-pill">Menor carga cognitiva</span>
           </div>
         </div>
@@ -587,21 +749,25 @@
                   <div class="label">Aportes del período</div>
                   <div class="value" id="heroAportes">$0</div>
                   <div class="sub" id="heroAportesSub">Meses seleccionados de 2026</div>
+                  <div class="kpi-trend flat" id="heroAportesTrend">--</div>
                 </div>
                 <div class="hero-card">
                   <div class="label">Gastos del período</div>
                   <div class="value" id="heroGastos" style="color:var(--red)">$0</div>
                   <div class="sub" id="heroGastosSub">Clasificaciones visibles</div>
+                  <div class="kpi-trend flat" id="heroGastosTrend">--</div>
                 </div>
                 <div class="hero-card">
                   <div class="label">Flujo neto</div>
                   <div class="value" id="heroNeto">$0</div>
                   <div class="sub" id="heroNetoSub">Resultado operativo</div>
+                  <div class="kpi-trend flat" id="heroNetoTrend">--</div>
                 </div>
                 <div class="hero-card">
                   <div class="label">Inversionistas activos</div>
                   <div class="value" id="heroActivos">0</div>
                   <div class="sub" id="heroActivosSub">Con aportes en el período</div>
+                  <div class="kpi-trend flat" id="heroActivosTrend">--</div>
                 </div>
               </div>
 
@@ -1025,7 +1191,7 @@
           <div class="view-header">
             <div>
               <div class="section-kicker">Análisis</div><h2>Tendencias financieras</h2>
-              <p>Vista analítica para discusión financiera: evolución, composición y comparativos.</p>
+              <p>Lecturas que no están disponibles en las demás vistas: ritmo de crecimiento, acumulado del año y las localidades que más se movieron entre los dos meses comparados.</p>
             </div>
           </div>
 
@@ -1033,41 +1199,39 @@
             <div class="card panel wide">
               <div class="section-head">
                 <div>
-                  <div class="section-title-line"><div class="section-accent"></div><h2>Evolución mensual consolidada 2026</h2></div>
-                  <p>Aportes, gastos y flujo neto por mes.</p>
+                  <div class="section-title-line"><div class="section-accent"></div><h2>Crecimiento intermensual de aportes</h2></div>
+                  <p>Variación % de un mes contra el anterior, en los 12 meses de 2026.</p>
                 </div>
               </div>
-              <canvas id="trendChartDuplicate"></canvas>
+              <canvas id="growthChart"></canvas>
             </div>
             <div class="card panel">
               <div class="section-head">
                 <div>
-                  <div class="section-title-line"><div class="section-accent"></div><h2>Ranking de localidades</h2></div>
-                  <p>Acceso rápido al top del período.</p>
+                  <div class="section-title-line"><div class="section-accent"></div><h2>Acumulado del año</h2></div>
+                  <p>Aportes, gastos y flujo neto acumulados mes a mes.</p>
                 </div>
               </div>
-              <canvas id="rankingChartDuplicate"></canvas>
+              <canvas id="cumulativeChart"></canvas>
             </div>
           </section>
 
-          <section class="section layout-2">
-            <div class="card panel">
-              <div class="section-head">
-                <div>
-                  <div class="section-title-line"><div class="section-accent"></div><h2>Comparativo por localidad</h2></div>
-                  <p>Mes A vs. Mes B.</p>
-                </div>
+          <section class="section card panel">
+            <div class="section-head">
+              <div>
+                <div class="section-title-line"><div class="section-accent"></div><h2>Mayores variaciones por localidad</h2></div>
+                <p id="variationsSubtitle">Localidades con mayor cambio entre el mes A y el mes B seleccionados en los filtros.</p>
               </div>
-              <canvas id="compareChartDuplicate"></canvas>
             </div>
-            <div class="card panel">
-              <div class="section-head">
-                <div>
-                  <div class="section-title-line"><div class="section-accent"></div><h2>Composición de gastos</h2></div>
-                  <p>Participación por clasificación.</p>
-                </div>
+            <div class="variations-wrap">
+              <div>
+                <div class="section-kicker" style="color:var(--green)">↑ Mayor crecimiento</div>
+                <div id="variationsUp"></div>
               </div>
-              <canvas id="gastosChartDuplicate"></canvas>
+              <div>
+                <div class="section-kicker" style="color:var(--red)">↓ Mayor caída</div>
+                <div id="variationsDown"></div>
+              </div>
             </div>
           </section>
         </section>
@@ -1506,23 +1670,55 @@
       options: chartOpts("COP", true)
     });
 
-    makeOrUpdateChart("trendChartDuplicate", {
+    // Crecimiento intermensual (%) — reemplaza el gráfico duplicado por una lectura nueva
+    const growthRates = summary.monthly.map((m,i) => {
+      const prev = i > 0 ? summary.monthly[i-1].aportes : null;
+      if (prev === null || prev === 0) return null;
+      return (m.aportes - prev) / Math.abs(prev);
+    });
+    makeOrUpdateChart("growthChart", {
       type:"bar",
       data:{
         labels: MONTHS.map(m=>m.slice(0,3)),
+        datasets:[{
+          label:"Variación mensual de aportes",
+          data: growthRates,
+          backgroundColor: growthRates.map(v => v === null ? "rgba(255,255,255,.08)" : (v>=0 ? GREEN : RED)),
+          borderRadius:6
+        }]
+      },
+      options:{
+        responsive:true, maintainAspectRatio:false,
+        plugins:{
+          legend:{display:false},
+          tooltip:{
+            backgroundColor:"#1f1f1f", borderColor:"rgba(200,161,63,.3)", borderWidth:1,
+            titleColor:"#e0b84a", bodyColor:"#b8b0a0",
+            callbacks:{label:c=> c.raw===null ? " Sin mes anterior" : ` ${c.raw>=0?"+":""}${(c.raw*100).toFixed(1)}%`}
+          }
+        },
+        scales:{
+          x:{ticks:{color:TICK,font:{size:11}},grid:{color:GRID}},
+          y:{ticks:{color:TICK,font:{size:11},callback:v=>`${(v*100).toFixed(0)}%`},grid:{color:GRID}}
+        }
+      }
+    });
+
+    // Acumulado del año — también nuevo, no existía antes
+    let accA=0, accG=0;
+    const cumAportes=[], cumGastos=[], cumNeto=[];
+    summary.monthly.forEach(m=>{ accA+=m.aportes; accG+=m.gastos; cumAportes.push(accA); cumGastos.push(accG); cumNeto.push(accA-accG); });
+    makeOrUpdateChart("cumulativeChart", {
+      type:"line",
+      data:{
+        labels: MONTHS.map(m=>m.slice(0,3)),
         datasets:[
-          {label:"Aportes",data:summary.monthly.map(x=>x.aportes),backgroundColor:GOLD,borderRadius:6},
-          {label:"Gastos",data:summary.monthly.map(x=>x.gastos),backgroundColor:RED,borderRadius:6},
-          {label:"Flujo neto",data:summary.monthly.map(x=>x.neto),type:"line",borderColor:GREEN,backgroundColor:"transparent",tension:.35,pointRadius:3,pointBackgroundColor:GREEN}
+          {label:"Aportes acum.",data:cumAportes,borderColor:GOLD,backgroundColor:"rgba(200,161,63,.12)",tension:.3,pointRadius:2,fill:true},
+          {label:"Gastos acum.",data:cumGastos,borderColor:RED,backgroundColor:"rgba(224,82,82,.08)",tension:.3,pointRadius:2,fill:true},
+          {label:"Neto acum.",data:cumNeto,borderColor:GREEN,backgroundColor:"transparent",tension:.3,pointRadius:2,fill:false,borderDash:[4,3]}
         ]
       },
       options: chartOpts("COP")
-    });
-
-    makeOrUpdateChart("rankingChartDuplicate", {
-      type:"bar",
-      data:{ labels:rdata.map(x=>x.localidad), datasets:[{label:metricLabel(ctx.f.rankingMetric),data:rdata.map(x=>x[metricKey(ctx.f.rankingMetric)]||0),backgroundColor:GOLD,borderRadius:6}]},
-      options: chartOpts("COP", true)
     });
 
     setText("compareSubtitle", `${ctx.f.compareA} vs ${ctx.f.compareB} — top ${ctx.f.topN} localidades.`);
@@ -1539,34 +1735,6 @@
     });
 
     makeOrUpdateChart("gastosChart", {
-      type:"doughnut",
-      data:{
-        labels:summary.gastosByClasif.map(x=>x.clasif),
-        datasets:[{data:summary.gastosByClasif.map(x=>x.total),backgroundColor:[GOLD,BLUE,"#9b59b6",GREEN,"#e67e22",RED,"#1abc9c","#e74c3c","#3498db","#95a5a6"],borderWidth:2,borderColor:"#181818"}]
-      },
-      options:{
-        responsive:true, maintainAspectRatio:false,
-        plugins:{
-          legend:{position:"bottom",labels:{color:"#b8b0a0",font:{size:11},boxWidth:12,padding:10}},
-          tooltip:{backgroundColor:"#1f1f1f",borderColor:"rgba(200,161,63,.3)",borderWidth:1,titleColor:"#e0b84a",bodyColor:"#b8b0a0",
-            callbacks:{label:ctx=>` ${ctx.label}: ${formatCurrency(ctx.raw)}`}}
-        }
-      }
-    });
-
-    makeOrUpdateChart("compareChartDuplicate", {
-      type:"bar",
-      data:{
-        labels:summary.compareLocalities.map(x=>x.localidad),
-        datasets:[
-          {label:ctx.f.compareA,data:summary.compareLocalities.map(x=>x.a),backgroundColor:BLUE2,borderRadius:6},
-          {label:ctx.f.compareB,data:summary.compareLocalities.map(x=>x.b),backgroundColor:GOLD,borderRadius:6}
-        ]
-      },
-      options: chartOpts("COP", true)
-    });
-
-    makeOrUpdateChart("gastosChartDuplicate", {
       type:"doughnut",
       data:{
         labels:summary.gastosByClasif.map(x=>x.clasif),
@@ -1630,6 +1798,15 @@
     </tr>`).join("");
     setHTML("cityInvestorsTable", cityRows || `<tr><td colspan="4" style="text-align:center;padding:24px;color:var(--ink-3)">Sin inversionistas para esta ciudad.</td></tr>`);
   }
+  function renderVariations(ctx, summary){
+    const rows = summary.compareLocalities.map(x => ({ localidad:x.localidad, delta:x.b-x.a, a:x.a, b:x.b }));
+    setText("variationsSubtitle", `${ctx.f.compareA} → ${ctx.f.compareB}, dentro del top ${ctx.f.topN} localidades filtradas.`);
+    const gainers = [...rows].filter(r=>r.delta>0).sort((a,b)=>b.delta-a.delta).slice(0,5);
+    const losers = [...rows].filter(r=>r.delta<0).sort((a,b)=>a.delta-b.delta).slice(0,5);
+    const rowHTML = (r,color) => `<div class="var-row"><span class="name">${r.localidad}</span><span class="delta-val" style="color:${color}">${r.delta>=0?"+":""}${formatCurrency(r.delta)}</span></div>`;
+    setHTML("variationsUp", gainers.length ? gainers.map(r=>rowHTML(r,"var(--green)")).join("") : `<div class="var-row"><span class="name" style="color:var(--ink-3)">Sin crecimiento en el período comparado.</span></div>`);
+    setHTML("variationsDown", losers.length ? losers.map(r=>rowHTML(r,"var(--red)")).join("") : `<div class="var-row"><span class="name" style="color:var(--ink-3)">Sin caídas en el período comparado.</span></div>`);
+  }
   function renderInvestorSelection(summary){
     setText("investorSelectionCount", formatNumber(summary.selectedInvestorNames.length));
     setText("investorSelectionSummary", summary.selectedInvestorNames.length ? `${summary.selectedInvestorNames.length} inversionista(s) seleccionados` : "Sin selección");
@@ -1686,6 +1863,20 @@
     return{cls:"warn",text:"revisar"};
   }
   function setBadge(id,s){ const el=$(id); if(!el) return; el.className=`badge ${s.cls}`; el.textContent=s.text; }
+  function pctDelta(b,a){ return a===0 ? (b===0?0:1) : (b-a)/Math.abs(a); }
+  function setKpiTrend(id, current, previous, opts={}){
+    const el = $(id); if(!el) return;
+    const invert = !!opts.invert; // for expenses, a drop is "up" (good)
+    const d = pctDelta(current, previous);
+    const flat = Math.abs(d) < .005;
+    const good = flat ? "flat" : ((d >= 0) !== invert ? "up" : "down");
+    const arrow = flat ? "→" : (d >= 0 ? "▲" : "▼");
+    const pct = `${(Math.abs(d)*100).toFixed(1)}%`;
+    el.className = `kpi-trend ${good}`;
+    el.textContent = opts.previousLabel
+      ? `${arrow} ${pct} vs ${opts.previousLabel}`
+      : `${arrow} ${pct}`;
+  }
   function setExecutiveHeader(ctx,summary){
     setText("sourceLabel", state.fileName || "dashboard.xlsx");
     setText("heroAportes", formatCurrency(summary.aportesPeriodo));
@@ -1705,6 +1896,26 @@
     setText("signalInactiveValue", formatNumber(summary.inactiveInvestors ? summary.inactiveInvestors.length : 0));
     setText("signalNewSub", summary.previousMonth ? `${summary.currentMonth} vs ${summary.previousMonth}` : `${summary.currentMonth || "Mes actual"} sin mes previo`);
     setText("signalInactiveSub", summary.previousMonth ? `No aportaron en ${summary.currentMonth}` : `Sin mes previo para comparar`);
+
+    const curM = summary.monthly.find(m=>m.month===summary.currentMonth) || {aportes:0,gastos:0,neto:0};
+    const prevM = summary.previousMonth ? (summary.monthly.find(m=>m.month===summary.previousMonth) || {aportes:0,gastos:0,neto:0}) : null;
+    if (prevM) {
+      const label = summary.previousMonth.slice(0,3).toLowerCase();
+      setKpiTrend("heroAportesTrend", curM.aportes, prevM.aportes, {previousLabel:label});
+      setKpiTrend("heroGastosTrend", curM.gastos, prevM.gastos, {previousLabel:label, invert:true});
+      setKpiTrend("heroNetoTrend", curM.neto, prevM.neto, {previousLabel:label});
+      const activosCur = (summary.newInvestors?.length||0) - (summary.inactiveInvestors?.length||0);
+      const el = $("heroActivosTrend");
+      if (el) {
+        const flat = activosCur === 0;
+        el.className = `kpi-trend ${flat?"flat":(activosCur>0?"up":"down")}`;
+        el.textContent = flat ? `→ sin cambio vs ${label}` : `${activosCur>0?"▲":"▼"} ${Math.abs(activosCur)} vs ${label}`;
+      }
+    } else {
+      ["heroAportesTrend","heroGastosTrend","heroNetoTrend","heroActivosTrend"].forEach(id=>{
+        const el = $(id); if(el){ el.className="kpi-trend flat"; el.textContent="Sin mes previo"; }
+      });
+    }
   }
   function setCompareCards(ctx,summary){
     const delta=(b,a)=>a===0?(b===0?0:1):(b-a)/Math.abs(a);
@@ -1779,6 +1990,7 @@
     renderInvestorSelection(summary);
     renderInvestorStatusDetails(summary);
     renderTables(summary);
+    renderVariations(ctx, summary);
   }
   let wired=false;
   function wireEventsOnce(){
@@ -1844,9 +2056,14 @@
 
   function activateView(target){
     const navButtons = [...document.querySelectorAll(".nav-btn")];
+    const railButtons = [...document.querySelectorAll(".icon-rail-btn")];
     const views = [...document.querySelectorAll(".view")];
     navButtons.forEach(b => b.classList.toggle("active", b.dataset.view === target));
+    railButtons.forEach(b => b.classList.toggle("active", b.dataset.view === target));
     views.forEach(v => v.classList.toggle("active", v.id === target));
+    const activeBtn = navButtons.find(b => b.dataset.view === target);
+    const crumbLabel = activeBtn ? activeBtn.querySelector(".nav-copy strong")?.textContent : target;
+    setText("iconRailCrumb", crumbLabel || target);
     state.sidebarMobileOpen = false;
     applySidebarState();
     setDebug(`Navegando a ${target}…`);
@@ -1862,15 +2079,38 @@
 
   function setupNavigation(){
     const navButtons = [...document.querySelectorAll(".nav-btn")];
-    setDebug(`Menús detectados: ${navButtons.length}. Preparando navegación…`);
+    const railButtons = [...document.querySelectorAll(".icon-rail-btn")];
+    setDebug(`Menús detectados: ${navButtons.length + railButtons.length}. Preparando navegación…`);
 
-    navButtons.forEach(btn => {
+    [...navButtons, ...railButtons].forEach(btn => {
       btn.addEventListener("click", (e) => {
         e.preventDefault();
         e.stopPropagation();
         const target = btn.dataset.view;
         if(!target) return;
         activateView(target);
+      });
+    });
+
+    // Menús dinámicos: grupos colapsables en el sidebar
+    document.querySelectorAll(".nav-group-title").forEach(title => {
+      title.addEventListener("click", () => {
+        title.closest(".nav-group")?.classList.toggle("collapsed");
+      });
+    });
+
+    // Buscador de secciones dentro del sidebar
+    $("navSearch")?.addEventListener("input", (e) => {
+      const q = normalizeText(e.target.value || "");
+      navButtons.forEach(btn => {
+        const label = normalizeText(btn.querySelector(".nav-copy strong")?.textContent || "");
+        const desc = normalizeText(btn.querySelector(".nav-copy span")?.textContent || "");
+        const match = !q || label.includes(q) || desc.includes(q);
+        btn.classList.toggle("hidden-by-search", !match);
+      });
+      document.querySelectorAll(".nav-group").forEach(group => {
+        const anyVisible = [...group.querySelectorAll(".nav-btn")].some(b => !b.classList.contains("hidden-by-search"));
+        group.style.display = anyVisible ? "" : "none";
       });
     });
 
