@@ -72,6 +72,9 @@
     // FIX 1 ── Guarda TODOS los polígonos del GeoJSON para pintar el fondo gris
     allGeoFeatures = geojson.features;
 
+    // Debug: muestra en consola las columnas y valores crudos del Sheets
+    debugSheetPayload(sheetsPayload);
+
     sheetRows = normalizeSheetRows(sheetsPayload);
     const merged = mergeGeoWithSheets(geojson.features, sheetRows);
     allFeatures   = merged.features;
@@ -150,19 +153,51 @@
       ? payload
       : (Array.isArray(payload?.rows) ? payload.rows : []);
 
+    // Convierte número serial de Google Sheets/Excel a YYYY-MM-DD
+    // Sheets cuenta días desde 30/12/1899 (con bug de 1900 incluido)
+    function serialToISO(n) {
+      const serial = parseFloat(n);
+      if (isNaN(serial) || serial < 1) return null;
+      const msPerDay = 86400000;
+      const epoch    = new Date(Date.UTC(1899, 11, 30));
+      const date     = new Date(epoch.getTime() + serial * msPerDay);
+      if (isNaN(date.getTime())) return null;
+      return date.toISOString().slice(0, 10);
+    }
+
     return rows
       .map(row => {
-        // Normaliza fecha: acepta YYYY-MM-DD, DD/MM/YYYY o vacío
-        const rawFecha = String(row.fecha_estado ?? row.fecha ?? "").trim();
+        // Acepta: fecha_estado, fecha_Estado, Fecha_Estado, fecha, Fecha — y variantes con espacios
+        const fechaRaw =
+          row.fecha_estado   ?? row.fecha_Estado   ??
+          row.Fecha_estado   ?? row.Fecha_Estado   ??
+          row["fecha estado"]?? row["Fecha Estado"]??
+          row.fecha          ?? row.Fecha          ?? "";
+
+        const rawFecha = String(fechaRaw).trim();
         let fecha = null;
-        if (rawFecha) {
+
+        if (rawFecha && rawFecha !== "0" && rawFecha.toLowerCase() !== "null") {
           if (/^\d{4}-\d{2}-\d{2}$/.test(rawFecha)) {
-            fecha = rawFecha; // ya es YYYY-MM-DD
+            // Ya viene como YYYY-MM-DD (texto)
+            fecha = rawFecha;
           } else if (/^\d{2}\/\d{2}\/\d{4}$/.test(rawFecha)) {
+            // DD/MM/YYYY
             const [d, m, y] = rawFecha.split('/');
             fecha = `${y}-${m}-${d}`;
+          } else if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(rawFecha)) {
+            // D/M/YYYY sin ceros
+            const parts = rawFecha.split('/');
+            fecha = `${parts[2]}-${parts[1].padStart(2,'0')}-${parts[0].padStart(2,'0')}`;
+          } else if (/^\d{5,6}(\.\d+)?$/.test(rawFecha)) {
+            // Número serial de Sheets (ej: 46772 o 46772.0)
+            fecha = serialToISO(rawFecha);
+          } else if (/^\d{4}\/\d{2}\/\d{2}$/.test(rawFecha)) {
+            // YYYY/MM/DD con barras
+            fecha = rawFecha.replaceAll('/', '-');
           }
         }
+
         return {
           dane:           String(row.dane          ?? "").trim().padStart(5, "0"),
           ubicacion:      String(row.ubicacion     ?? "").trim(),
@@ -175,6 +210,23 @@
         };
       })
       .filter(row => row.dane && ACTIVE_DEFAULT.includes(row.estado));
+  }
+
+  /* ── DEBUG: muestra en consola qué llega del Sheets para diagnóstico ── */
+  function debugSheetPayload(payload) {
+    const rows = Array.isArray(payload) ? payload : (payload?.rows ?? []);
+    if (!rows.length) { console.warn('[Mapa] Sheets devolvió 0 filas'); return; }
+    const first = rows[0];
+    console.group('[Mapa] Columnas recibidas del Sheets');
+    console.log('Claves:', Object.keys(first));
+    console.log('Primera fila completa:', first);
+    const fechaKeys = Object.keys(first).filter(k => k.toLowerCase().includes('fecha'));
+    if (fechaKeys.length) {
+      console.log('Columnas con "fecha":', fechaKeys.map(k => `${k} = "${first[k]}"`));
+    } else {
+      console.warn('⚠️ No se encontró ninguna columna con "fecha" en el nombre');
+    }
+    console.groupEnd();
   }
 
   function mergeGeoWithSheets(features, rows) {
