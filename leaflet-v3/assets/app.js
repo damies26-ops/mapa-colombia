@@ -57,7 +57,7 @@
 
     // 2. Intenta cargar Google Sheets solo si la URL es real
     const sheetsPromise = (SHEETS_ENDPOINT && !SHEETS_ENDPOINT.includes("PEGAR_AQUI_URL_EXEC"))
-      ? fetch(SHEETS_ENDPOINT, { cache: "no-cache" }).then(r => {
+      ? fetch(`${SHEETS_ENDPOINT}${SHEETS_ENDPOINT.includes("?") ? "&" : "?"}_=${Date.now()}`, { cache: "no-store" }).then(r => {
           if (!r.ok) throw new Error("No fue posible cargar Google Sheets");
           return r.json();
         })
@@ -71,9 +71,6 @@
 
     // FIX 1 ── Guarda TODOS los polígonos del GeoJSON para pintar el fondo gris
     allGeoFeatures = geojson.features;
-
-    // Debug: muestra en consola las columnas y valores crudos del Sheets
-    debugSheetPayload(sheetsPayload);
 
     sheetRows = normalizeSheetRows(sheetsPayload);
     const merged = mergeGeoWithSheets(geojson.features, sheetRows);
@@ -153,80 +150,26 @@
       ? payload
       : (Array.isArray(payload?.rows) ? payload.rows : []);
 
-    // Convierte número serial de Google Sheets/Excel a YYYY-MM-DD
-    // Sheets cuenta días desde 30/12/1899 (con bug de 1900 incluido)
-    function serialToISO(n) {
-      const serial = parseFloat(n);
-      if (isNaN(serial) || serial < 1) return null;
-      const msPerDay = 86400000;
-      const epoch    = new Date(Date.UTC(1899, 11, 30));
-      const date     = new Date(epoch.getTime() + serial * msPerDay);
-      if (isNaN(date.getTime())) return null;
-      return date.toISOString().slice(0, 10);
-    }
-
     return rows
-      .map(row => {
-        // Acepta: fecha_estado, fecha_Estado, Fecha_Estado, fecha, Fecha — y variantes con espacios
-        const fechaRaw =
-          row.fecha_estado   ?? row.fecha_Estado   ??
-          row.Fecha_estado   ?? row.Fecha_Estado   ??
-          row["fecha estado"]?? row["Fecha Estado"]??
-          row.fecha          ?? row.Fecha          ?? "";
-
-        const rawFecha = String(fechaRaw).trim();
-        let fecha = null;
-
-        if (rawFecha && rawFecha !== "0" && rawFecha.toLowerCase() !== "null") {
-          if (/^\d{4}-\d{2}-\d{2}$/.test(rawFecha)) {
-            // Ya viene como YYYY-MM-DD (texto)
-            fecha = rawFecha;
-          } else if (/^\d{2}\/\d{2}\/\d{4}$/.test(rawFecha)) {
-            // DD/MM/YYYY
-            const [d, m, y] = rawFecha.split('/');
-            fecha = `${y}-${m}-${d}`;
-          } else if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(rawFecha)) {
-            // D/M/YYYY sin ceros
-            const parts = rawFecha.split('/');
-            fecha = `${parts[2]}-${parts[1].padStart(2,'0')}-${parts[0].padStart(2,'0')}`;
-          } else if (/^\d{5,6}(\.\d+)?$/.test(rawFecha)) {
-            // Número serial de Sheets (ej: 46772 o 46772.0)
-            fecha = serialToISO(rawFecha);
-          } else if (/^\d{4}\/\d{2}\/\d{2}$/.test(rawFecha)) {
-            // YYYY/MM/DD con barras
-            fecha = rawFecha.replaceAll('/', '-');
-          }
-        }
+      .map((row, idx) => {
+        // Normaliza fecha: acepta YYYY-MM-DD, DD/MM/YYYY o vacío.
+        // Si no hay fecha, usa el orden de la fila como criterio secundario.
+        const rawFecha = String(row.fecha_estado ?? row.fecha ?? row.Fecha_estado ?? row.FECHA_ESTADO ?? "").trim();
+        const fecha = parseSheetDate(rawFecha);
 
         return {
-          dane:           String(row.dane          ?? "").trim().padStart(5, "0"),
-          ubicacion:      String(row.ubicacion     ?? "").trim(),
-          municipio_mapa: String(row.municipio_mapa?? "").trim(),
-          departamento:   String(row.departamento  ?? "").trim(),
-          estado:         String(row.estado        ?? "").trim(),
-          region:         String(row.region        ?? "").trim(),
-          macroregion:    String(row.macroregion   ?? "").trim(),
-          fecha_estado:   fecha
+          dane:           String(row.dane ?? row.DANE ?? row.codigo_dane ?? row.CODIGO_DANE ?? "").trim().padStart(5, "0"),
+          ubicacion:      String(row.ubicacion ?? row.Ubicacion ?? row.Ubicacion_reportada ?? row.UBICACION ?? "").trim(),
+          municipio_mapa: String(row.municipio_mapa ?? row.Municipio_mapa ?? row.MUNICIPIO_MAPA ?? "").trim(),
+          departamento:   String(row.departamento ?? row.Departamento ?? row.DEPARTAMENTO ?? "").trim(),
+          estado:         normalizeEstado(row.estado ?? row.Estado ?? row.ESTADO ?? ""),
+          region:         String(row.region ?? row.Region ?? row.Region_PAC ?? row.REGION ?? "").trim(),
+          macroregion:    String(row.macroregion ?? row.Macroregion ?? row.MACROREGION ?? "").trim(),
+          fecha_estado:   fecha,
+          _rowOrder:      idx
         };
       })
       .filter(row => row.dane && ACTIVE_DEFAULT.includes(row.estado));
-  }
-
-  /* ── DEBUG: muestra en consola qué llega del Sheets para diagnóstico ── */
-  function debugSheetPayload(payload) {
-    const rows = Array.isArray(payload) ? payload : (payload?.rows ?? []);
-    if (!rows.length) { console.warn('[Mapa] Sheets devolvió 0 filas'); return; }
-    const first = rows[0];
-    console.group('[Mapa] Columnas recibidas del Sheets');
-    console.log('Claves:', Object.keys(first));
-    console.log('Primera fila completa:', first);
-    const fechaKeys = Object.keys(first).filter(k => k.toLowerCase().includes('fecha'));
-    if (fechaKeys.length) {
-      console.log('Columnas con "fecha":', fechaKeys.map(k => `${k} = "${first[k]}"`));
-    } else {
-      console.warn('⚠️ No se encontró ninguna columna con "fecha" en el nombre');
-    }
-    console.groupEnd();
   }
 
   function mergeGeoWithSheets(features, rows) {
@@ -254,13 +197,17 @@
       if (!dane || dane === "00000") continue;
 
       geoDaneSet.add(dane);
-      const rowsForDane = rowsByDane.get(dane);
-      if (!rowsForDane?.length) continue;
+      const rowsForDaneRaw = rowsByDane.get(dane);
+      if (!rowsForDaneRaw?.length) continue;
 
+      // Estado vigente: toma la fila más reciente por fecha_estado.
+      // Si no hay fecha o hay empate, toma la última fila en Google Sheets.
+      const rowsForDane = sortRowsForCurrentState(rowsForDaneRaw);
+      const currentRow  = rowsForDane[0];
       const municipio   = props.municipio || props.NOM_MPIO || props.name
-                          || rowsForDane[0].municipio_mapa || rowsForDane[0].ubicacion || dane;
-      const departamento= props.departamento || props.NOM_DPTO || rowsForDane[0].departamento || "";
-      const estado      = rowsForDane[0].estado;
+                          || currentRow.municipio_mapa || currentRow.ubicacion || dane;
+      const departamento= props.departamento || props.NOM_DPTO || currentRow.departamento || "";
+      const estado      = currentRow.estado;
 
       mergedFeatures.push({
         type:     "Feature",
@@ -573,6 +520,61 @@
   }
 
   /* ─── UTILIDADES ─────────────────────────────────────────────────────────── */
+  function normalizeEstado(value) {
+    const raw = String(value ?? "").trim();
+    const normalized = raw
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase()
+      .replace(/\s+/g, " ");
+
+    if (["emancipada", "iglesia emancipada", "iglesias emancipadas", "emancipadas"].includes(normalized)) {
+      return "Emancipada";
+    }
+    if (["en proceso", "por emancipar", "iglesia por emancipar", "iglesias por emancipar", "enmancipar", "por enmancipar", "en proceso de emancipacion", "en proceso de enmancipacion"].includes(normalized)) {
+      return "En proceso";
+    }
+    if (["nueva ciudad", "por conquistar", "conquistar"].includes(normalized)) {
+      return "Nueva ciudad";
+    }
+    return raw;
+  }
+
+  function parseSheetDate(rawFecha) {
+    const raw = String(rawFecha ?? "").trim();
+    if (!raw) return null;
+
+    if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) {
+      return raw;
+    }
+
+    if (/^\d{2}\/\d{2}\/\d{4}$/.test(raw)) {
+      const [d, m, y] = raw.split("/");
+      return `${y}-${m}-${d}`;
+    }
+
+    const date = new Date(raw);
+    if (!Number.isNaN(date.getTime())) {
+      return date.toISOString().slice(0, 10);
+    }
+
+    return null;
+  }
+
+  function dateRank(row) {
+    return row.fecha_estado ? new Date(row.fecha_estado + "T00:00:00").getTime() : 0;
+  }
+
+  function sortRowsForCurrentState(rows) {
+    return rows
+      .slice()
+      .sort((a, b) => {
+        const byDate = dateRank(b) - dateRank(a);
+        if (byDate !== 0) return byDate;
+        return (b._rowOrder ?? 0) - (a._rowOrder ?? 0);
+      });
+  }
+
   // FIX 7 ── Helper centralizado para extraer el DANE de cualquier GeoJSON
   function normDane(props) {
     const raw = String(
@@ -983,7 +985,7 @@
                 <span class="cambio-dept">${escapeHtml(c.departamento)}</span>
               </div>
               <div class="cambio-estados">
-                <span class="cambio-badge" style="background:${STATUS_COLOR[c.de]}22;color:${c.de==='#F2D46B'?'#7a5c00':STATUS_COLOR[c.de]};border:1px solid ${STATUS_COLOR[c.de]}44">
+                <span class="cambio-badge" style="background:${STATUS_COLOR[c.de]}22;color:${STATUS_COLOR[c.de]==='#F2D46B'?'#7a5c00':(STATUS_COLOR[c.de] || '#666')};border:1px solid ${(STATUS_COLOR[c.de] || '#aaa')}44">
                   ${escapeHtml(c.de)}
                 </span>
                 <span class="cambio-arrow">→</span>
