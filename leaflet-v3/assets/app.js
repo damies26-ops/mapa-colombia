@@ -1,4 +1,8 @@
 (() => {
+  const APP_VERSION = "v5-estado-actual-orden-final-20260704";
+  window.__MAPA_COLOMBIA_APP_VERSION__ = APP_VERSION;
+  console.info("[Mapa Colombia] app.js cargado:", APP_VERSION);
+
   /* ─── CONFIGURACIÓN ──────────────────────────────────────────────────────── */
   const STATUS_META = {
     "Emancipada":  { color: "#F2D46B", label: "Iglesias emancipadas" },
@@ -152,8 +156,6 @@
 
     return rows
       .map((row, idx) => {
-        // Normaliza fecha: acepta YYYY-MM-DD, DD/MM/YYYY o vacío.
-        // Si no hay fecha, usa el orden de la fila como criterio secundario.
         const rawFecha = String(row.fecha_estado ?? row.fecha ?? row.Fecha_estado ?? row.FECHA_ESTADO ?? "").trim();
         const fecha = parseSheetDate(rawFecha);
 
@@ -166,6 +168,7 @@
           region:         String(row.region ?? row.Region ?? row.Region_PAC ?? row.REGION ?? "").trim(),
           macroregion:    String(row.macroregion ?? row.Macroregion ?? row.MACROREGION ?? "").trim(),
           fecha_estado:   fecha,
+          accion:         String(row.accion ?? row.Accion ?? row.ACCION ?? "").trim(),
           _rowOrder:      idx
         };
       })
@@ -200,10 +203,14 @@
       const rowsForDaneRaw = rowsByDane.get(dane);
       if (!rowsForDaneRaw?.length) continue;
 
-      // Estado vigente: toma la fila más reciente por fecha_estado.
-      // Si no hay fecha o hay empate, toma la última fila en Google Sheets.
       const rowsForDane = sortRowsForCurrentState(rowsForDaneRaw);
       const currentRow  = rowsForDane[0];
+
+      if (dane === "25740") {
+        console.info("[Mapa Colombia] Sibaté filas recibidas:", rowsForDaneRaw);
+        console.info("[Mapa Colombia] Sibaté estado vigente aplicado:", currentRow.estado, currentRow);
+      }
+
       const municipio   = props.municipio || props.NOM_MPIO || props.name
                           || currentRow.municipio_mapa || currentRow.ubicacion || dane;
       const departamento= props.departamento || props.NOM_DPTO || currentRow.departamento || "";
@@ -522,42 +529,23 @@
   /* ─── UTILIDADES ─────────────────────────────────────────────────────────── */
   function normalizeEstado(value) {
     const raw = String(value ?? "").trim();
-    const normalized = raw
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .toLowerCase()
-      .replace(/\s+/g, " ");
-
-    if (["emancipada", "iglesia emancipada", "iglesias emancipadas", "emancipadas"].includes(normalized)) {
-      return "Emancipada";
-    }
-    if (["en proceso", "por emancipar", "iglesia por emancipar", "iglesias por emancipar", "enmancipar", "por enmancipar", "en proceso de emancipacion", "en proceso de enmancipacion"].includes(normalized)) {
-      return "En proceso";
-    }
-    if (["nueva ciudad", "por conquistar", "conquistar"].includes(normalized)) {
-      return "Nueva ciudad";
-    }
+    const normalized = raw.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/\s+/g, " ");
+    if (["emancipada", "iglesia emancipada", "iglesias emancipadas", "emancipadas"].includes(normalized)) return "Emancipada";
+    if (["en proceso", "por emancipar", "iglesia por emancipar", "iglesias por emancipar", "enmancipar", "por enmancipar", "en proceso de emancipacion", "en proceso de enmancipacion"].includes(normalized)) return "En proceso";
+    if (["nueva ciudad", "por conquistar", "conquistar"].includes(normalized)) return "Nueva ciudad";
     return raw;
   }
 
   function parseSheetDate(rawFecha) {
     const raw = String(rawFecha ?? "").trim();
     if (!raw) return null;
-
-    if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) {
-      return raw;
-    }
-
+    if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) return raw;
     if (/^\d{2}\/\d{2}\/\d{4}$/.test(raw)) {
       const [d, m, y] = raw.split("/");
       return `${y}-${m}-${d}`;
     }
-
     const date = new Date(raw);
-    if (!Number.isNaN(date.getTime())) {
-      return date.toISOString().slice(0, 10);
-    }
-
+    if (!Number.isNaN(date.getTime())) return date.toISOString().slice(0, 10);
     return null;
   }
 
@@ -566,13 +554,11 @@
   }
 
   function sortRowsForCurrentState(rows) {
-    return rows
-      .slice()
-      .sort((a, b) => {
-        const byDate = dateRank(b) - dateRank(a);
-        if (byDate !== 0) return byDate;
-        return (b._rowOrder ?? 0) - (a._rowOrder ?? 0);
-      });
+    return rows.slice().sort((a, b) => {
+      const byDate = dateRank(b) - dateRank(a);
+      if (byDate !== 0) return byDate;
+      return (b._rowOrder ?? 0) - (a._rowOrder ?? 0);
+    });
   }
 
   // FIX 7 ── Helper centralizado para extraer el DANE de cualquier GeoJSON
@@ -839,7 +825,7 @@
     // Timestamp
     if (updated) {
       const now = new Date();
-      updated.textContent = `Actualizado: ${now.toLocaleDateString('es-CO',{day:'2-digit',month:'long',year:'numeric'})}`;
+      updated.textContent = `Actualizado: ${now.toLocaleDateString('es-CO',{day:'2-digit',month:'long',year:'numeric'})} · ${APP_VERSION}`;
     }
   }
 
