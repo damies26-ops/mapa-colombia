@@ -1,4 +1,8 @@
 (() => {
+  const APP_VERSION = "v5-estado-actual-orden-final-20260704";
+  window.__MAPA_COLOMBIA_APP_VERSION__ = APP_VERSION;
+  console.info("[Mapa Colombia] app.js cargado:", APP_VERSION);
+
   /* ─── CONFIGURACIÓN ──────────────────────────────────────────────────────── */
   const STATUS_META = {
     "Emancipada":  { color: "#F2D46B", label: "Iglesias emancipadas" },
@@ -57,7 +61,7 @@
 
     // 2. Intenta cargar Google Sheets solo si la URL es real
     const sheetsPromise = (SHEETS_ENDPOINT && !SHEETS_ENDPOINT.includes("PEGAR_AQUI_URL_EXEC"))
-      ? fetch(SHEETS_ENDPOINT, { cache: "no-cache" }).then(r => {
+      ? fetch(`${SHEETS_ENDPOINT}${SHEETS_ENDPOINT.includes("?") ? "&" : "?"}_=${Date.now()}`, { cache: "no-store" }).then(r => {
           if (!r.ok) throw new Error("No fue posible cargar Google Sheets");
           return r.json();
         })
@@ -151,27 +155,21 @@
       : (Array.isArray(payload?.rows) ? payload.rows : []);
 
     return rows
-      .map(row => {
-        // Normaliza fecha: acepta YYYY-MM-DD, DD/MM/YYYY o vacío
-        const rawFecha = String(row.fecha_estado ?? row.fecha ?? "").trim();
-        let fecha = null;
-        if (rawFecha) {
-          if (/^\d{4}-\d{2}-\d{2}$/.test(rawFecha)) {
-            fecha = rawFecha; // ya es YYYY-MM-DD
-          } else if (/^\d{2}\/\d{2}\/\d{4}$/.test(rawFecha)) {
-            const [d, m, y] = rawFecha.split('/');
-            fecha = `${y}-${m}-${d}`;
-          }
-        }
+      .map((row, idx) => {
+        const rawFecha = String(row.fecha_estado ?? row.fecha ?? row.Fecha_estado ?? row.FECHA_ESTADO ?? "").trim();
+        const fecha = parseSheetDate(rawFecha);
+
         return {
-          dane:           String(row.dane          ?? "").trim().padStart(5, "0"),
-          ubicacion:      String(row.ubicacion     ?? "").trim(),
-          municipio_mapa: String(row.municipio_mapa?? "").trim(),
-          departamento:   String(row.departamento  ?? "").trim(),
-          estado:         String(row.estado        ?? "").trim(),
-          region:         String(row.region        ?? "").trim(),
-          macroregion:    String(row.macroregion   ?? "").trim(),
-          fecha_estado:   fecha
+          dane:           String(row.dane ?? row.DANE ?? row.codigo_dane ?? row.CODIGO_DANE ?? "").trim().padStart(5, "0"),
+          ubicacion:      String(row.ubicacion ?? row.Ubicacion ?? row.Ubicacion_reportada ?? row.UBICACION ?? "").trim(),
+          municipio_mapa: String(row.municipio_mapa ?? row.Municipio_mapa ?? row.MUNICIPIO_MAPA ?? "").trim(),
+          departamento:   String(row.departamento ?? row.Departamento ?? row.DEPARTAMENTO ?? "").trim(),
+          estado:         normalizeEstado(row.estado ?? row.Estado ?? row.ESTADO ?? ""),
+          region:         String(row.region ?? row.Region ?? row.Region_PAC ?? row.REGION ?? "").trim(),
+          macroregion:    String(row.macroregion ?? row.Macroregion ?? row.MACROREGION ?? "").trim(),
+          fecha_estado:   fecha,
+          accion:         String(row.accion ?? row.Accion ?? row.ACCION ?? "").trim(),
+          _rowOrder:      idx
         };
       })
       .filter(row => row.dane && ACTIVE_DEFAULT.includes(row.estado));
@@ -202,13 +200,21 @@
       if (!dane || dane === "00000") continue;
 
       geoDaneSet.add(dane);
-      const rowsForDane = rowsByDane.get(dane);
-      if (!rowsForDane?.length) continue;
+      const rowsForDaneRaw = rowsByDane.get(dane);
+      if (!rowsForDaneRaw?.length) continue;
+
+      const rowsForDane = sortRowsForCurrentState(rowsForDaneRaw);
+      const currentRow  = rowsForDane[0];
+
+      if (dane === "25740") {
+        console.info("[Mapa Colombia] Sibaté filas recibidas:", rowsForDaneRaw);
+        console.info("[Mapa Colombia] Sibaté estado vigente aplicado:", currentRow.estado, currentRow);
+      }
 
       const municipio   = props.municipio || props.NOM_MPIO || props.name
-                          || rowsForDane[0].municipio_mapa || rowsForDane[0].ubicacion || dane;
-      const departamento= props.departamento || props.NOM_DPTO || rowsForDane[0].departamento || "";
-      const estado      = rowsForDane[0].estado;
+                          || currentRow.municipio_mapa || currentRow.ubicacion || dane;
+      const departamento= props.departamento || props.NOM_DPTO || currentRow.departamento || "";
+      const estado      = currentRow.estado;
 
       mergedFeatures.push({
         type:     "Feature",
@@ -521,6 +527,40 @@
   }
 
   /* ─── UTILIDADES ─────────────────────────────────────────────────────────── */
+  function normalizeEstado(value) {
+    const raw = String(value ?? "").trim();
+    const normalized = raw.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/\s+/g, " ");
+    if (["emancipada", "iglesia emancipada", "iglesias emancipadas", "emancipadas"].includes(normalized)) return "Emancipada";
+    if (["en proceso", "por emancipar", "iglesia por emancipar", "iglesias por emancipar", "enmancipar", "por enmancipar", "en proceso de emancipacion", "en proceso de enmancipacion"].includes(normalized)) return "En proceso";
+    if (["nueva ciudad", "por conquistar", "conquistar"].includes(normalized)) return "Nueva ciudad";
+    return raw;
+  }
+
+  function parseSheetDate(rawFecha) {
+    const raw = String(rawFecha ?? "").trim();
+    if (!raw) return null;
+    if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) return raw;
+    if (/^\d{2}\/\d{2}\/\d{4}$/.test(raw)) {
+      const [d, m, y] = raw.split("/");
+      return `${y}-${m}-${d}`;
+    }
+    const date = new Date(raw);
+    if (!Number.isNaN(date.getTime())) return date.toISOString().slice(0, 10);
+    return null;
+  }
+
+  function dateRank(row) {
+    return row.fecha_estado ? new Date(row.fecha_estado + "T00:00:00").getTime() : 0;
+  }
+
+  function sortRowsForCurrentState(rows) {
+    return rows.slice().sort((a, b) => {
+      const byDate = dateRank(b) - dateRank(a);
+      if (byDate !== 0) return byDate;
+      return (b._rowOrder ?? 0) - (a._rowOrder ?? 0);
+    });
+  }
+
   // FIX 7 ── Helper centralizado para extraer el DANE de cualquier GeoJSON
   function normDane(props) {
     const raw = String(
@@ -785,7 +825,7 @@
     // Timestamp
     if (updated) {
       const now = new Date();
-      updated.textContent = `Actualizado: ${now.toLocaleDateString('es-CO',{day:'2-digit',month:'long',year:'numeric'})}`;
+      updated.textContent = `Actualizado: ${now.toLocaleDateString('es-CO',{day:'2-digit',month:'long',year:'numeric'})} · ${APP_VERSION}`;
     }
   }
 
@@ -931,7 +971,7 @@
                 <span class="cambio-dept">${escapeHtml(c.departamento)}</span>
               </div>
               <div class="cambio-estados">
-                <span class="cambio-badge" style="background:${STATUS_COLOR[c.de]}22;color:${c.de==='#F2D46B'?'#7a5c00':STATUS_COLOR[c.de]};border:1px solid ${STATUS_COLOR[c.de]}44">
+                <span class="cambio-badge" style="background:${STATUS_COLOR[c.de]}22;color:${STATUS_COLOR[c.de]==='#F2D46B'?'#7a5c00':(STATUS_COLOR[c.de] || '#666')};border:1px solid ${(STATUS_COLOR[c.de] || '#aaa')}44">
                   ${escapeHtml(c.de)}
                 </span>
                 <span class="cambio-arrow">→</span>
