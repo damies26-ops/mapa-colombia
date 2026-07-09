@@ -1,5 +1,5 @@
 (() => {
-  const APP_VERSION = "v5-estado-actual-orden-final-20260704";
+  const APP_VERSION = "v7-lista-cambios-completa-sin-instrucciones-20260704";
   window.__MAPA_COLOMBIA_APP_VERSION__ = APP_VERSION;
   console.info("[Mapa Colombia] app.js cargado:", APP_VERSION);
 
@@ -784,17 +784,7 @@
     if (rowsConFecha.length > 0) {
       cards.push(buildTrendCard(rowsConFecha));
     } else {
-      cards.push(`<div class="dash-card" style="--accent:#c8d8ea; grid-column:span 1;">
-        <div class="dc-label">Evolución en el tiempo</div>
-        <div class="dc-sub" style="margin-top:8px;">
-          Agrega la columna <strong>fecha_estado</strong> (formato <code>YYYY-MM-DD</code>) en Google Sheets
-          para activar las gráficas de tendencia y comparación entre períodos.
-        </div>
-        <div class="dc-cta" style="margin-top:14px;">
-          📋 Una fila por cada cambio de estado de un municipio, con su fecha.
-          El panel calculará automáticamente deltas y tendencias.
-        </div>
-      </div>`);
+      cards.push(buildHistoryFallbackCard(sheetRows));
     }
 
     grid.innerHTML = cards.join('');
@@ -840,6 +830,112 @@
     localStorage.setItem('colportaje_baseline_date', today);
     return today;
   }
+
+
+  function buildHistoryFallbackCard(rowsSinFecha) {
+    const STATUS_COLOR = { Emancipada:'#F2D46B', 'En proceso':'#4A90E2', 'Nueva ciudad':'#D64541', '(nuevo)':'#aaa' };
+    const groups = new Map();
+
+    rowsSinFecha.forEach(row => {
+      if (!groups.has(row.dane)) groups.set(row.dane, []);
+      groups.get(row.dane).push(row);
+    });
+
+    const cambios = [];
+    groups.forEach(rows => {
+      const ordered = rows.slice().sort((a, b) => (a._rowOrder ?? 0) - (b._rowOrder ?? 0));
+      for (let i = 1; i < ordered.length; i++) {
+        const prev = ordered[i - 1];
+        const curr = ordered[i];
+        if (prev.estado && curr.estado && prev.estado !== curr.estado) {
+          cambios.push({
+            municipio: curr.ubicacion || curr.municipio_mapa || curr.dane,
+            departamento: curr.departamento || '',
+            de: prev.estado,
+            a: curr.estado,
+            orden: curr._rowOrder ?? i
+          });
+        }
+      }
+    });
+
+    cambios.sort((a, b) => b.orden - a.orden);
+
+    const currentByDane = new Map();
+    rowsSinFecha.forEach(row => {
+      const prev = currentByDane.get(row.dane);
+      if (!prev || (row._rowOrder ?? 0) > (prev._rowOrder ?? 0)) {
+        currentByDane.set(row.dane, row);
+      }
+    });
+
+    const counts = { Emancipada:0, 'En proceso':0, 'Nueva ciudad':0, total:0 };
+    currentByDane.forEach(row => {
+      if (counts[row.estado] !== undefined) {
+        counts[row.estado]++;
+        counts.total++;
+      }
+    });
+
+    return `<div class="dash-card trend-card" id="trendCard" style="--accent:var(--blue); grid-column:span 3;">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:16px;">
+        <div class="dc-label" style="margin:0;">Evolución / historial detectado</div>
+        <span class="muted" style="font-size:12px;">Sin fecha_estado en el JSON</span>
+      </div>
+
+      <div class="trend-onboarding">
+        <div class="trend-ob-title">⚠️ El endpoint no está enviando <code>fecha_estado</code></div>
+        <p class="trend-ob-desc">
+          El panel no puede construir una línea de tiempo real por meses porque las filas recibidas desde Apps Script no traen fecha.
+          Mientras se corrige el endpoint, esta tarjeta muestra cambios detectados por <strong>orden de filas</strong>.
+        </p>
+      </div>
+
+      <div class="trend-grid" style="margin-top:16px;">
+        ${['Emancipada','En proceso','Nueva ciudad'].map(est => `
+          <div class="trend-stat">
+            <div class="trend-swatch" style="background:${STATUS_COLOR[est]}"></div>
+            <div class="trend-label">${est==='Emancipada'?'Emancipadas':est==='En proceso'?'Por emancipar':'Por conquistar'}</div>
+            <div class="trend-value">${counts[est]}</div>
+            <div class="trend-delta"><span class="td-neutral">estado vigente por última fila</span></div>
+          </div>`).join('')}
+        <div class="trend-stat">
+          <div class="trend-swatch" style="background:var(--text);opacity:.3"></div>
+          <div class="trend-label">Total registrados</div>
+          <div class="trend-value">${counts.total}</div>
+          <div class="trend-delta"><span class="td-neutral">municipios únicos vigentes</span></div>
+        </div>
+      </div>
+
+      <div style="margin-top:20px;">
+        <div class="dc-label" style="margin-bottom:10px;">
+          Cambios detectados por historial
+          <span style="font-weight:400;text-transform:none;letter-spacing:0;">(${cambios.length} cambio${cambios.length!==1?'s':''})</span>
+        </div>
+        ${cambios.length > 0 ? `
+        <div class="cambios-list">
+          ${cambios.map(c => `
+            <div class="cambio-row">
+              <div class="cambio-fecha">fila</div>
+              <div class="cambio-info">
+                <strong>${escapeHtml(c.municipio)}</strong>
+                <span class="cambio-dept">${escapeHtml(c.departamento)}</span>
+              </div>
+              <div class="cambio-estados">
+                <span class="cambio-badge" style="background:${(STATUS_COLOR[c.de] || '#aaa')}22;color:${STATUS_COLOR[c.de]==='#F2D46B'?'#7a5c00':(STATUS_COLOR[c.de] || '#666')};border:1px solid ${(STATUS_COLOR[c.de] || '#aaa')}44">
+                  ${escapeHtml(c.de)}
+                </span>
+                <span class="cambio-arrow">→</span>
+                <span class="cambio-badge" style="background:${(STATUS_COLOR[c.a] || '#aaa')}22;color:${STATUS_COLOR[c.a]==='#F2D46B'?'#7a5c00':(STATUS_COLOR[c.a] || '#666')};border:1px solid ${(STATUS_COLOR[c.a] || '#aaa')}44">
+                  ${escapeHtml(c.a)}
+                </span>
+              </div>
+            </div>`).join('')}
+        </div>` : `<p class="muted">No se detectaron cambios de estado entre filas duplicadas por DANE.</p>`}
+      </div>
+    </div>`;
+  }
+
 
   function buildTrendCard(rowsConFecha) {
     const rangeVal   = document.getElementById('trendRange')?.value ?? '1';
@@ -963,7 +1059,7 @@
           <span style="font-weight:400;text-transform:none;letter-spacing:0;">(${cambios.length} municipio${cambios.length!==1?'s':''})</span>
         </div>
         <div class="cambios-list">
-          ${cambios.slice(0,10).map(c => `
+          ${cambios.map(c => `
             <div class="cambio-row">
               <div class="cambio-fecha">${fmtDate(c.fecha)}</div>
               <div class="cambio-info">
@@ -980,17 +1076,9 @@
                 </span>
               </div>
             </div>`).join('')}
-          ${cambios.length > 10 ? `<p class="muted" style="text-align:center;margin:8px 0 0;">
-            +${cambios.length-10} cambios más en este período</p>` : ''}
         </div>
       </div>` : tieneComparacion ? `
       <p class="muted" style="margin-top:14px;">Sin cambios de estado en los últimos ${rangeLabel}.</p>` : ''}
-
-      <div class="trend-instrucciones">
-        <strong>¿Cómo registrar un cambio?</strong> En Google Sheets, agrega una fila nueva con el municipio,
-        su nuevo estado y la fecha de hoy en la columna <code>fecha_estado</code> (formato <code>YYYY-MM-DD</code>).
-        No borres la fila anterior — el historial se construye acumulando filas.
-      </div>
     </div>`;
   }
 
