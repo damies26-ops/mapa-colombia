@@ -495,6 +495,12 @@
     .summary-stack { display: flex; flex-direction: column; gap: 12px; }
     .card.panel.wide canvas { height: 300px !important; }
 
+    .cuotas-line {
+      font-size: 11.5px; font-weight: 700; color: var(--gold-light);
+      margin-top: 4px; display: flex; align-items: center; gap: 5px;
+    }
+    .cuotas-line::before { content: "🧾"; font-size: 11px; }
+
     /* KPI trend badges */
     .kpi-trend { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 800; margin-top: 6px; padding: 2px 8px; border-radius: 999px; }
     .kpi-trend.up { color: var(--green); background: var(--green-soft); }
@@ -748,6 +754,7 @@
                 <div class="hero-card">
                   <div class="label">Aportes del período</div>
                   <div class="value" id="heroAportes">$0</div>
+                  <div class="cuotas-line" id="heroAportesCuotas">Total Cuotas Completas = 0</div>
                   <div class="sub" id="heroAportesSub">Meses seleccionados de 2026</div>
                   <div class="kpi-trend flat" id="heroAportesTrend">--</div>
                 </div>
@@ -910,6 +917,7 @@
                 <div class="compare-card">
                   <h3>Aportes</h3>
                   <div class="big" id="cmpAportesValue">$0</div>
+                  <div class="cuotas-line" id="cmpAportesCuotas">Total Cuotas Completas = 0</div>
                   <div class="sub" id="cmpAportesSub">Comparativo</div>
                 </div>
                 <div class="compare-card">
@@ -1267,6 +1275,11 @@
 
   function formatCurrency(v){ return new Intl.NumberFormat("es-CO",{style:"currency",currency:"COP",maximumFractionDigits:0}).format(Number(v||0)); }
   function formatNumber(v){ return new Intl.NumberFormat("es-CO",{maximumFractionDigits:0}).format(Number(v||0)); }
+  const CUOTA_VALOR = 400000;
+  function cuotasCompletasLabel(totalAportes){
+    const cuotas = Math.floor(Number(totalAportes || 0) / CUOTA_VALOR);
+    return `Total Cuotas Completas = ${formatNumber(cuotas)}`;
+  }
   function formatPct(v){ return `${(Number(v||0)*100).toFixed(1)}%`; }
   function normalizeText(v){ return String(v??"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").trim().toUpperCase(); }
   function canonicalLocalidad(v){
@@ -1925,6 +1938,7 @@
   function setExecutiveHeader(ctx,summary){
     setText("sourceLabel", state.fileName || "dashboard.xlsx");
     setText("heroAportes", formatCurrency(summary.aportesPeriodo));
+    setText("heroAportesCuotas", cuotasCompletasLabel(summary.aportesPeriodo));
     setText("heroGastos", formatCurrency(summary.gastosPeriodo));
     setText("heroNeto", formatCurrency(summary.neto));
     if ($("heroNeto")) $("heroNeto").style.color = summary.neto >= 0 ? "var(--green)" : "var(--red)";
@@ -1971,6 +1985,7 @@
     const tc=v=>{if(Math.abs(v)<.001)return"flat";return v>=0?"up":"down";};
 
     setText("cmpAportesValue", formatCurrency(summary.compareB.aportes));
+    setText("cmpAportesCuotas", cuotasCompletasLabel(summary.compareB.aportes));
     setHTML("cmpAportesSub", `${ctx.f.compareA} → ${ctx.f.compareB}: <strong class="delta ${tc(dA)}">${sp(dA)}</strong>`);
     setText("cmpGastosValue", formatCurrency(summary.compareB.gastos));
     setHTML("cmpGastosSub", `${ctx.f.compareA} → ${ctx.f.compareB}: <strong class="delta ${tc(-dG)}">${sp(dG)}</strong>`);
