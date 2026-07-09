@@ -188,6 +188,282 @@
     .corr-empty { color:var(--muted); font-size:13px; text-align:center; padding:12px 0; }
     .stat-corr { background:#f7f9fc; border:1px solid var(--line); border-radius:12px; padding:10px; text-align:center; }
     .stat-corr strong { display:block; font-size:20px; }
+
+    /* ── MOBILE FIX DASHBOARD / PANEL ESTADÍSTICAS ──
+       Corrige desbordes en móvil causados por cards con grid-column:span 2/3
+       generadas desde app.js. En pantallas pequeñas fuerza una sola columna real,
+       ajusta textos, donut, listas y barras para evitar scroll horizontal.
+    */
+    @media (max-width: 979px) {
+      html, body {
+        width: 100%;
+        max-width: 100%;
+        overflow-x: hidden;
+      }
+
+      .app {
+        width: 100%;
+        max-width: 100%;
+        padding: max(10px, env(safe-area-inset-top)) 10px max(10px, env(safe-area-inset-bottom));
+        overflow-x: hidden;
+      }
+
+      .dashboard.panel {
+        width: 100%;
+        max-width: 100%;
+        overflow: hidden;
+        padding: 12px;
+        border-radius: 16px;
+      }
+
+      .dashboard-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+        margin-bottom: 14px;
+      }
+
+      .dashboard-header h2 {
+        font-size: 24px;
+        line-height: 1.1;
+        letter-spacing: -0.3px;
+      }
+
+      .dashboard-header p {
+        max-width: 100%;
+        font-size: 11px;
+        overflow-wrap: anywhere;
+      }
+
+      .dash-grid {
+        grid-template-columns: minmax(0, 1fr) !important;
+        width: 100%;
+        max-width: 100%;
+        gap: 12px;
+        overflow: hidden;
+      }
+
+      .dash-card,
+      .trend-card {
+        grid-column: 1 / -1 !important;
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        padding: 16px 14px;
+        border-radius: 16px;
+        overflow: hidden;
+      }
+
+      .dash-card .dc-label {
+        font-size: 10px;
+        line-height: 1.35;
+        letter-spacing: .08em;
+        white-space: normal;
+        overflow-wrap: anywhere;
+      }
+
+      .dash-card .dc-value {
+        font-size: 42px;
+        line-height: .95;
+      }
+
+      .dash-card .dc-value span {
+        font-size: 18px;
+      }
+
+      .dash-card .dc-sub {
+        font-size: 12px;
+        line-height: 1.55;
+        overflow-wrap: anywhere;
+      }
+
+      .dc-bar-wrap {
+        width: 100%;
+        max-width: 100%;
+      }
+
+      .dc-donut-wrap {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+        width: 100%;
+      }
+
+      .dc-donut-wrap svg {
+        width: 84px;
+        height: 84px;
+        flex: 0 0 84px;
+      }
+
+      .dc-donut-legend {
+        width: 100%;
+        max-width: 100%;
+        font-size: 12px;
+      }
+
+      .dc-donut-legend li {
+        align-items: flex-start;
+        flex-wrap: wrap;
+        line-height: 1.35;
+      }
+
+      .dc-top-item {
+        gap: 8px;
+        align-items: flex-start;
+      }
+
+      .dc-top-rank {
+        width: 18px;
+        font-size: 16px;
+      }
+
+      .dc-top-info {
+        min-width: 0;
+      }
+
+      .dc-top-name,
+      .dc-top-dept {
+        white-space: normal;
+        overflow: visible;
+        text-overflow: initial;
+      }
+
+      .dc-top-bar-wrap {
+        width: 44px;
+        flex-shrink: 0;
+        margin-top: 7px;
+      }
+
+      .dc-dept-grid {
+        max-height: none;
+        overflow: visible;
+        gap: 8px;
+      }
+
+      .dc-dept-row {
+        display: grid;
+        grid-template-columns: minmax(76px, 104px) minmax(0, 1fr) 32px;
+        align-items: center;
+        gap: 6px;
+        width: 100%;
+      }
+
+      .dc-dept-name {
+        width: auto;
+        min-width: 0;
+        font-size: 11px;
+      }
+
+      .dc-dept-bar-wrap {
+        min-width: 0;
+      }
+
+      .dc-dept-pct {
+        width: auto;
+        font-size: 10px;
+      }
+
+      .trend-grid {
+        grid-template-columns: minmax(0, 1fr) !important;
+        width: 100%;
+        max-width: 100%;
+        gap: 10px;
+      }
+
+      .trend-stat {
+        padding: 12px;
+        min-width: 0;
+      }
+
+      .trend-value {
+        font-size: 32px;
+      }
+
+      .trend-select {
+        width: 100%;
+        max-width: 100%;
+      }
+
+      .trend-onboarding,
+      .trend-instrucciones,
+      .dc-cta {
+        padding: 12px;
+        font-size: 12px;
+        overflow-wrap: anywhere;
+      }
+
+      .cambios-list {
+        max-height: none;
+        overflow: visible;
+      }
+
+      .cambio-row {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 6px;
+        align-items: start;
+      }
+
+      .cambio-fecha {
+        width: auto;
+      }
+
+      .cambio-info {
+        min-width: 0;
+      }
+
+      .cambio-estados {
+        width: 100%;
+        min-width: 0;
+      }
+
+      .cambio-badge {
+        white-space: normal;
+        line-height: 1.25;
+      }
+    }
+
+    @media (max-width: 420px) {
+      .app {
+        padding-left: 8px;
+        padding-right: 8px;
+      }
+
+      .dashboard.panel {
+        padding: 10px;
+      }
+
+      .dash-card,
+      .trend-card {
+        padding: 14px 12px;
+      }
+
+      .dashboard-header h2 {
+        font-size: 22px;
+      }
+
+      .dash-card .dc-value {
+        font-size: 38px;
+      }
+
+      .dc-dept-row {
+        grid-template-columns: 86px minmax(0, 1fr) 28px;
+      }
+
+      .stats {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 6px;
+      }
+
+      .stat {
+        padding: 8px 5px;
+      }
+
+      .stat strong {
+        font-size: 18px;
+      }
+    }
+
   </style>
 </head>
 <body class="loading">
@@ -298,6 +574,6 @@
   </div>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
-  <script src="./assets/app.js?v=20260704-05" defer></script>
+  <script src="./assets/app.js?v=20260704-07" defer></script>
 </body>
 </html>
