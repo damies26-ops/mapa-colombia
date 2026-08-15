@@ -627,6 +627,61 @@
       .icon-rail-btn { padding: 9px 10px; }
     }
 
+    /* ===== Consolidado histórico + Top inversionistas ===== */
+    .historical-line {
+      margin-top: 6px;
+      font-size: 10.5px;
+      color: var(--ink-2);
+      line-height: 1.35;
+    }
+    .historical-line strong { color: var(--gold-light); font-weight: 700; }
+
+    .top-investors-panel { padding: 18px 20px; }
+    .top-investors-head-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .top-investors-head-actions .field { min-width: 150px; }
+    .top-investors-grid {
+      display: grid;
+      grid-template-columns: 1.25fr .75fr;
+      gap: 14px;
+      align-items: stretch;
+    }
+    .top-investors-grid canvas {
+      width: 100% !important;
+      height: 320px !important;
+    }
+    .months-summary {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .months-summary strong {
+      color: var(--gold-light);
+      font-size: 12px;
+    }
+    .months-summary span {
+      color: var(--ink-3);
+      font-size: 10.5px;
+      line-height: 1.3;
+    }
+    .quota-equivalent {
+      color: var(--green);
+      font-weight: 800;
+    }
+    .top-investor-note {
+      margin-top: 10px;
+      font-size: 11px;
+      color: var(--ink-3);
+      line-height: 1.45;
+    }
+    @media (max-width: 1100px) {
+      .top-investors-grid { grid-template-columns: 1fr; }
+    }
+
   </style>
 </head>
 
@@ -739,35 +794,38 @@
               <div class="hero-icon">👑</div>
               <div>
                 <h1>Inversionistas del Reino</h1>
-                <div class="subtitle">Dashboard ejecutivo · Colombia 2026</div>
+                <div class="subtitle">Dashboard ejecutivo · Consolidado 2025 + gestión 2026</div>
               </div>
             </div>
 
             <div class="hero-pills">
               <span class="pill"><span class="pill-dot"></span> Fuente: <strong id="sourceLabel">dashboard.xlsx</strong></span>
-              <span class="pill">📊 <strong>Base Inversionistas 26</strong> + <strong>Gastos 26</strong></span>
+              <span class="pill">📊 <strong>Base Inversionistas 26</strong> + <strong>Gastos 26</strong> + <strong id="prior2025SourceLabel">Resumen 2025</strong></span>
               <span class="pill">🕐 Actualizado: <strong id="lastUpdated">pendiente</strong></span>
             </div>
 
             <div class="hero-grid">
               <div class="hero-kpis">
                 <div class="hero-card">
-                  <div class="label">Aportes del período</div>
+                  <div class="label">Aportes acumulados</div>
                   <div class="value" id="heroAportes">$0</div>
                   <div class="cuotas-line" id="heroAportesCuotas">Total Cuotas Completas = 0</div>
+                  <div class="historical-line" id="heroAportes2025Breakdown">2025 consolidado + 2026 seleccionado</div>
                   <div class="sub" id="heroAportesSub">Meses seleccionados de 2026</div>
                   <div class="kpi-trend flat" id="heroAportesTrend">--</div>
                 </div>
                 <div class="hero-card">
-                  <div class="label">Gastos del período</div>
+                  <div class="label">Gastos acumulados</div>
                   <div class="value" id="heroGastos" style="color:var(--red)">$0</div>
+                  <div class="historical-line" id="heroGastos2025Breakdown">2025 consolidado + 2026 seleccionado</div>
                   <div class="sub" id="heroGastosSub">Clasificaciones visibles</div>
                   <div class="kpi-trend flat" id="heroGastosTrend">--</div>
                 </div>
                 <div class="hero-card">
-                  <div class="label">Flujo neto</div>
+                  <div class="label">Flujo neto acumulado</div>
                   <div class="value" id="heroNeto">$0</div>
-                  <div class="sub" id="heroNetoSub">Resultado operativo</div>
+                  <div class="historical-line" id="heroNeto2025Breakdown">Saldo 2025 + flujo 2026 seleccionado</div>
+                  <div class="sub" id="heroNetoSub">Resultado operativo acumulado</div>
                   <div class="kpi-trend flat" id="heroNetoTrend">--</div>
                 </div>
                 <div class="hero-card">
@@ -786,7 +844,7 @@
                       <span class="badge" id="signalLiquidityBadge">--</span>
                     </div>
                     <div class="metric" id="signalLiquidityValue">$0</div>
-                    <div class="sub">Flujo neto del período</div>
+                    <div class="sub" id="signalLiquiditySub">Saldo acumulado 2025 + 2026</div>
                   </div>
                   <div class="signal">
                     <div class="top">
@@ -962,6 +1020,58 @@
                   <div class="sub">Promedio meses seleccionados</div>
                 </div>
               </div>
+            </div>
+          </section>
+
+
+          <section class="section card top-investors-panel">
+            <div class="section-head">
+              <div>
+                <div class="section-title-line">
+                  <div class="section-accent"></div>
+                  <h2>Top inversionistas individuales · Colombia</h2>
+                </div>
+                <p>Ranking nacional por nombre de inversionista. No discrimina localidad y respeta los meses seleccionados en los filtros.</p>
+              </div>
+              <div class="top-investors-head-actions">
+                <div class="field">
+                  <label>🏅 Cantidad a mostrar</label>
+                  <div class="select-wrap">
+                    <select id="filterTopInvestors">
+                      <option value="5">Top 5</option>
+                      <option value="10" selected>Top 10</option>
+                      <option value="15">Top 15</option>
+                      <option value="20">Top 20</option>
+                      <option value="25">Top 25</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="top-investors-grid">
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>Inversionista</th>
+                      <th>Meses aportados</th>
+                      <th>Aporte acumulado</th>
+                      <th>Cuotas equivalentes</th>
+                    </tr>
+                  </thead>
+                  <tbody id="topIndividualInvestorsTable"></tbody>
+                </table>
+              </div>
+              <div>
+                <canvas id="topIndividualInvestorsChart"></canvas>
+              </div>
+            </div>
+
+            <div class="top-investor-note">
+              Las cuotas equivalentes se calculan como <strong style="color:var(--gold-light)">valor aportado ÷ $400.000</strong>.
+              El ranking se consolida por nombre en todo Colombia y no depende del filtro de localidad.
             </div>
           </section>
 
@@ -1246,7 +1356,7 @@
         </section>
 
         <section class="section card footer-note">
-          💡 Para actualizar online, reemplaza <strong>data/dashboard.xlsx</strong>. Esta versión usa únicamente meses de 2026 y excluye filas de resumen del libro.
+          💡 Para actualizar online, reemplaza <strong>data/dashboard.xlsx</strong>. Los análisis mensuales usan 2026; los KPIs acumulados incorporan el resumen consolidado 2025 cuando está disponible.
         </section>
       </main>
     </div>
@@ -1257,8 +1367,18 @@
   const CONFIG = { title:"Inversionistas del Reino - Colombia", workbookCandidates:["./data/dashboard.xlsx","./DATA/dashboard.xlsx","./dashboard.xlsx","data/dashboard.xlsx","DATA/dashboard.xlsx"] };
   const SHEET_INV = "Base Inversionistas 26";
   const SHEET_GASTOS = "Gastos 26";
+  const SHEET_2025_ALIASES = ["2025","HOJA2"];
   const MONTHS = ["ENERO","FEBRERO","MARZO","ABRIL","MAYO","JUNIO","JULIO","AGOSTO","SEPTIEMBRE","OCTUBRE","NOVIEMBRE","DICIEMBRE"];
-  const state = { investors:[], gastos:[], dataMonths:[], charts:{}, fileName:"dashboard.xlsx", sidebarCollapsed:false, sidebarMobileOpen:false };
+  const state = {
+    investors:[],
+    gastos:[],
+    dataMonths:[],
+    prior2025:{aportes:0,gastos:0,saldo:0,sheetName:null,found:false},
+    charts:{},
+    fileName:"dashboard.xlsx",
+    sidebarCollapsed:false,
+    sidebarMobileOpen:false
+  };
   const $ = (id) => document.getElementById(id);
   const setText = (id, value) => { const el = $(id); if (el) el.textContent = value; };
   const setHTML = (id, value) => { const el = $(id); if (el) el.innerHTML = value; };
@@ -1269,12 +1389,13 @@
     compareB:$("compareMonthB"), city:$("cityDetailSelect"), investor:$("cityInvestorSelect"),
     investorSearch:$("cityInvestorSearch"), investorChips:$("cityInvestorChips"),
     investorChipCount:$("cityInvestorChipCount"), investorSelectAllBtn:$("investorSelectAllBtn"),
-    investorClearBtn:$("investorClearBtn")
+    investorClearBtn:$("investorClearBtn"), topInvestors:$("filterTopInvestors")
   };
   document.title = CONFIG.title;
 
   function formatCurrency(v){ return new Intl.NumberFormat("es-CO",{style:"currency",currency:"COP",maximumFractionDigits:0}).format(Number(v||0)); }
   function formatNumber(v){ return new Intl.NumberFormat("es-CO",{maximumFractionDigits:0}).format(Number(v||0)); }
+  function formatDecimal(v,digits=2){ return new Intl.NumberFormat("es-CO",{minimumFractionDigits:0,maximumFractionDigits:digits}).format(Number(v||0)); }
   const CUOTA_VALOR = 400000;
   function cuotasCompletasLabel(totalAportes){
     const cuotas = Math.floor(Number(totalAportes || 0) / CUOTA_VALOR);
@@ -1332,6 +1453,66 @@
     return Number.isFinite(n) ? n : 0;
   }
   function monthTotal(row,months){ return months.reduce((s,m)=>s + toNumber(row[m]),0); }
+
+  function read2025Summary(wb){
+    const sheetNames = wb.SheetNames || [];
+    const ordered = [
+      ...sheetNames.filter(n => SHEET_2025_ALIASES.includes(normalizeText(n))),
+      ...sheetNames.filter(n => !SHEET_2025_ALIASES.includes(normalizeText(n)))
+    ];
+
+    for(const name of ordered){
+      const ws = wb.Sheets[name];
+      if(!ws) continue;
+
+      const matrix = XLSX.utils.sheet_to_json(ws,{header:1,defval:null,raw:true});
+      const rows = matrix.slice(0,20);
+      const normalizedName = normalizeText(name);
+
+      let yearDetected = normalizedName === "2025";
+      let aportes = null, gastos = null, saldo = null;
+
+      rows.forEach(row => {
+        const key = normalizeText(row?.[0] || "");
+        const value = toNumber(row?.[1]);
+
+        if((key.includes("ANO") || key.includes("AÑO")) && Math.round(value) === 2025) yearDetected = true;
+
+        if(
+          key.includes("TOTAL INVERSIONISTAS") ||
+          key.includes("TOTAL APORTES") ||
+          key.includes("APORTES 2025")
+        ) aportes = value;
+
+        if(
+          key.includes("TOTAL GASTOS") ||
+          key.includes("GASTOS 2025")
+        ) gastos = Math.abs(value);
+
+        if(
+          key.includes("TOTAL SALDO 2025") ||
+          key.includes("SALDO 2025") ||
+          key.includes("TOTAL SALDO")
+        ) saldo = value;
+      });
+
+      const hasSummaryValues = aportes !== null && gastos !== null;
+
+      if((yearDetected || normalizedName === "HOJA2") && hasSummaryValues){
+        const saldoCalculado = saldo !== null ? saldo : aportes - gastos;
+        return {
+          aportes:Number(aportes || 0),
+          gastos:Number(gastos || 0),
+          saldo:Number(saldoCalculado || 0),
+          sheetName:name,
+          found:true
+        };
+      }
+    }
+
+    return {aportes:0,gastos:0,saldo:0,sheetName:null,found:false};
+  }
+
   function buildDatasets(wb){
     const populatedMonths = new Set();
     const trackMonths = (row) => {
@@ -1370,7 +1551,8 @@
       });
 
     const dataMonths = MONTHS.filter(m => populatedMonths.has(m));
-    return { investors, gastos, dataMonths };
+    const prior2025 = read2025Summary(wb);
+    return { investors, gastos, dataMonths, prior2025 };
   }
   function uniqueSorted(vals){ return [...new Set(vals.filter(Boolean))].sort((a,b)=>a.localeCompare(b,"es")); }
   function setMultiOptions(sel,vals){
@@ -1402,6 +1584,7 @@
     filters.cuotasMin.value = "0";
     filters.topN.value = "10";
     filters.rankingMetric.value = "aportes";
+    if(filters.topInvestors) filters.topInvestors.value = "10";
     populateInvestorOptions(false);
   }
   function populateInvestorOptions(preserveSelection=true){
@@ -1479,7 +1662,8 @@
       compareA: filters.compareA.value,
       compareB: filters.compareB.value,
       city: filters.city.value,
-      investorsSelected: selMulti(filters.investor)
+      investorsSelected: selMulti(filters.investor),
+      topInvestors: Number(filters.topInvestors?.value || 10)
     };
   }
   function applyFilters(){
@@ -1505,6 +1689,51 @@
     const cuotasEnteras = investors.reduce((s,r)=>s + Number(r.CUOTAS_ENTERAS || 0), 0);
     const ticketPromedio = activos ? aportesPeriodo / activos : 0;
     const promedioMensual = months.length ? aportesPeriodo / months.length : 0;
+
+    const prior2025 = state.prior2025 || {aportes:0,gastos:0,saldo:0,found:false};
+    const aportesAcumulados = Number(prior2025.aportes || 0) + aportesPeriodo;
+    const gastosAcumulados = Number(prior2025.gastos || 0) + gastosPeriodo;
+    const netoAcumulado = aportesAcumulados - gastosAcumulados;
+
+    // Ranking nacional por inversionista:
+    // - Ignora el filtro de localidad.
+    // - Respeta los meses seleccionados.
+    // - Consolida filas repetidas por nombre.
+    const individualMap = new Map();
+
+    state.investors.forEach(r => {
+      const nombreRaw = String(r["NOMBRES"] || "Sin nombre").trim() || "Sin nombre";
+      const key = normalizeText(nombreRaw) || "SIN NOMBRE";
+
+      if(!individualMap.has(key)){
+        individualMap.set(key,{
+          nombre:nombreRaw,
+          monthly:Object.fromEntries(MONTHS.map(m=>[m,0]))
+        });
+      }
+
+      const it = individualMap.get(key);
+      months.forEach(m => {
+        it.monthly[m] += Number(r[m] || 0);
+      });
+    });
+
+    const topIndividualInvestors = [...individualMap.values()]
+      .map(it => {
+        const monthsWithContribution = months.filter(m => Number(it.monthly[m] || 0) > 0);
+        const total = monthsWithContribution.reduce((s,m)=>s + Number(it.monthly[m] || 0),0);
+
+        return {
+          nombre:it.nombre,
+          total,
+          monthsWithContribution,
+          monthsCount:monthsWithContribution.length,
+          cuotasEquivalentes: total / CUOTA_VALOR
+        };
+      })
+      .filter(r => r.total > 0)
+      .sort((a,b)=>b.total-a.total)
+      .slice(0, ctx.f.topInvestors || 10);
 
     const monthly = MONTHS.map(month => {
       const aportes = investors.reduce((s,r)=>s+Number(r[month]||0),0);
@@ -1647,7 +1876,8 @@
       monthly,ranking,rankingSortedAportes,topLocalityShare,gastoRatio,compareA,compareB,
       compareLocalities,gastosByClasif,city,cityAportes,cityGastosTotal,cityNeto,cityCuotas,cityMonthly,cityTopInvestors,
       availableInvestorNames, selectedInvestorNames, selectedInvestorTotal, investorHistoryRows, investorChartSeries,
-      currentMonth, previousMonth, newInvestors, inactiveInvestors
+      currentMonth, previousMonth, newInvestors, inactiveInvestors,
+      prior2025, aportesAcumulados, gastosAcumulados, netoAcumulado, topIndividualInvestors
     };
   }
   function metricLabel(m){ return ({aportes:"Aportes del período",cuotas:"Cuotas enteras",neto:"Flujo neto"})[m] || m; }
@@ -1701,6 +1931,21 @@
     };
   }
   function drawCharts(ctx, summary){
+
+    makeOrUpdateChart("topIndividualInvestorsChart", {
+      type:"bar",
+      data:{
+        labels:summary.topIndividualInvestors.map(x=>x.nombre),
+        datasets:[{
+          label:"Aporte acumulado",
+          data:summary.topIndividualInvestors.map(x=>x.total),
+          backgroundColor:GOLD,
+          borderRadius:6
+        }]
+      },
+      options: chartOpts("COP", true)
+    });
+
     makeOrUpdateChart("trendChart", {
       type:"bar",
       data:{
@@ -1830,6 +2075,31 @@
       options: chartOpts("COP")
     });
   }
+
+  function renderTopIndividualInvestors(summary){
+    const rows = (summary.topIndividualInvestors || []).map((r,i)=>{
+      const monthsShort = r.monthsWithContribution.map(m=>m.slice(0,3)).join(" · ");
+
+      return `<tr>
+        <td style="color:var(--gold);font-weight:800">${i+1}</td>
+        <td style="color:var(--ink);font-weight:700">${r.nombre}</td>
+        <td>
+          <div class="months-summary">
+            <strong>${formatNumber(r.monthsCount)} mes(es)</strong>
+            <span>${monthsShort || "Sin aportes"}</span>
+          </div>
+        </td>
+        <td>${formatCurrency(r.total)}</td>
+        <td><span class="quota-equivalent">${formatDecimal(r.cuotasEquivalentes,2)}</span></td>
+      </tr>`;
+    }).join("");
+
+    setHTML(
+      "topIndividualInvestorsTable",
+      rows || `<tr><td colspan="5" style="text-align:center;padding:24px;color:var(--ink-3)">Sin aportes para los meses seleccionados.</td></tr>`
+    );
+  }
+
   function renderTables(summary){
     const rankingRows = [...summary.ranking].sort((a,b)=>b.aportes-a.aportes).slice(0,15)
       .map((r,i)=>`<tr>
@@ -1937,20 +2207,54 @@
   }
   function setExecutiveHeader(ctx,summary){
     setText("sourceLabel", state.fileName || "dashboard.xlsx");
-    setText("heroAportes", formatCurrency(summary.aportesPeriodo));
-    setText("heroAportesCuotas", cuotasCompletasLabel(summary.aportesPeriodo));
-    setText("heroGastos", formatCurrency(summary.gastosPeriodo));
-    setText("heroNeto", formatCurrency(summary.neto));
-    if ($("heroNeto")) $("heroNeto").style.color = summary.neto >= 0 ? "var(--green)" : "var(--red)";
+    setText(
+      "prior2025SourceLabel",
+      summary.prior2025?.found
+        ? `2025 · ${summary.prior2025.sheetName}`
+        : "Resumen 2025 no encontrado"
+    );
+
+    setText("heroAportes", formatCurrency(summary.aportesAcumulados));
+    setText("heroAportesCuotas", cuotasCompletasLabel(summary.aportesAcumulados));
+    setHTML(
+      "heroAportes2025Breakdown",
+      summary.prior2025?.found
+        ? `2025: <strong>${formatCurrency(summary.prior2025.aportes)}</strong> · 2026 filtrado: <strong>${formatCurrency(summary.aportesPeriodo)}</strong>`
+        : `2026 filtrado: <strong>${formatCurrency(summary.aportesPeriodo)}</strong>`
+    );
+
+    setText("heroGastos", formatCurrency(summary.gastosAcumulados));
+    setHTML(
+      "heroGastos2025Breakdown",
+      summary.prior2025?.found
+        ? `2025: <strong>${formatCurrency(summary.prior2025.gastos)}</strong> · 2026 filtrado: <strong>${formatCurrency(summary.gastosPeriodo)}</strong>`
+        : `2026 filtrado: <strong>${formatCurrency(summary.gastosPeriodo)}</strong>`
+    );
+
+    setText("heroNeto", formatCurrency(summary.netoAcumulado));
+    setHTML(
+      "heroNeto2025Breakdown",
+      summary.prior2025?.found
+        ? `Saldo 2025: <strong>${formatCurrency(summary.prior2025.saldo)}</strong> · Flujo 2026 filtrado: <strong>${formatCurrency(summary.neto)}</strong>`
+        : `Flujo 2026 filtrado: <strong>${formatCurrency(summary.neto)}</strong>`
+    );
+
+    if ($("heroNeto")) $("heroNeto").style.color = summary.netoAcumulado >= 0 ? "var(--green)" : "var(--red)";
     setText("heroActivos", formatNumber(summary.activos));
-    setText("heroAportesSub", `Meses: ${ctx.months.join(", ")}`);
-    setText("heroGastosSub", `Clasificaciones: ${selMulti(filters.clasif).length}`);
-    setText("heroNetoSub", "Neto = aportes − gastos");
+    setText("heroAportesSub", `Acumulado 2025 + meses 2026: ${ctx.months.join(", ")}`);
+    setText("heroGastosSub", `Acumulado 2025 + ${selMulti(filters.clasif).length} clasificaciones 2026`);
+    setText("heroNetoSub", "Neto acumulado = aportes acumulados − gastos acumulados");
     setText("heroActivosSub", `${formatNumber(summary.localidadesActivas)} localidades activas`);
-    setBadge("signalLiquidityBadge", signalStatus("liquidity", summary.neto));
+    setBadge("signalLiquidityBadge", signalStatus("liquidity", summary.netoAcumulado));
     setBadge("signalNewBadge", signalStatus("newInvestors", summary.newInvestors ? summary.newInvestors.length : 0));
     setBadge("signalInactiveBadge", signalStatus("inactiveInvestors", summary.inactiveInvestors ? summary.inactiveInvestors.length : 0));
-    setText("signalLiquidityValue", formatCurrency(summary.neto));
+    setText("signalLiquidityValue", formatCurrency(summary.netoAcumulado));
+    setText(
+      "signalLiquiditySub",
+      summary.prior2025?.found
+        ? `Saldo 2025 ${formatCurrency(summary.prior2025.saldo)} + flujo 2026 ${formatCurrency(summary.neto)}`
+        : `Flujo 2026 ${formatCurrency(summary.neto)}`
+    );
     setText("signalNewValue", formatNumber(summary.newInvestors ? summary.newInvestors.length : 0));
     setText("signalInactiveValue", formatNumber(summary.inactiveInvestors ? summary.inactiveInvestors.length : 0));
     setText("signalNewSub", summary.previousMonth ? `${summary.currentMonth} vs ${summary.previousMonth}` : `${summary.currentMonth || "Mes actual"} sin mes previo`);
@@ -2050,6 +2354,7 @@
     renderInvestorSelection(summary);
     renderInvestorStatusDetails(summary);
     renderTables(summary);
+    renderTopIndividualInvestors(summary);
     renderVariations(ctx, summary);
   }
   let wired=false;
@@ -2063,7 +2368,8 @@
     };
 
     [filters.localidad,filters.cuotasMin,filters.city].forEach(el=>el.addEventListener("change", refreshWithInvestors));
-    [filters.clasif,filters.meses,filters.topN,filters.rankingMetric,filters.compareA,filters.compareB,filters.investor]
+    [filters.clasif,filters.meses,filters.topN,filters.rankingMetric,filters.compareA,filters.compareB,filters.investor,filters.topInvestors]
+      .filter(Boolean)
       .forEach(el=>el.addEventListener("change", refresh));
 
     filters.investorSearch.addEventListener("input", renderInvestorChipList);
@@ -2213,12 +2519,18 @@
       state.investors = ds.investors;
       state.gastos = ds.gastos;
       state.dataMonths = ds.dataMonths && ds.dataMonths.length ? ds.dataMonths : MONTHS;
+      state.prior2025 = ds.prior2025 || {aportes:0,gastos:0,saldo:0,sheetName:null,found:false};
       initializeFilters();
       wireEventsOnce();
       setupNavigation();
       renderInvestorChipList();
       activateView("view-overview");
-      setDebug(`Dashboard cargado correctamente. Filas inversionistas: ${state.investors.length}, filas gastos: ${state.gastos.length}.`);
+      setDebug(
+        `Dashboard cargado correctamente. Filas inversionistas: ${state.investors.length}, filas gastos: ${state.gastos.length}. ` +
+        (state.prior2025?.found
+          ? `Resumen 2025 leído desde "${state.prior2025.sheetName}": aportes ${formatCurrency(state.prior2025.aportes)}, gastos ${formatCurrency(state.prior2025.gastos)}, saldo ${formatCurrency(state.prior2025.saldo)}.`
+          : `No se encontró resumen consolidado 2025.`)
+      );
       setTimestamp();
       setText("sourceLabel", state.fileName);
     }catch(err){
