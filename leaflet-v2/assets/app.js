@@ -43,9 +43,9 @@
   }).setView([4.5, -74], 6);
 
   // Fondo neutro sin etiquetas para que los colores propios no compitan
-  L.tileLayer("https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png", {
-    attribution: "&copy; OpenStreetMap &copy; CARTO",
-    maxZoom: 18
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+  attribution: "&copy; OpenStreetMap contributors",
+  maxZoom: 19
   }).addTo(map);
 
   /* ─── ARRANQUE ───────────────────────────────────────────────────────────── */
